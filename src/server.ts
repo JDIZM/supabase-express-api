@@ -1,16 +1,11 @@
 import express from "express";
-import dotenv from "dotenv";
+import { config } from "./config.js";
 import { pinoHttp } from "pino-http";
 import { routes } from "./routes/index.js";
 
 const { logger } = pinoHttp();
 
-const env = process.env.NODE_ENV || "development";
-const port = process.env.PORT || 3000;
-
-if (env !== "production") {
-  dotenv.config();
-}
+console.log("config", config);
 
 const app = express();
 
@@ -22,6 +17,6 @@ app.use(
 
 routes(app);
 
-app.listen(port, () => {
-  console.log(`[server]: Server is running at http://localhost:${port}`);
+app.listen(config.port, () => {
+  console.log(`[server]: Server is running at http://localhost:${config.port}`);
 });
