@@ -6,6 +6,8 @@
 - [prettier](https://prettier.io/)
 - [typescript](https://www.typescriptlang.org/)
 - [vitest](https://vitest.dev/)
+- [drizzle](https://orm.drizzle.team/)
+- [postgres](https://www.postgresql.org/)
 
 A simple node/express backend api template.
 
@@ -54,16 +56,20 @@ It's also recommended to install the [vitest extension for vscode](https://marke
 
 ```
 # build the app
-`npm run build`
+npm run build
 
 # build with docker
-`docker build . --tag node-express`
+docker build . --tag node-express-esm
+
+# or to build with a specific platform
+docker build . --tag node-express-esm --platform linux/amd64
 
 # start the docker container
-`docker run -d -p 3000:3000 node-express`
+docker run -d -p 3000:3000 node-express-esm
+
 
 # view it running on localhost
-`curl localhost:3000`
+curl localhost:3000`
 ```
 
 ## Database
