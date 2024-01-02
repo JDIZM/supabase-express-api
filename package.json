@@ -1,0 +1,70 @@
+{
+  "name": "node-express-backend-component",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/server.cjs",
+  "module": "dist/server.mjs",
+  "type": "module",
+  "imports": {
+    "@": "./src"
+  },
+  "scripts": {
+    "lint": "eslint . --ext .ts,.tsx --max-warnings 0",
+    "format": "prettier -w '**/*.{js,ts,mjs,cjs,json,tsx,jsx}'",
+    "format:check": "prettier --check '**/*.{js,ts,mjs,cjs,json,tsx,jsx}'",
+    "tsc:check": "tsc -p tsconfig.json --noEmit",
+    "dev": "tsx watch ./src/server.ts",
+    "build": "pkgroll",
+    "build:tsc": "rm -rf dist && tsc -p tsconfig.json",
+    "build:esm": "npm run tsc:check && rm -rf dist && node build.mjs",
+    "test": "vitest --run --coverage"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@prisma/client": "^5.2.0",
+    "@types/node": "^20.2.1",
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
+    "@typescript-eslint/parser": "^5.57.0",
+    "@vitest/coverage-c8": "^0.32.0",
+    "dotenv": "^16.3.1",
+    "eslint": "^8.37.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-import-resolver-typescript": "^3.5.5",
+    "eslint-plugin-import": "^2.27.5",
+    "pkgroll": "^1.11.0",
+    "prettier": "^2.8.7",
+    "prisma": "^5.2.0",
+    "tsx": "^3.12.8",
+    "typescript": "^5.0.4",
+    "vitest": "^0.31.1",
+    "zod": "^3.21.4",
+    "zod-prisma-types": "^2.7.9"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "volta": {
+    "node": "18.18.2"
+  },
+  "exports": {
+    "require": {
+      "default": "./dist/server.cjs"
+    },
+    "import": {
+      "default": "./dist/server.mjs"
+    }
+  },
+  "dependencies": {
+    "@types/bcrypt": "^5.0.0",
+    "@types/express": "^4.17.17",
+    "bcrypt": "^5.1.1",
+    "express": "^4.18.2",
+    "pino": "^8.15.1",
+    "pino-http": "^8.5.0"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "workbench.colorTheme": "Darcula",
+  "workbench.iconTheme": "material-icon-theme",
+  "editor.fontFamily": "JetBrains Mono",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "typescript.tsdk": "node_modules/typescript/lib"
+}

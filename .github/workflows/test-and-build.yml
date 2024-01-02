@@ -1,0 +1,25 @@
+name: test-and-build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: volta-cli/action@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run tsc:check
+      - run: npm run build
+      - run: npm run test
