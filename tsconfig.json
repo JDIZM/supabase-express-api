@@ -6,7 +6,7 @@
     "lib": ["ES2022"],
     "allowSyntheticDefaultImports": true,
     "declaration": true,
-    "noEmit": false,
+    "noEmit": true,
     "removeComments": true,
     "sourceMap": true,
     "skipLibCheck": true,
@@ -29,7 +29,8 @@
     "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "allowImportingTsExtensions": true
   },
   "exclude": ["node_modules", "bin", "dist", "**/*.test.ts"]
 }
