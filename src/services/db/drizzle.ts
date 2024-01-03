@@ -10,6 +10,14 @@ const client = new pg.Client({
   database: config.db_name
 });
 
-await client.connect();
+client
+  .connect()
+  .then(() => {
+    console.log("connected");
+  })
+  .catch((err) => {
+    console.error("connection error", err);
+    process.exit(1);
+  });
 
 export const db = drizzle(client);
