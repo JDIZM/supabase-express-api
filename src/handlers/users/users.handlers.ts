@@ -1,14 +1,14 @@
 import { Request, Response } from "express";
-import { prisma } from "@/services/db.js";
+import { db } from "@/services/db/drizzle.js";
+import { users } from "@/schema.js";
+
+async function fetchUsers() {
+  const result = await db.select().from(users).execute();
+  return result;
+}
 
 export async function getUsers(req: Request, res: Response) {
-  const users = await prisma.users.findMany({
-    select: {
-      id: true,
-      email: true,
-      username: true,
-      claims: true
-    }
-  });
-  await res.status(200).send(users);
+  const response = await fetchUsers();
+
+  await res.status(200).send(response);
 }
