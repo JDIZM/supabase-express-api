@@ -29,8 +29,6 @@ This project has been setup to use ESM Node. This allows us to use ES6 imports i
 
 This uses [tsx](https://github.com/esbuild-kit/tsx) as a dev server and [pkgroll](https://github.com/privatenumber/pkgroll) to bundle and build the project.
 
-Note: Prisma does not support ESM by default and [have an open issue](https://github.com/prisma/prisma/issues/5030) -- looking to migrate this to another ORM (drizzle) for ESM support
-
 ## Setup
 
 ```
@@ -44,11 +42,15 @@ npm run dev
 curl localhost:3000
 ```
 
+## env
+
+create a .env file in the root of the project and copy the contents of .env.example into it.
+
 ## Testing
 
-This project uses [vitest](https://vitest.dev/) for testing.
+This project uses [vitest](https://vitest.dev/) for unit testing.
 
-1. run the unit tests with `npm run test`
+Run the unit tests with `npm run test`
 
 It's also recommended to install the [vitest extension for vscode](https://marketplace.visualstudio.com/items?itemName=ZixuanChen.vitest-explorer).
 
@@ -67,38 +69,53 @@ docker build . --tag node-express-esm --platform linux/amd64
 # start the docker container
 docker run -d -p 3000:3000 node-express-esm
 
-
 # view it running on localhost
 curl localhost:3000`
 ```
 
 ## Database
 
+spin up a local copy of the database with docker-compose
+
 ```
-# after updating the model you want to generate the schema
-npx prisma generate
+docker compose up -d
 ```
 
-### env
+You can view the database with `npx drizzle-kit studio`
 
-create a .env file in the root of the project and copy the contents of .env.example into it.
+### Migrations
 
-You can replace `DATABASE_URL` with your mongodb connection string whether that be cloud or locally hosted.
+Create a new migration
 
-Note: when using Prisma the MongoDB database connector uses transactions to support nested writes. Transactions require a replica set deployment. The easiest way to deploy a replica set is with Atlas. It's free to get started.
+<!-- TODO create a named migration and pass additional flag to npm. -->
 
-https://www.prisma.io/docs/concepts/database-connectors/mongodb
-
-### seed the db
-
-run the seed script to seed the db the first time.
-
-```bash
-npx prisma db seed
 ```
+npm run migrate:create
+
+```
+
+Run the migrations
+
+```
+npm run migrate:up
+```
+
+### Seeds
+
+You can run the seeds to populate the database with initial data.
+
+```
+npm run seed
+```
+
+Be sure to update the seeds as new migrations are added.
 
 ## Import aliases
 
 Aliases can be configured in the import map, defined in package.json#imports.
 
 see: https://github.com/privatenumber/pkgroll#aliases
+
+## Deployment
+
+<!-- TODO add deployment steps.. -->
