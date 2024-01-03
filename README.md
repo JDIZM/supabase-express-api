@@ -73,6 +73,12 @@ docker run -d -p 3000:3000 node-express-esm
 curl localhost:3000`
 ```
 
+replace the `POSTGRES_HOST` with `host.docker.internal` in the .env file to run the app with docker.
+
+```
+POSTGRES_HOST=host.docker.internal
+```
+
 ## Database
 
 spin up a local copy of the database with docker-compose
