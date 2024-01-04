@@ -1,5 +1,5 @@
 {
-  "id": "5626ad03-73c1-4efc-996b-13fbb3759be7",
+  "id": "954372e0-8c76-42f9-82d4-9b3347191dc3",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -8,11 +8,12 @@
       "name": "users",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
+        "uuid": {
+          "name": "uuid",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "full_name": {
           "name": "full_name",
@@ -25,12 +26,33 @@
           "type": "varchar(256)",
           "primaryKey": false,
           "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {
+        "users_email_unique": {
+          "name": "users_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      }
     }
   },
   "enums": {},

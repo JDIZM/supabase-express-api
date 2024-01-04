@@ -6,11 +6,13 @@ import { InferInsertModel } from "drizzle-orm";
 const usersArray: InferInsertModel<typeof users>[] = [
   {
     fullName: "John Doe",
-    phone: "555-555-5555"
+    phone: "555-555-5555",
+    email: "john.doe@example.com"
   },
   {
     fullName: "Jane Doe",
-    phone: "555-555-5555"
+    phone: "555-555-5555",
+    email: "jane.doe@example.com"
   }
 ];
 

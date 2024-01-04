@@ -4,5 +4,6 @@ export const users = pgTable("users", {
   uuid: uuid("uuid").defaultRandom().primaryKey(),
   fullName: text("full_name"),
   phone: varchar("phone", { length: 256 }),
-  createdAt: timestamp("created_at", { precision: 6, withTimezone: true }).defaultNow()
+  createdAt: timestamp("created_at", { precision: 6, withTimezone: true }).defaultNow(),
+  email: text("email").unique().notNull()
 });

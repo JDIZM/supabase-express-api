@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1704263907215,
-      "tag": "0000_create_users_table",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "5",
-      "when": 1704349591527,
-      "tag": "0001_demonic_wolf_cub",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "5",
-      "when": 1704350616948,
-      "tag": "0002_aspiring_starbolt",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "5",
-      "when": 1704352573797,
-      "tag": "0003_wooden_rage",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "5",
-      "when": 1704352607666,
-      "tag": "0004_complex_landau",
+      "when": 1704353560472,
+      "tag": "0000_puzzling_warpath",
       "breakpoints": true
     }
   ]
