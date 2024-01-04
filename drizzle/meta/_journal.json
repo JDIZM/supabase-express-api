@@ -22,6 +22,20 @@
       "when": 1704350616948,
       "tag": "0002_aspiring_starbolt",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1704352573797,
+      "tag": "0003_wooden_rage",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1704352607666,
+      "tag": "0004_complex_landau",
+      "breakpoints": true
     }
   ]
 }

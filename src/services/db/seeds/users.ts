@@ -18,7 +18,7 @@ async function createUser(user: InferInsertModel<typeof users>) {
   const response = await db.insert(users).values(user).returning();
   console.log("created user: ", response);
   // we know that the response will be an array of one element
-  return response[0].id;
+  return response[0].uuid;
 }
 
 export function seedUsers() {
