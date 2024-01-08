@@ -8,6 +8,8 @@
 - [vitest](https://vitest.dev/)
 - [drizzle](https://orm.drizzle.team/)
 - [postgres](https://www.postgresql.org/)
+- [zod](https://zod.dev/)
+- [drizzle-zod](https://orm.drizzle.team/docs/zod)
 
 A simple node/express backend api template.
 
