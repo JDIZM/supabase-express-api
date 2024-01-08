@@ -18,7 +18,7 @@ export async function getUsers(req: Request, res: Response) {
 export async function getUser(req: Request, res: Response) {
   try {
     // Throw error if the UUID is invalid
-    uuidSchema.safeParse({ uuid: req.params.id });
+    uuidSchema.parse({ uuid: req.params.id });
 
     // Fetch result from DB
     const result = await db.select().from(users).where(eq(users.uuid, req.params.id)).execute();
