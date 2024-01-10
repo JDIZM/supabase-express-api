@@ -19,7 +19,7 @@ export const isAuthorized = async (req: Request, res: Response, next: NextFuncti
   }
 
   // If the user is not logged in, deny access.
-  if (!sub || !claims || !id) {
+  if (!sub || !claims || !id || !claims.length) {
     return res.status(401).send("Unauthorized");
   }
 
