@@ -42,7 +42,7 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
     // TODO Remove this example res.locals
     // Example res.locals with user info to test isAuthorized middleware
     res.locals = {
-      id: "407e4af9-208b-4af7-8b17-dac60f3ebb30",
+      id: "c4884999-f681-475e-9316-53b7577856d7",
       sub: "00000000-0000-0000-0000-000000000000",
       claims: ["user"]
     };

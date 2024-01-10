@@ -12,6 +12,6 @@ export type Claim = (typeof roles)[number];
 
 export const permissions = new Map<Route, Claim[]>();
 
-permissions.set(API_ROUTES.root, []);
-permissions.set(API_ROUTES.users, []);
-permissions.set(API_ROUTES.userById, ["admin", "owner"]);
+permissions.set(API_ROUTES.root, ["user"]);
+permissions.set(API_ROUTES.users, ["admin"]);
+permissions.set(API_ROUTES.userById, ["owner"]);

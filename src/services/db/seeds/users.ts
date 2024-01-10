@@ -7,12 +7,14 @@ const usersArray: InferInsertModel<typeof users>[] = [
   {
     fullName: "John Doe",
     phone: "555-555-5555",
-    email: "john.doe@example.com"
+    email: "john.doe@example.com",
+    role: "admin"
   },
   {
     fullName: "Jane Doe",
     phone: "555-555-5555",
-    email: "jane.doe@example.com"
+    email: "jane.doe@example.com",
+    role: "user"
   }
 ];
 

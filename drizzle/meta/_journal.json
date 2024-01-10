@@ -15,6 +15,13 @@
       "when": 1704701343338,
       "tag": "0001_sleepy_zaladane",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1704869459353,
+      "tag": "0002_even_shinko_yamashiro",
+      "breakpoints": true
     }
   ]
 }

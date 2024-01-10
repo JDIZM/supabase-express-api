@@ -7,9 +7,8 @@ export const users = pgTable("users", {
   fullName: text("full_name").notNull(),
   phone: varchar("phone", { length: 256 }),
   createdAt: timestamp("created_at", { precision: 6, withTimezone: true }).defaultNow(),
-  email: text("email").unique().notNull()
-  // TODO add role to schema and add permissions middleware
-  // role: text("role", { enum: ["admin", "user"] }).notNull()
+  email: text("email").unique().notNull(),
+  role: text("role", { enum: ["admin", "user"] }).notNull()
 });
 
 // Schema for inserting a user - can be used to validate API requests
