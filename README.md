@@ -93,7 +93,9 @@ You can view the database with `npx drizzle-kit studio`
 
 ### Migrations
 
-Create a new migration
+When the schema/model is changed make sure to create a new migration and run it against the db.
+
+1. Create a new migration
 
 <!-- TODO create a named migration and pass additional flag to npm. -->
 
@@ -102,7 +104,7 @@ npm run migrate:create
 
 ```
 
-Run the migrations
+2. Run the migrations
 
 ```
 npm run migrate:up
@@ -123,6 +125,33 @@ Be sure to update the seeds as new migrations are added.
 Aliases can be configured in the import map, defined in package.json#imports.
 
 see: https://github.com/privatenumber/pkgroll#aliases
+
+## Authentication
+
+This project uses JWT bearer token for authentication. The claims, id and sub must be set on the token and the token can be verified and decoded using the configured auth provider.
+
+## Permissions
+
+How permissions work.
+
+A resource will have a permission level. A user will have a role/claim.
+
+Routes will have their permission level defined in `./src/helpers/permissions.ts`
+
+When a user makes a request to a route the route will check the user's role/claim against the permission level of the resource.
+
+### Route permission levels
+
+1. Owner - Route can only be accessed by the owner of the resource. Defined by the id of the resource being accessed matching the id of the user making the request.
+2. User - Can access all resources with user permissions.
+3. Admin - Can access all resources.
+
+### Claims / Roles
+
+A claim is defined when the user is created which defines the user's role and permissions level.
+
+1. User - default user permissions
+2. Admin - admin permissions
 
 ## Deployment
 
