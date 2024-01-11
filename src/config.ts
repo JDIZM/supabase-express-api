@@ -14,5 +14,6 @@ export const config = {
   db_host: process.env.POSTGRES_HOST || "localhost",
   db_user: process.env.POSTGRES_USER || "postgres",
   db_password: process.env.POSTGRES_PASSWORD || "postgres",
-  db_name: process.env.POSTGRES_DB || "test"
+  db_name: process.env.POSTGRES_DB || "test",
+  appUrl: process.env.APP_URL || "http://localhost:3000"
 };
