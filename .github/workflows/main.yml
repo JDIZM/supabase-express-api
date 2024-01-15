@@ -1,0 +1,54 @@
+name: test-and-build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: volta-cli/action@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run tsc:check
+      - run: npm run build
+      - run: npm run test
+      # TODO run migrations on deployment.
+  # TODO uncomment the deployment step when you have configured the secrets.
+  # deploy-dev:
+  #   needs: test-and-build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: volta-cli/action@v3
+  #       with:
+  #         node-version: 20
+
+  #     - name: Create SA key to working directory
+  #       run: echo '${{ secrets.SERVICE_ACCOUNT_DEV }}' > $GITHUB_WORKSPACE/gcloud.json
+
+  #     - name: Install doctl
+  #       uses: digitalocean/action-doctl@v2
+  #       with:
+  #         token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+  #     - name: Build container image
+  #       run: docker build -t ${{ secrets.REGISTRY_NAME }}/${{secrets.IMAGE_NAME_DEV}}:$(echo $GITHUB_SHA | head -c7) .
+
+  #     - name: Log in to DigitalOcean Container Registry with short-lived credentials
+  #       run: doctl registry login --expiry-seconds 1200
+
+  #     - name: tag image with latest tag
+  #       run: docker tag ${{ secrets.REGISTRY_NAME }}/${{secrets.IMAGE_NAME_DEV}}:$(echo $GITHUB_SHA | head -c7) ${{ secrets.REGISTRY_NAME }}/${{secrets.IMAGE_NAME_DEV}}:latest
+
+  #     - name: Push image to DigitalOcean Container Registry
+  #       run: docker push ${{ secrets.REGISTRY_NAME }}/${{secrets.IMAGE_NAME_DEV}}:latest
