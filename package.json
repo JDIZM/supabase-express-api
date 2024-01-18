@@ -32,7 +32,7 @@
     "@types/pg": "^8.10.9",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
-    "@vitest/coverage-c8": "^0.32.0",
+    "@vitest/coverage-c8": "^0.33.0",
     "dotenv": "^16.3.1",
     "drizzle-kit": "^0.20.9",
     "eslint": "^8.37.0",
@@ -43,7 +43,7 @@
     "prettier": "^3.0.0",
     "tsx": "^4.0.0",
     "typescript": "^5.0.4",
-    "vitest": "^0.31.1",
+    "vitest": "^0.34.0",
     "zod": "^3.21.4"
   },
   "prisma": {
