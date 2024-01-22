@@ -13,7 +13,7 @@ jobs:
         node-version: [18, 20]
     steps:
       - uses: actions/checkout@v4
-      - uses: volta-cli/action@v3
+      - uses: volta-cli/action@v4
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
