@@ -16,7 +16,6 @@
     "dev": "tsx watch ./src/server.ts",
     "build": "pkgroll",
     "build:tsc": "rm -rf dist && tsc -p tsconfig.json",
-    "build:esm": "npm run tsc:check && rm -rf dist && node build.mjs",
     "test": "vitest --run --coverage",
     "migrate:create": "npx drizzle-kit generate:pg",
     "migrate:up": "tsx ./src/services/db/migrations.ts",
