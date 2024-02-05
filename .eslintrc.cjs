@@ -1,7 +1,7 @@
 module.exports = {
   root: true,
   env: {
-    es2021: true,
+    es2022: true,
     node: true
   },
   extends: [
@@ -31,11 +31,12 @@ module.exports = {
   },
   rules: {
     // Add your own rules here to override ones from the extended configs.
-    "@typescript-eslint/no-explicit-any": "warn"
+    "@typescript-eslint/no-explicit-any": "warn",
+    "arrow-parens": "error"
   },
   overrides: [
     {
-      files: ["**/__mocks__/*", "**/*.{test,tests}.{ts,tsx}"], // Feels unnecessary to enforce these rules in tests
+      files: ["**/__mocks__/*", "**/*.{test,tests}.{ts,tsx}"],
       rules: {
         "@typescript-eslint/no-unused-vars": 0,
         "@typescript-eslint/no-explicit-any": 0
