@@ -15,5 +15,7 @@ export const config = {
   db_user: process.env.POSTGRES_USER || "postgres",
   db_password: process.env.POSTGRES_PASSWORD || "postgres",
   db_name: process.env.POSTGRES_DB || "test",
-  appUrl: process.env.APP_URL || "http://localhost:3000"
+  appUrl: process.env.APP_URL || "http://localhost:3000",
+  supabaseUrl: process.env.SUPABASE_URL || "",
+  supabaseKey: process.env.SUPABASE_PK || ""
 };

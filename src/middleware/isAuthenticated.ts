@@ -1,5 +1,9 @@
 import { Route, permissions } from "@/helpers/permissions.ts";
 import { NextFunction, Request, Response } from "express";
+import { supabase } from "@/services/supabase.ts";
+import { db } from "@/services/db/drizzle.js";
+import { users } from "@/schema.js";
+import { eq } from "drizzle-orm";
 
 // https://stackabuse.com/bytes/how-to-get-a-users-ip-address-in-express-js/
 const getIpFromRequest = (req: Request): string | undefined => {
@@ -30,22 +34,28 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
   }
 
   try {
-    // TODO Verify token using your auth service. eg Firebase.
-    // const verified = await getAuth(app).verifyIdToken(token, true);
+    // Verify token using your auth service.
+    const {
+      data: { user }
+    } = await supabase.auth.getUser(token);
 
-    // TODO get user from DB.
-    // const user = await getUserBySub(verified.sub);
+    if (!user) {
+      throw new Error("User not found");
+    }
 
-    // TODO Attach user to res.locals and verify permissions in isAuthorized middleware
-    // res.locals = { id: user?.id, sub: verified.sub, claims: verified.claims };
+    // get user from DB.
+    const [dbUser] = await db.select().from(users).where(eq(users.uuid, user.id)).execute();
+
+    // Attach user to res.locals and verify permissions in isAuthorized middleware
+    res.locals = { id: user.id, sub: user.id, claims: dbUser.role };
 
     // TODO Remove this example res.locals
     // Example res.locals with user info to test isAuthorized middleware
-    res.locals = {
-      id: "c4884999-f681-475e-9316-53b7577856d7",
-      sub: "00000000-0000-0000-0000-000000000000",
-      claims: ["user"]
-    };
+    // res.locals = {
+    //   id: "f30ebcf1-ae80-4e09-b04b-39ca23856825",
+    //   sub: "f30ebcf1-ae80-4e09-b04b-39ca23856825",
+    //   claims: ["admin"]
+    // };
     return next();
   } catch (error) {
     return res.status(401).send(error);

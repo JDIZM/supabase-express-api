@@ -59,8 +59,9 @@
     }
   },
   "dependencies": {
-    "@types/cors": "^2.8.17",
+    "@supabase/supabase-js": "^2.39.3",
     "@types/bcrypt": "^5.0.0",
+    "@types/cors": "^2.8.17",
     "@types/express": "^4.17.17",
     "@types/node": "^20.2.1",
     "@types/pg": "^8.10.9",

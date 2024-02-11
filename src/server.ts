@@ -1,8 +1,10 @@
 import express from "express";
+import cors from "cors";
 import { config } from "./config.js";
 import { pinoHttp } from "pino-http";
 import { routes } from "./routes/index.js";
-import cors from "cors";
+import "./services/supabase.js";
+
 const { logger } = pinoHttp();
 
 console.log("config", config);
