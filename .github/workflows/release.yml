@@ -24,7 +24,8 @@ jobs:
       - run: npm run test
       # TODO run migrations on deployment.
   # TODO uncomment the deployment step when you have configured the secrets.
-  # deploy-dev:
+  # TODO update deployment steps for supabase db.
+  # deploy-prod:
   #   needs: test-and-build
   #   runs-on: ubuntu-latest
   #   steps:
