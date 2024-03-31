@@ -7,7 +7,7 @@ export const isAuthorized = async (req: Request, res: Response, next: NextFuncti
 
   const routeKey = (req.baseUrl + req.route.path) as Route;
   const routePermissions = permissions.get(routeKey);
-  const isOwner: boolean = id && (req.params?.userId === id || req.params?.id === id);
+  const isOwner: boolean = (id && (req.params?.userId === id || req.params?.id === id)) || false;
 
   console.log("routeKey", routeKey);
   console.log("routePermissions", routePermissions);
