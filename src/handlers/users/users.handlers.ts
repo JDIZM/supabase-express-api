@@ -1,20 +1,29 @@
 import { Request, Response } from "express";
 import { db } from "@/services/db/drizzle.js";
+import { gatewayResponse } from "@/helpers/response.ts";
 import { users, selectUserSchema, uuidSchema } from "@/schema.js";
 import { eq } from "drizzle-orm";
 
-async function fetchUsers() {
-  const result = await db.select().from(users).execute();
-  return result;
-}
-
 export async function getUsers(req: Request, res: Response) {
-  const response = await fetchUsers();
+  try {
+    const result = await db.select().from(users).execute();
 
-  await res.status(200).send(response);
+    const response = gatewayResponse().success(200, result);
+
+    return res.status(response.code).send(response);
+  } catch (error) {
+    if (error instanceof Error) {
+      const response = gatewayResponse().error(500, error, "Unable to fetch users");
+
+      return res.status(response.code).send(response);
+    }
+
+    const response = gatewayResponse().error(500, Error("Internal server error"), "Unable to fetch users");
+
+    return res.status(response.code).send(response);
+  }
 }
 
-// TODO create additional endpoints for CRUD users with zod validation.
 export async function getUser(req: Request, res: Response) {
   try {
     // Throw error if the UUID is invalid
@@ -22,19 +31,30 @@ export async function getUser(req: Request, res: Response) {
 
     // Fetch result from DB
     const result = await db.select().from(users).where(eq(users.uuid, req.params.id)).execute();
-    console.log("result", result);
 
     // Validate response with zod without throwing error
     const parsedUser = selectUserSchema.safeParse(result[0]);
-    if (!parsedUser.success) console.error(parsedUser.error);
 
-    await res.status(200).send(result);
+    if (!parsedUser.success) {
+      console.error(parsedUser.error);
+      const response = gatewayResponse().error(400, parsedUser.error, "Unable to fetch user");
+
+      return res.status(response.code).send(response);
+    }
+
+    const response = gatewayResponse().success(200, parsedUser.data);
+
+    return res.status(response.code).send(response);
   } catch (err) {
-    console.error(err);
-    await res.status(500).send({
-      message: "unable to fetch user",
-      error: err
-    });
+    if (err instanceof Error) {
+      const response = gatewayResponse().error(500, err, "Unable to fetch user");
+
+      return res.status(response.code).send(response);
+    }
+
+    const response = gatewayResponse().error(500, Error("Internal server error"), "Unable to fetch user");
+
+    return res.status(response.code).send(response);
   }
 }
 
