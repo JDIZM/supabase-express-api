@@ -1,5 +1,6 @@
 export const API_ROUTES = {
   root: "/",
+  login: "/login",
   users: "/users",
   userById: "/users/:id"
 } as const;
@@ -14,7 +15,8 @@ export type Claim = (typeof roles)[number];
 export const permissions = new Map<Route, Claim[]>();
 export type PermissionsMap = Map<Route, Claim[]>;
 
-permissions.set(API_ROUTES.root, ["user"]);
+permissions.set(API_ROUTES.root, []);
+permissions.set(API_ROUTES.login, []);
 permissions.set(API_ROUTES.users, ["admin"]);
 permissions.set(API_ROUTES.userById, ["owner"]);
 
