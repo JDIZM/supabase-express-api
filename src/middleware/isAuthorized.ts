@@ -1,17 +1,18 @@
 import { NextFunction, Request, Response } from "express";
 import { Route, permissions } from "@/helpers/permissions.js";
+import { logger } from "@/helpers/logger.ts";
 
 export const isAuthorized = async (req: Request, res: Response, next: NextFunction) => {
   const { id, sub, claims } = res.locals;
-  console.log("res.locals", res.locals);
+  logger.debug("res.locals", res.locals);
 
   const routeKey = (req.baseUrl + req.route.path) as Route;
   const routePermissions = permissions.get(routeKey);
-  const isOwner: boolean = id && (req.params?.userId === id || req.params?.id === id);
+  const isOwner: boolean = (id && (req.params?.userId === id || req.params?.id === id)) || false;
 
-  console.log("routeKey", routeKey);
-  console.log("routePermissions", routePermissions);
-  console.log("isOwner", isOwner);
+  logger.debug("routeKey", routeKey);
+  logger.debug("routePermissions", routePermissions);
+  logger.debug("isOwner", isOwner);
 
   // If the route doesn't have any permissions, allow access.
   if (!routePermissions?.length) {
@@ -38,6 +39,7 @@ export const isAuthorized = async (req: Request, res: Response, next: NextFuncti
       return next();
     }
 
+    logger.error("Unauthorized user", 401, id, routeKey, routePermissions);
     return res.status(401).send("Unauthorized");
   }
 };

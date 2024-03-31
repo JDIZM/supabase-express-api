@@ -1,3 +1,5 @@
+import { logger } from "@/helpers/logger.ts";
+
 export const API_ROUTES = {
   root: "/",
   login: "/login",
@@ -38,5 +40,7 @@ export const hasRoutesWithNoPermissionsSet = (routes: Routes, permissions: Permi
 const hasInvalidRoute = hasRoutesWithNoPermissionsSet(Object.values(API_ROUTES), permissions);
 
 if (hasInvalidRoute) {
-  throw new Error("There are routes without permissions set.");
+  const errorMessage = "There are routes without permissions set.";
+  logger.error(errorMessage);
+  throw new Error(errorMessage);
 }

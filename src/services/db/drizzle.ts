@@ -1,6 +1,7 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import { config } from "../../config.ts";
+import { logger } from "../../helpers/logger.ts";
 
 const client = new pg.Client({
   host: config.db_host,
@@ -13,10 +14,10 @@ const client = new pg.Client({
 client
   .connect()
   .then(() => {
-    console.log("connected");
+    logger.info("connected to database");
   })
   .catch((err) => {
-    console.error("connection error", err);
+    logger.error("database connection error", err);
     process.exit(1);
   });
 

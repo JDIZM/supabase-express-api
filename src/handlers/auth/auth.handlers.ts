@@ -1,6 +1,7 @@
 import { supabase } from "@/services/supabase.ts";
 import { Request, Response } from "express";
 import { gatewayResponse } from "@/helpers/response.ts";
+import { logger } from "@/helpers/logger.ts";
 
 export const signInWithPassword = async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -11,10 +12,13 @@ export const signInWithPassword = async (req: Request, res: Response) => {
 
   if (error) {
     const response = gatewayResponse().error(400, error, "Unable to sign in with password");
-    console.error("Unable to sign in with password", error);
+    logger.error("Unable to sign in with password", error);
+
     return res.status(response.code).send(response);
   }
 
+  logger.info("User signed in", 200, data.user.id);
   const response = gatewayResponse().success(200, data);
+
   return res.status(response.code).send(response);
 };

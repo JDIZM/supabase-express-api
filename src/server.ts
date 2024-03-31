@@ -3,15 +3,17 @@ import cors from "cors";
 import { config } from "./config.js";
 import { pinoHttp } from "pino-http";
 import { routes } from "./routes/index.js";
+import { logger as localLogger } from "./helpers/logger.js";
 import "./services/supabase.js";
 
 const { logger } = pinoHttp();
 
-console.log("config", config);
+localLogger.debug("config", config);
 
 const checkConfigIsValid = () => {
   Object.values(config).forEach((value) => {
     if (!value) {
+      localLogger.error("config is invalid", config);
       throw new Error("config is invalid");
     }
   });
@@ -45,5 +47,5 @@ app.use(cors(corsOptions));
 routes(app);
 
 app.listen(config.port, () => {
-  console.log(`[server]: Server is running at http://localhost:${config.port}`);
+  localLogger.info(`[server]: Server is running at http://localhost:${config.port}`);
 });

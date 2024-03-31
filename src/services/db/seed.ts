@@ -1,16 +1,17 @@
 import { seedUsers } from "./seeds/users.ts";
+import { logger } from "../../helpers/logger.ts";
 
 async function main(): Promise<void> {
-  console.log("Seeding users...");
+  logger.info("Seeding users...");
   const ids = await seedUsers();
-  console.log("Created users with ids:", ids);
+  logger.info("Created users with ids:", ids);
 }
 
 try {
-  console.log("Seeding database...");
+  logger.info("Seeding database...");
   await main();
   process.exit(0);
 } catch (err) {
-  console.error(err);
+  logger.error("error seeding database...", err);
   process.exit(1);
 }
