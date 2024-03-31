@@ -2,6 +2,7 @@ import { Route, permissions } from "@/helpers/permissions.ts";
 import { NextFunction, Request, Response } from "express";
 import { supabase } from "@/services/supabase.ts";
 import { db } from "@/services/db/drizzle.js";
+import { logger } from "@/helpers/logger.ts";
 import { users } from "@/schema.js";
 import { eq } from "drizzle-orm";
 
@@ -23,24 +24,28 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
   const routePermissions = permissions.get(routeKey as Route);
 
   const ips = getIpFromRequest(req);
-  console.log("ip address:", ips);
+  logger.info("ip address:", ips);
 
   if (!routePermissions?.length) {
     return next();
   }
 
   if (!token) {
-    return res.status(401).send("A token is required for authentication");
+    logger.error("A token is required for authentication", 403);
+    return res.status(403).send("A token is required for authentication");
   }
 
   try {
     // Verify token using your auth service.
     const {
-      data: { user }
+      data: { user },
+      error
     } = await supabase.auth.getUser(token);
 
-    if (!user) {
-      throw new Error("User not found");
+    if (error || !user) {
+      throw new Error("User not found", {
+        cause: error
+      });
     }
 
     // get user from DB.
@@ -58,6 +63,7 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
     // };
     return next();
   } catch (error) {
-    return res.status(401).send(error);
+    logger.error("isAuthenticated error:", 403, error);
+    return res.status(403).send(error);
   }
 };

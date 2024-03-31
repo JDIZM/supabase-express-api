@@ -1,8 +1,9 @@
 import type { Config } from "drizzle-kit";
 // drizzle requires the ts extension to import config.
 import { config } from "./src/config.ts";
+import { logger } from "./src/helpers/logger.ts";
 
-console.log("config", config);
+logger.info("config", config);
 
 export default {
   schema: "./src/schema.ts",
