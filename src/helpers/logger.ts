@@ -1,3 +1,5 @@
+import chalk from "chalk";
+
 type LogLevel = "debug" | "info" | "warn" | "error";
 
 interface LoggerClass {
@@ -9,19 +11,19 @@ interface LoggerClass {
 
 class Logger implements LoggerClass {
   public debug(logMessage: string, ...data: unknown[]): void {
-    this.emitLogMessage("debug", logMessage, data);
+    this.emitLogMessage("debug", chalk.blue("DEBUG: " + logMessage), data);
   }
 
   public info(logMessage: string, ...data: unknown[]): void {
-    this.emitLogMessage("info", logMessage, data);
+    this.emitLogMessage("info", chalk.white("INFO: " + logMessage), data);
   }
 
   public warn(logMessage: string, ...data: unknown[]): void {
-    this.emitLogMessage("warn", logMessage, data);
+    this.emitLogMessage("warn", chalk.cyan("WARN: " + logMessage), data);
   }
 
   public error(logMessage: string, ...data: unknown[]): void {
-    this.emitLogMessage("error", logMessage, data);
+    this.emitLogMessage("error", chalk.red("ERROR: " + logMessage), data);
   }
 
   private emitLogMessage(level: LogLevel, msg: string, data: unknown[]): void {
