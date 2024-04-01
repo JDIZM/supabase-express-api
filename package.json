@@ -19,7 +19,8 @@
     "test": "vitest --run --coverage",
     "migrate:create": "npx drizzle-kit generate:pg",
     "migrate:up": "tsx ./src/services/db/migrations.ts",
-    "seed": "tsx ./src/services/db/seed.ts"
+    "seed": "tsx ./src/services/db/seed.ts --supabase=$npm_config_supabase",
+    "studio": "npx drizzle-kit studio"
   },
   "keywords": [],
   "author": "",
