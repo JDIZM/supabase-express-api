@@ -3,8 +3,10 @@ import { logger } from "@/helpers/logger.ts";
 export const API_ROUTES = {
   root: "/",
   login: "/login",
+  signUp: "/signup",
   users: "/users",
-  userById: "/users/:id"
+  userById: "/users/:id",
+  usersCreate: "/users/create"
 } as const;
 
 export type RouteName = keyof typeof API_ROUTES;
@@ -19,8 +21,10 @@ export type PermissionsMap = Map<Route, Claim[]>;
 
 permissions.set(API_ROUTES.root, []);
 permissions.set(API_ROUTES.login, []);
+permissions.set(API_ROUTES.signUp, []);
 permissions.set(API_ROUTES.users, ["admin"]);
 permissions.set(API_ROUTES.userById, ["owner"]);
+permissions.set(API_ROUTES.usersCreate, ["admin"]);
 
 /**
  * This validates that permissions are set for all routes
