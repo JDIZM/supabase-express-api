@@ -6,14 +6,12 @@ async function main(): Promise<void> {
 
   const args = process.argv.slice(2);
 
-
   const options = args
     .map((str) => str.replace(/^-+/, "").split("="))
     .reduce<{ [key: string]: string }>((acc, [key, value]) => {
       acc[key] = value;
       return acc;
     }, {});
-
 
   // Note if you are using supabase you will need to confirm the email addresses.
   if (options?.supabase) {
