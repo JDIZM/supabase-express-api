@@ -2,9 +2,8 @@ import { Request, Response } from "express";
 import { db } from "@/services/db/drizzle.js";
 import { gatewayResponse } from "@/helpers/response.ts";
 import { logger } from "@/helpers/logger.ts";
-
-import { users, selectUserSchema, uuidSchema } from "@/schema.js";
-import { eq } from "drizzle-orm";
+import { users, selectUserSchema, insertUserSchema, uuidSchema } from "@/schema.js";
+import { InferInsertModel, eq } from "drizzle-orm";
 
 export async function getUsers(req: Request, res: Response) {
   try {
@@ -14,15 +13,15 @@ export async function getUsers(req: Request, res: Response) {
     const response = gatewayResponse<typeof result>().success(200, result);
 
     return res.status(response.code).send(response);
-  } catch (error) {
-    if (error instanceof Error) {
-      logger.error("Unable to fetch users", 500, error);
-      const response = gatewayResponse().error(500, error, "Unable to fetch users");
+  } catch (err) {
+    if (err instanceof Error) {
+      logger.error("Unable to fetch users", 500, err);
+      const response = gatewayResponse().error(500, err, "Unable to fetch users");
 
       return res.status(response.code).send(response);
     }
 
-    logger.error("Unable to fetch users", 500, error);
+    logger.error("Unable to fetch users", 500, err);
     const response = gatewayResponse().error(500, Error("Internal server error"), "Unable to fetch users");
 
     return res.status(response.code).send(response);
@@ -66,16 +65,41 @@ export async function getUser(req: Request, res: Response) {
   }
 }
 
-// TODO create a user in the db; associated with supabase login.
-// FIXME currently there is no connection between supabase and drizzle users.
-export async function createUser(req: Request, res: Response) {
-  // const response = await fetchUsers();
+export async function createDbUser(user: InferInsertModel<typeof users>) {
+  insertUserSchema.parse(user);
 
-  await res.status(200).send("created user");
+  const response = await db.insert(users).values(user).returning();
+  logger.debug("created user: ", response[0].uuid);
+
+  return response[0].uuid;
+}
+
+export async function createUser(req: Request, res: Response) {
+  try {
+    const { fullName, phone, email } = req.body;
+    const role = "user";
+
+    const userId = await createDbUser({ fullName, phone, email, role });
+
+    logger.info("User created", 200, userId);
+    const response = gatewayResponse().success(200, userId);
+
+    return res.status(response.code).send(response);
+  } catch (err) {
+    if (err instanceof Error) {
+      logger.error("Unable to create user", 400, err);
+      const response = gatewayResponse().error(400, err, "Unable to create user");
+
+      return res.status(response.code).send(response);
+    }
+
+    logger.error("Unable to create user", 500, err);
+    const response = gatewayResponse().error(500, Error("Unable to create user"), "Unable to create user");
+
+    return res.status(response.code).send(response);
+  }
 }
 
 export async function updateUser(req: Request, res: Response) {
-  // const response = await fetchUsers();
-
   await res.status(200).send("updated user");
 }

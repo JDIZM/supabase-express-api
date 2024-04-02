@@ -4,7 +4,7 @@ import { logger } from "@/helpers/logger.ts";
 
 export const isAuthorized = async (req: Request, res: Response, next: NextFunction) => {
   const { id, sub, claims } = res.locals;
-  logger.debug("res.locals", res.locals);
+  console.debug("res.locals", res.locals);
 
   const routeKey = (req.baseUrl + req.route.path) as Route;
   const routePermissions = permissions.get(routeKey);

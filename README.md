@@ -10,6 +10,10 @@
 - [postgres](https://www.postgresql.org/)
 - [zod](https://zod.dev/)
 - [drizzle-zod](https://orm.drizzle.team/docs/zod)
+  - [drizzle with supabase](https://orm.drizzle.team/docs/get-started-postgresql#supabase)
+- [drizzle-kit](https://orm.drizzle.team/kit-docs/overview)
+- [supabase](https://supabase.io/)
+  - [supabase-js](https://supabase.com/docs/reference/javascript/introduction)
 
 A simple node/express backend api template.
 
@@ -89,7 +93,7 @@ spin up a local copy of the database with docker-compose
 docker compose up -d
 ```
 
-You can view the database with `npx drizzle-kit studio`
+You can view the database with `npx drizzle-kit studio` or `npm run studio`
 
 ### Migrations
 
@@ -113,6 +117,10 @@ npm run migrate:up
 ### Seeds
 
 You can run the seeds to populate the database with initial data.
+
+Before seeding the db make sure to run the migrations. If you want to populate the seeds with specific user email, password or id's related to the users created in Supabase. You can update the seeds in `./src/seeds/` with the required data and make sure to pass the `--supabase=true` flag to the seed command and it will create the users in Supabase and associate the id's with the db records.
+
+Note: If you are creating users with Supabase you will need to confirm the email addresses.
 
 ```
 npm run seed
