@@ -22,9 +22,7 @@ jobs:
       - run: npm run tsc:check
       - run: npm run build
       - run: npm run test
-      # TODO run migrations on deployment.
   # TODO uncomment the deployment step when you have configured the secrets.
-  # TODO update deployment steps for supabase db.
   # deploy-prod:
   #   needs: test-and-build
   #   runs-on: ubuntu-latest
@@ -34,22 +32,19 @@ jobs:
   #       with:
   #         node-version: 20
 
-  #     - name: Create SA key to working directory
-  #       run: echo '${{ secrets.SERVICE_ACCOUNT_PROD }}' > $GITHUB_WORKSPACE/gcloud.json
-
   #     - name: Install doctl
   #       uses: digitalocean/action-doctl@v2
   #       with:
   #         token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
   #     - name: Build container image
-  #       run: docker build -t ${{ secrets.REGISTRY_NAME }}/${{secrets.IMAGE_NAME_PROD}}:$(echo $GITHUB_SHA | head -c7) .
+  #       run: docker build -t ${{ secrets.REGISTRY_NAME }}/${{secrets.IMAGE_NAME}}-prod:$(echo $GITHUB_SHA | head -c7) .
 
   #     - name: Log in to DigitalOcean Container Registry with short-lived credentials
   #       run: doctl registry login --expiry-seconds 1200
 
   #     - name: tag image with latest tag
-  #       run: docker tag ${{ secrets.REGISTRY_NAME }}/${{secrets.IMAGE_NAME_PROD}}:$(echo $GITHUB_SHA | head -c7) ${{ secrets.REGISTRY_NAME }}/${{secrets.IMAGE_NAME_PROD}}:latest
+  #       run: docker tag ${{ secrets.REGISTRY_NAME }}/${{secrets.IMAGE_NAME}}-prod:$(echo $GITHUB_SHA | head -c7) ${{ secrets.REGISTRY_NAME }}/${{secrets.IMAGE_NAME}}-prod:latest
 
   #     - name: Push image to DigitalOcean Container Registry
-  #       run: docker push ${{ secrets.REGISTRY_NAME }}/${{secrets.IMAGE_NAME_PROD}}:latest
+  #       run: docker push ${{ secrets.REGISTRY_NAME }}/${{secrets.IMAGE_NAME}}-prod:latest
