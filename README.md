@@ -6,12 +6,12 @@
 - [prettier](https://prettier.io/)
 - [typescript](https://www.typescriptlang.org/)
 - [vitest](https://vitest.dev/)
-- [drizzle](https://orm.drizzle.team/)
-- [postgres](https://www.postgresql.org/)
 - [zod](https://zod.dev/)
-- [drizzle-zod](https://orm.drizzle.team/docs/zod)
+- [drizzle](https://orm.drizzle.team/)
   - [drizzle with supabase](https://orm.drizzle.team/docs/get-started-postgresql#supabase)
+- [drizzle-zod](https://orm.drizzle.team/docs/zod)
 - [drizzle-kit](https://orm.drizzle.team/kit-docs/overview)
+- [postgres](https://www.postgresql.org/)
 - [supabase](https://supabase.io/)
   - [supabase-js](https://supabase.com/docs/reference/javascript/introduction)
 
@@ -35,6 +35,16 @@ This project has been setup to use ESM Node. This allows us to use ES6 imports i
 
 This uses [tsx](https://github.com/esbuild-kit/tsx) as a dev server and [pkgroll](https://github.com/privatenumber/pkgroll) to bundle and build the project.
 
+## ENV
+
+Create a .env file in the root of the project and copy the contents of .env.example into it.
+
+```
+cp .env.example .env
+```
+
+see the section on [Deployment with DigitalOcean](#deployment-with-digitalocean) for more information on how to configure the environment variables for deployment in different environments (eg. development and production).
+
 ## Setup
 
 ```
@@ -44,13 +54,12 @@ npm i
 # start the dev server
 npm run dev
 
+# make sure to configure the env variables
+cp .env.example .env
+
 # view it running on localhost
 curl localhost:3000
 ```
-
-## env
-
-create a .env file in the root of the project and copy the contents of .env.example into it.
 
 ## Testing
 
@@ -59,6 +68,22 @@ This project uses [vitest](https://vitest.dev/) for unit testing.
 Run the unit tests with `npm run test`
 
 It's also recommended to install the [vitest extension for vscode](https://marketplace.visualstudio.com/items?itemName=ZixuanChen.vitest-explorer).
+
+## Database
+
+You can view the database with `npx drizzle-kit studio` or `npm run studio`.
+
+You can spin up a local copy of the database with `docker-compose` but this is not required when using Supabase.
+
+```
+docker compose up -d
+```
+
+If you are using the local database and running the application within docker on the host machine you will need to replace the `POSTGRES_HOST` from `localhost` to `host.docker.internal` in the .env file.
+
+```
+POSTGRES_HOST=host.docker.internal
+```
 
 ## Build with docker
 
@@ -76,24 +101,8 @@ docker build . --tag node-express-esm --platform linux/amd64
 docker run -d -p 3000:3000 node-express-esm
 
 # view it running on localhost
-curl localhost:3000`
+curl localhost:3000
 ```
-
-replace the `POSTGRES_HOST` with `host.docker.internal` in the .env file to run the app with docker.
-
-```
-POSTGRES_HOST=host.docker.internal
-```
-
-## Database
-
-spin up a local copy of the database with docker-compose
-
-```
-docker compose up -d
-```
-
-You can view the database with `npx drizzle-kit studio` or `npm run studio`
 
 ### Migrations
 
@@ -161,6 +170,33 @@ A claim is defined when the user is created which defines the user's role and pe
 1. User - default user permissions
 2. Admin - admin permissions
 
-## Deployment
+## Supabase Auth
 
-<!-- TODO add deployment steps.. -->
+see the [documentation for more information](https://supabase.com/docs/reference/javascript/auth-api) on how to use Supabase Auth with this project.
+
+## Deployment with DigitalOcean
+
+A docker image can be built and deployed to a [container registry](https://docs.digitalocean.com/products/container-registry/getting-started/quickstart/). We can configure DigitalOcean to deploy the image once the registry updates using their [App Platform](https://docs.digitalocean.com/products/app-platform/)
+
+The following secrets will need to be added to Github Actions for a successful deployment to DigitalOcean.
+
+### Environment variables for deployment
+
+- `DIGITALOCEAN_ACCESS_TOKEN` https://docs.digitalocean.com/reference/api/create-personal-access-token/
+- `REGISTRY_NAME` eg registry.digitalocean.com/my-container-registry
+- `IMAGE_NAME` the name of the image we are pushing to the repository eg `express-api` it will be tagged with the latest version and a github sha.
+
+### App level environment variables
+
+For information on confguring the app level environment variables see [How to use environment variables in DigitalOcean App Platform](https://docs.digitalocean.com/products/app-platform/how-to/use-environment-variables/)
+
+- `NODE_ENV`: `production`
+- `APP_URL`: `https://api.example.com`
+- `POSTGRES_HOST`: `<region>.pooler.supabase.com`
+- `POSTGRES_USER`: `postgres.<supabase-id>`
+- `POSTGRES_PASSWORD`: `example`
+- `POSTGRES_DB`: `postgres`
+- `SUPABASE_URL`: `https://<supabase-id>.supabase.co`
+- `SUPABASE_PK`: `abcdefghijklm`
+
+
