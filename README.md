@@ -14,6 +14,7 @@
 - [postgres](https://www.postgresql.org/)
 - [supabase](https://supabase.io/)
   - [supabase-js](https://supabase.com/docs/reference/javascript/introduction)
+- [helmet](https://helmetjs.github.io/)
 
 A simple node/express backend api template.
 

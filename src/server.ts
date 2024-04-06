@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import { config } from "./config.js";
 import { pinoHttp } from "pino-http";
 import { routes } from "./routes/index.js";
@@ -22,6 +23,13 @@ const checkConfigIsValid = () => {
 checkConfigIsValid();
 
 const app = express();
+
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    xDownloadOptions: false
+  })
+);
 
 app.use(
   pinoHttp({
