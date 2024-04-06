@@ -6,6 +6,7 @@ import { pinoHttp } from "pino-http";
 import { routes } from "./routes/index.js";
 import { logger as localLogger } from "./helpers/logger.js";
 import "./services/supabase.js";
+import cookieParser from "cookie-parser";
 
 const { logger } = pinoHttp();
 
@@ -30,6 +31,8 @@ app.use(
     xDownloadOptions: false
   })
 );
+
+app.use(cookieParser());
 
 app.use(
   pinoHttp({

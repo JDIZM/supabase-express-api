@@ -26,6 +26,9 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
   const ips = getIpFromRequest(req);
   logger.info("ip address:", ips);
 
+  // parsed cookies from cookie-parser middleware
+  logger.info("cookies", req.cookies);
+
   if (!routePermissions?.length) {
     return next();
   }

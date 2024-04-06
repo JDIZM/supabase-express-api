@@ -15,6 +15,7 @@
 - [supabase](https://supabase.io/)
   - [supabase-js](https://supabase.com/docs/reference/javascript/introduction)
 - [helmet](https://helmetjs.github.io/)
+- [cookie-parser](https://www.npmjs.com/package/cookie-parser)
 
 A simple node/express backend api template.
 
