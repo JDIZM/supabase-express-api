@@ -50,7 +50,7 @@
     "dist"
   ],
   "volta": {
-    "node": "20.12.0"
+    "node": "20.12.2"
   },
   "exports": {
     "require": {
