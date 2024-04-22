@@ -4,18 +4,18 @@ import helmet from "helmet";
 import { config } from "./config.js";
 import { pinoHttp } from "pino-http";
 import { routes } from "./routes/index.js";
-import { logger as localLogger } from "./helpers/logger.js";
+import { logger } from "./helpers/logger.js";
 import "./services/supabase.js";
 import cookieParser from "cookie-parser";
 
-const { logger } = pinoHttp();
+const { logger: pino } = pinoHttp();
 
-localLogger.debug("config", config);
+logger.debug("config", config);
 
 const checkConfigIsValid = () => {
   Object.values(config).forEach((value) => {
     if (!value) {
-      localLogger.error("config is invalid", config);
+      logger.error("config is invalid", config);
       throw new Error("config is invalid");
     }
   });
@@ -36,7 +36,7 @@ app.use(cookieParser());
 
 app.use(
   pinoHttp({
-    logger
+    logger: pino
   })
 );
 
@@ -58,5 +58,5 @@ app.use(cors(corsOptions));
 routes(app);
 
 app.listen(config.port, () => {
-  localLogger.info(`[server]: Server is running at http://localhost:${config.port}`);
+  logger.info(`[server]: Server is running at http://localhost:${config.port}`);
 });
