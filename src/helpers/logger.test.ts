@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { logger } from "./logger.ts";
 import { describe, it, expect, vi } from "vitest";
-// FIXME why is this test failing locally?? only on npm run test?
+
 describe("logger", () => {
   it("should log a debug message", () => {
     const spy = vi.spyOn(console, "debug");
