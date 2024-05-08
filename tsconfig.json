@@ -45,5 +45,5 @@
       "@/*": ["src/*"]
     }
   },
-  "exclude": ["node_modules", "dist", "test-package", "test.ts", "**/*.test.ts"]
+  "exclude": ["node_modules", "dist", "test-package"]
 }
