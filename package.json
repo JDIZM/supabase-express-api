@@ -48,14 +48,6 @@
   "volta": {
     "node": "20.12.2"
   },
-  "exports": {
-    "require": {
-      "default": "./dist/server.cjs"
-    },
-    "import": {
-      "default": "./dist/server.mjs"
-    }
-  },
   "dependencies": {
     "@supabase/supabase-js": "^2.43.1",
     "@types/bcrypt": "^5.0.0",
