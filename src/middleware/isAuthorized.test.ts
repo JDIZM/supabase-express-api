@@ -23,7 +23,7 @@ describe("isAuthorized", () => {
         sub: USER_UUID,
         claims: ["user"]
       },
-      status: (code: number) => {
+      status: () => {
         return {
           send: (message: string) => {
             return message;
