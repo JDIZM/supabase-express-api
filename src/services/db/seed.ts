@@ -8,8 +8,13 @@ async function main(): Promise<void> {
 
   const options = args
     .map((str) => str.replace(/^-+/, "").split("="))
-    .reduce<{ [key: string]: string }>((acc, [key, value]) => {
+    .reduce<{ [key: string]: string }>((acc, curr) => {
+      const [key, value] = curr;
+
+      if (!key || !value) return acc;
+
       acc[key] = value;
+
       return acc;
     }, {});
 

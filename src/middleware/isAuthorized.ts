@@ -1,6 +1,7 @@
-import { NextFunction, Request, Response } from "express";
-import { Route, permissions } from "@/helpers/permissions.js";
+import { permissions } from "@/helpers/permissions.ts";
 import { logger } from "@/helpers/logger.ts";
+import type { NextFunction, Request, Response } from "express";
+import type { Route } from "@/helpers/permissions.ts";
 
 export const isAuthorized = async (req: Request, res: Response, next: NextFunction) => {
   const { id, sub, claims } = res.locals;

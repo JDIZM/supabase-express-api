@@ -1,9 +1,10 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import { db } from "@/services/db/drizzle.js";
 import { gatewayResponse } from "@/helpers/response.ts";
 import { logger } from "@/helpers/logger.ts";
 import { users, selectUserSchema, insertUserSchema, uuidSchema } from "@/schema.js";
-import { InferInsertModel, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
+import type { InferInsertModel } from "drizzle-orm";
 
 export async function getUsers(req: Request, res: Response) {
   try {
@@ -28,15 +29,21 @@ export async function getUsers(req: Request, res: Response) {
   }
 }
 
+// TODO add relations with includes query params to user.
 export async function getUser(req: Request, res: Response) {
   try {
-    // Throw error if the UUID is invalid
+    // Throw error if the UUID is invalid.
     uuidSchema.parse({ uuid: req.params.id });
 
-    // Fetch result from DB
-    const result = await db.select().from(users).where(eq(users.uuid, req.params.id)).execute();
+    if (!req.params.id) {
+      throw new Error("UUID is required");
+    }
 
-    // Validate response with zod without throwing error
+    // Fetch result from DB.
+    const equals = eq(users.uuid, req.params.id);
+    const result = await db.select().from(users).where(equals).execute();
+
+    // Validate response with zod without throwing error.
     const parsedUser = selectUserSchema.safeParse(result[0]);
 
     if (!parsedUser.success) {
@@ -69,9 +76,16 @@ export async function createDbUser(user: InferInsertModel<typeof users>) {
   insertUserSchema.parse(user);
 
   const response = await db.insert(users).values(user).returning();
-  logger.debug("created user: ", response[0].uuid);
 
-  return response[0].uuid;
+  const result = response[0];
+
+  if (!result) {
+    throw new Error("Unable to create user");
+  }
+
+  logger.debug("created user: ", result.uuid);
+
+  return result.uuid;
 }
 
 export async function createUser(req: Request, res: Response) {

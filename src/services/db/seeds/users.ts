@@ -1,7 +1,7 @@
 import { db } from "@/services/db/drizzle.js";
 import { users } from "@/schema.js";
 import { signUpWithSupabase } from "@/handlers/auth/auth.handlers.ts";
-import { InferInsertModel } from "drizzle-orm";
+import type { InferInsertModel } from "drizzle-orm";
 import { logger } from "@/helpers/logger.ts";
 
 const usersArray: InferInsertModel<typeof users>[] = [
@@ -24,7 +24,11 @@ const usersArray: InferInsertModel<typeof users>[] = [
 async function createUser(user: InferInsertModel<typeof users>) {
   const response = await db.insert(users).values(user).returning();
   logger.debug("created user: ", response);
-  // we know that the response will be an array of one element
+
+  if (!response[0]) {
+    throw new Error("Unable to create user");
+  }
+
   return response[0].uuid;
 }
 
@@ -33,10 +37,16 @@ export async function seedUsers(isSupabase = false) {
     const users = await Promise.all(usersArray.map((user) => signUpWithSupabase(user.email, "example-password")));
     logger.debug("signed up users and created uuids", users);
 
+    // Make sure we set users UUID to the one returned from Supabase
+    // When creating a db user.
     users.forEach((user, index) => {
-      if (user) {
-        usersArray[index].uuid = user.id;
-      }
+      if (!user) return;
+
+      const sbUser = usersArray[index];
+
+      if (!sbUser) return;
+
+      sbUser.uuid = user.id;
     });
   }
 

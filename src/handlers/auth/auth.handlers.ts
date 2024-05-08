@@ -1,5 +1,5 @@
 import { supabase } from "@/services/supabase.ts";
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import { gatewayResponse } from "@/helpers/response.ts";
 import { logger } from "@/helpers/logger.ts";
 import { createDbUser } from "@/handlers/users/users.handlers.ts";

@@ -1,10 +1,11 @@
-import { Route, permissions } from "@/helpers/permissions.ts";
-import { NextFunction, Request, Response } from "express";
+import { permissions } from "@/helpers/permissions.ts";
 import { supabase } from "@/services/supabase.ts";
 import { db } from "@/services/db/drizzle.js";
 import { logger } from "@/helpers/logger.ts";
 import { users } from "@/schema.js";
 import { eq } from "drizzle-orm";
+import type { Route } from "@/helpers/permissions.ts";
+import type { NextFunction, Request, Response } from "express";
 
 // https://stackabuse.com/bytes/how-to-get-a-users-ip-address-in-express-js/
 const getIpFromRequest = (req: Request): string | undefined => {
@@ -20,8 +21,8 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
 
-  const routeKey = req.baseUrl + req.route.path;
-  const routePermissions = permissions.get(routeKey as Route);
+  const routeKey = (req.baseUrl + req.route.path) as Route;
+  const routePermissions = permissions.get(routeKey);
 
   const ips = getIpFromRequest(req);
   logger.info("ip address:", ips);
@@ -46,13 +47,19 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
     } = await supabase.auth.getUser(token);
 
     if (error || !user) {
-      throw new Error("User not found", {
+      throw new Error("Supabase User not found", {
         cause: error
       });
     }
 
     // get user from DB.
     const [dbUser] = await db.select().from(users).where(eq(users.uuid, user.id)).execute();
+
+    if (!dbUser) {
+      throw new Error("DB User not found", {
+        cause: error
+      });
+    }
 
     // Attach user to res.locals and verify permissions in isAuthorized middleware
     res.locals = { id: user.id, sub: user.id, claims: dbUser.role };

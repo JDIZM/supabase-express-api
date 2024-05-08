@@ -1,4 +1,4 @@
-import { Application } from "express";
+import type { Application } from "express";
 import { test } from "@/helpers/index.js";
 import { signInWithPassword, signUp } from "@/handlers/auth/auth.handlers.js";
 import { getUser, getUsers, createUser } from "@/handlers/users/users.handlers.js";
