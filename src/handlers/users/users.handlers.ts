@@ -6,6 +6,7 @@ import { users, selectUserSchema, insertUserSchema, uuidSchema } from "@/schema.
 import { eq } from "drizzle-orm";
 import type { InferInsertModel } from "drizzle-orm";
 
+// @ts-expect-error no-unused-parameters
 export async function getUsers(req: Request, res: Response) {
   try {
     const result = await db.select().from(users).execute();
@@ -114,6 +115,7 @@ export async function createUser(req: Request, res: Response) {
   }
 }
 
+// @ts-expect-error no-unused-parameters
 export async function updateUser(req: Request, res: Response) {
   await res.status(200).send("updated user");
 }

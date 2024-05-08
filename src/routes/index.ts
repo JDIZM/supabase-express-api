@@ -7,6 +7,7 @@ import { isAuthenticated } from "@/middleware/isAuthenticated.js";
 import { isAuthorized } from "@/middleware/isAuthorized.js";
 
 export function routes(app: Application) {
+  // @ts-expect-error no-unused-parameters
   app.get(API_ROUTES.root, isAuthenticated, isAuthorized, (req, res) => {
     res.send(`Routes are active! route: ${API_ROUTES.root} with test ${test}`);
   });
