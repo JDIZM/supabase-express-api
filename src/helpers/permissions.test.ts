@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Claim, hasRoutesWithNoPermissionsSet, Route } from "./permissions.js";
+import { type Claim, hasRoutesWithNoPermissionsSet, type Route } from "./permissions.js";
 
 const API_ROUTES = {
   root: "/",

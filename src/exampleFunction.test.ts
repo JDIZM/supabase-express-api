@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { exampleFunction } from "./exampleFunction";
+import { exampleFunction } from "./exampleFunction.ts";
 
 describe("exampleFunction", () => {
   it("should do something...", () => {

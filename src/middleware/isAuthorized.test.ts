@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import { isAuthorized } from "./isAuthorized.js";
-import { NextFunction } from "express";
+import type { NextFunction } from "express";
 
 const USER_UUID = "407e4af9-208b-4af7-8b17-dac60f3ebb30";
 

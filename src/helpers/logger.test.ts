@@ -1,4 +1,4 @@
-import { logger } from "./logger";
+import { logger } from "./logger.js";
 import { describe, it, expect, vi } from "vitest";
 
 describe("logger", () => {
