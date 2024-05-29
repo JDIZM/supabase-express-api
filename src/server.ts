@@ -44,15 +44,11 @@ app.use(express.urlencoded({ extended: true }));
 // parse application/json
 app.use(express.json());
 
-const corsWhitelist = [`http://localhost:${config.port}`, config.appUrl];
-
-const corsOptions = {
-  origin: corsWhitelist,
-  optionsSuccessStatus: 204
-};
-
+// Apply CORS middleware to all routes before defining them
 app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // Pre-flight requests
 
+// Define routes
 routes(app);
 
 app.listen(config.port, () => {
