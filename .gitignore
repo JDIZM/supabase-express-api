@@ -2,4 +2,6 @@ node_modules
 dist
 coverage
 .env
-package-lock.json
+pnpm-lock.yaml
+logs
+*.log
