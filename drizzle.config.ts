@@ -6,9 +6,9 @@ import { logger } from "./src/helpers/logger.ts";
 logger.info("config", config);
 
 export default {
+  dialect: "postgresql",
   schema: "./src/schema.ts",
   out: "./drizzle",
-  driver: "pg",
   dbCredentials: {
     host: config.db_host,
     user: config.db_user,
