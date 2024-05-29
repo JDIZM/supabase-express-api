@@ -1,5 +1,5 @@
 import { seedUsers } from "./seeds/users.ts";
-import { logger } from "../../helpers/logger.ts";
+import { logger } from "../../helpers/index.ts";
 
 async function main(): Promise<void> {
   logger.info("Seeding users...");

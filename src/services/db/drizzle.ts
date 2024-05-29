@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import { config } from "../../config.ts";
-import { logger } from "../../helpers/logger.ts";
+import { logger } from "@/helpers/index.ts";
 
 const client = new pg.Client({
   host: config.db_host,

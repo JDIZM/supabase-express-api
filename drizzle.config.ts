@@ -1,9 +1,9 @@
 import type { Config } from "drizzle-kit";
 // drizzle requires the ts extension to import config.
 import { config } from "./src/config.ts";
-import { logger } from "./src/helpers/logger.ts";
+import { logger } from "./src/helpers/index.ts";
 
-logger.info("config", config);
+logger.info({ msg: "config", config });
 
 export default {
   dialect: "postgresql",

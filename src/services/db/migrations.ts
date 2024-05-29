@@ -1,6 +1,6 @@
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { db } from "./drizzle.ts";
-import { logger } from "../../helpers/logger.ts";
+import { logger } from "../../helpers/index.ts";
 
 // this will automatically run needed migrations on the database
 // https://tone-row.com/blog/drizzle-orm-quickstart-tutorial-first-impressions

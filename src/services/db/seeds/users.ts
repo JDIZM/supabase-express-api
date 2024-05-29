@@ -2,7 +2,7 @@ import { db } from "@/services/db/drizzle.js";
 import { users } from "@/schema.js";
 import { signUpWithSupabase } from "@/handlers/auth/auth.handlers.ts";
 import type { InferInsertModel } from "drizzle-orm";
-import { logger } from "@/helpers/logger.ts";
+import { logger } from "@/helpers/index.ts";
 
 const usersArray: InferInsertModel<typeof users>[] = [
   {
