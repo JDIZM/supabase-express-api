@@ -2,7 +2,7 @@
   "name": "node-express-backend-component",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/server.cjs",
+  "main": "dist/server.mjs",
   "module": "dist/server.mjs",
   "type": "module",
   "imports": {
