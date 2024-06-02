@@ -71,22 +71,6 @@ Run the unit tests with `npm run test`
 
 It's also recommended to install the [vitest extension for vscode](https://marketplace.visualstudio.com/items?itemName=ZixuanChen.vitest-explorer).
 
-## Database
-
-You can view the database with `npx drizzle-kit studio` or `npm run studio`.
-
-You can spin up a local copy of the database with `docker-compose` but this is not required when using Supabase.
-
-```
-docker compose up -d
-```
-
-If you are using the local database and running the application within docker on the host machine you will need to replace the `POSTGRES_HOST` from `localhost` to `host.docker.internal` in the .env file.
-
-```
-POSTGRES_HOST=host.docker.internal
-```
-
 ## Build with docker
 
 ```
@@ -94,17 +78,51 @@ POSTGRES_HOST=host.docker.internal
 npm run build
 
 # build with docker
-docker build . --tag node-express-esm
+docker build . --tag node-express
 
 # or to build with a specific platform
-docker build . --tag node-express-esm --platform linux/amd64
+docker build . --tag node-express --platform linux/amd64
+
+# or build a specific stage eg dev
+docker build . --target dev --tag node-express
 
 # start the docker container
-docker run -d -p 3000:3000 node-express-esm
+docker run -d -p 3000:3000 node-express
 
 # view it running on localhost
 curl localhost:3000
 ```
+
+## Database
+
+You can view the database with `npx drizzle-kit studio` or `npm run studio`.
+
+You can spin up a local copy of the database and application with `docker-compose` but this is not required when using the Supabase db.
+
+```
+docker compose up -d
+```
+
+Alternatively you can create a local network and connect the containers to the network.
+
+```bash
+docker network create mynetwork
+
+docker run --network mynetwork --name mypostgres -d -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=example -e POSTGRES_DB=postgres postgres:15
+```
+
+Then when running the application in docker you can connect to the database with the container name.
+
+```bash
+POSTGRES_HOST=mypostgres
+```
+
+Then run the application in docker and connect to the same network.
+```bash
+docker run --network mynetwork --name node-express -d -p 4000:4000 node-express
+```
+
+Note: If you are using a local database and running the application within docker on the host machine you will need to set `POSTGRES_HOST=host.docker.internal` in the .env file. [Read the docs for more info](https://docs.docker.com/desktop/networking/#i-want-to-connect-from-a-container-to-a-service-on-the-host)
 
 ### Migrations
 
