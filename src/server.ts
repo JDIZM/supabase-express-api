@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import "./services/supabase.js";
 import cookieParser from "cookie-parser";
 import { config } from "./config.ts";
 import { pinoHttp } from "pino-http";
