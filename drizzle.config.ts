@@ -14,6 +14,7 @@ export default {
     user: config.db_user,
     port: 5432,
     password: config.db_password,
-    database: config.db_name
+    database: config.db_name,
+    ssl: config.env === "prod"
   }
 } satisfies Config;
