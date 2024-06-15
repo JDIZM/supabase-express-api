@@ -1,8 +1,7 @@
 import { supabase } from "@/services/supabase.ts";
 import type { Request, Response } from "express";
-import { gatewayResponse } from "@/helpers/response.ts";
-import { logger } from "@/helpers/logger.ts";
-import { createDbUser } from "@/handlers/users/users.handlers.ts";
+import { logger, gatewayResponse } from "@/helpers/index.ts";
+import { createDbAccount } from "@/handlers/accounts/accounts.handlers.ts";
 
 export const signUpWithSupabase = async (email: string, password: string) => {
   const { data, error } = await supabase.auth.signUp({
@@ -33,8 +32,8 @@ export const signUp = async (req: Request, res: Response) => {
 
     logger.info("User signed up", 200, user.id);
 
-    const dbUser = await createDbUser({ email, fullName, phone, role: "user", uuid: user.id });
-    logger.info("User created in DB", 200, dbUser);
+    const dbAccount = await createDbAccount({ email, fullName, phone, uuid: user.id });
+    logger.info("Account created in DB", 200, dbAccount);
 
     const response = gatewayResponse().success(200, user);
 
