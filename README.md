@@ -17,7 +17,20 @@
 - [helmet](https://helmetjs.github.io/)
 - [cookie-parser](https://www.npmjs.com/package/cookie-parser)
 
-A simple node/express backend api template.
+A node/express backend API template for getting started with a new project that includes authentication, permissions, and a database configured to
+use [Supabase](https://supabase.io/) or a local/cloud Postgres database.
+
+This comes pre-defined with a workspaces model that allows accounts (users) to create workspaces and invite other profiles (users presence within a workspace) to access the workspace (membership). see the [Permissions](#Permissions) section for more information on how permissions are defined.
+
+The contents of a workspace is not defined in this template and can be customized to suit the needs of the project.
+
+## ESM Node
+
+https://www.typescriptlang.org/docs/handbook/esm-node.html
+
+This project has been setup to use ESM Node. This allows us to use ES6 imports in Node.
+
+This uses [tsx](https://github.com/esbuild-kit/tsx) as a dev server and [pkgroll](https://github.com/privatenumber/pkgroll) to bundle and build the project.
 
 ## Requirements
 
@@ -29,15 +42,11 @@ To install volta run the following command in the terminal.
 curl https://get.volta.sh | bash
 ```
 
-## ESM Node
+You will need a Postgres database to run this project. You can use Docker to run a Postgres database or use a service like [Supabase](https://supabase.com/).
 
-https://www.typescriptlang.org/docs/handbook/esm-node.html
+See the [Database](#Database) section for more information on how to configure the database connection.
 
-This project has been setup to use ESM Node. This allows us to use ES6 imports in Node.
-
-This uses [tsx](https://github.com/esbuild-kit/tsx) as a dev server and [pkgroll](https://github.com/privatenumber/pkgroll) to bundle and build the project.
-
-## ENV
+### ENV
 
 Create a .env file in the root of the project and copy the contents of .env.example into it.
 
@@ -47,20 +56,11 @@ cp .env.example .env
 
 see the section on [Deployment with DigitalOcean](#deployment-with-digitalocean) for more information on how to configure the environment variables for deployment in different environments (eg. development and production).
 
-## Setup
+### Install dependencies
 
 ```
 # install dependencies
 npm i
-
-# start the dev server
-npm run dev
-
-# make sure to configure the env variables
-cp .env.example .env
-
-# view it running on localhost
-curl localhost:4000
 ```
 
 ## Testing
@@ -70,28 +70,6 @@ This project uses [vitest](https://vitest.dev/) for unit testing.
 Run the unit tests with `npm run test`
 
 It's also recommended to install the [vitest extension for vscode](https://marketplace.visualstudio.com/items?itemName=ZixuanChen.vitest-explorer).
-
-## Build with docker
-
-```
-# build the app
-npm run build
-
-# build with docker
-docker build . --tag node-express
-
-# or to build with a specific platform
-docker build . --tag node-express --platform linux/amd64
-
-# or build a specific stage eg dev
-docker build . --target dev --tag node-express
-
-# start the docker container
-docker run -d -p 4000:4000 node-express
-
-# view it running on localhost
-curl localhost:4000
-```
 
 ## Database
 
@@ -130,8 +108,6 @@ When the schema/model is changed make sure to create a new migration and run it 
 
 1. Create a new migration
 
-<!-- TODO create a named migration and pass additional flag to npm. -->
-
 ```
 npm run migrate:create
 
@@ -156,6 +132,28 @@ npm run seed
 ```
 
 Be sure to update the seeds as new migrations are added.
+
+## Build with docker
+
+```
+# build the app
+npm run build
+
+# build with docker
+docker build . --tag node-express
+
+# or to build with a specific platform
+docker build . --tag node-express --platform linux/amd64
+
+# or build a specific stage eg dev
+docker build . --target dev --tag node-express
+
+# start the docker container
+docker run -d -p 4000:4000 node-express
+
+# view it running on localhost
+curl localhost:4000
+```
 
 ## Import aliases
 
