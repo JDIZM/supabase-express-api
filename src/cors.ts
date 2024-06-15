@@ -1,5 +1,6 @@
 export const whitelist: RegExp[] = [
   /^https?:\/\/localhost:3000$/,
+  /^https?:\/\/localhost:4000$/,
   /^https?:\/\/example\.com$/,
   /^https?:\/\/subdomain\.example\.com$/
   // Add more patterns as needed
