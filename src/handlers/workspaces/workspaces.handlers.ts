@@ -7,7 +7,7 @@ import { eq, type InferInsertModel } from "drizzle-orm";
 export const createWorkspace = async (workspace: InferInsertModel<typeof workspaces>) => {
   const { name, accountId, description } = workspace;
 
-  logger.debug("createWorkspace", name, accountId);
+  logger.debug({ msg: `Creating workspace ${name} for ${accountId}` });
 
   workspaceInsertSchema.parse({ name, accountId, description });
 
@@ -20,7 +20,7 @@ export const createWorkspaceHandler = async (req: Request, res: Response) => {
   try {
     const { name, accountId, description } = req.body;
 
-    logger.debug("createWorkspace", name, accountId);
+    logger.info({ msg: `Creating workspace ${name} for ${accountId}` });
 
     uuidSchema.parse({ uuid: accountId });
 
@@ -32,17 +32,11 @@ export const createWorkspaceHandler = async (req: Request, res: Response) => {
 
     return res.status(response.code).send(response);
   } catch (err) {
-    if (err instanceof Error) {
-      logger.error("Unable to create workspace", 400, err);
+    const message = "Unable to create workspace";
 
-      const response = gatewayResponse().error(400, err, "Unable to create workspace");
+    logger.error({ msg: message, err });
 
-      return res.status(response.code).send(response);
-    }
-
-    logger.error("Unable to create user", 500, err);
-
-    const response = gatewayResponse().error(500, Error("Unable to create user"), "Unable to create user");
+    const response = gatewayResponse().error(500, Error(message), message);
 
     return res.status(response.code).send(response);
   }
@@ -50,10 +44,16 @@ export const createWorkspaceHandler = async (req: Request, res: Response) => {
 
 export const fetchWorkspaceHandler = async (req: Request, res: Response) => {
   try {
-    req.log.info("fetchWorkspaceHandler...");
     uuidSchema.parse({ uuid: req.params.id });
 
-    const equals = eq(workspaces.uuid, req.params.id as string);
+    logger.info({ msg: `Fetching workspace: ${req.params.id}` });
+
+    if (!req.params.id) {
+      // TODO zod parse should remove undefined type?
+      throw new Error("Workspace id is required");
+    }
+
+    const equals = eq(workspaces.uuid, req.params.id);
 
     const workspace = await db.select().from(workspaces).where(equals).execute();
     const relations = await db.query.workspaces.findFirst({
@@ -63,34 +63,36 @@ export const fetchWorkspaceHandler = async (req: Request, res: Response) => {
       }
     });
 
-    logger.info("fetching workspace", workspace);
-
     const response = gatewayResponse().success(200, { relations, workspace }, "Fetched workspace");
 
     return res.status(response.code).send(response);
   } catch (err) {
-    logger.error("", err);
+    const message = "Unable to fetch workspace";
 
-    const response = gatewayResponse().error(500, Error("Unable to fetch workspace"), "Unable to fetch workspace");
+    logger.error({ msg: message, err });
+
+    const response = gatewayResponse().error(500, Error(message), message);
 
     return res.status(response.code).send(response);
   }
 };
 
+// @ts-expect-error no-unused-parameter
 export const fetchWorkspacesHandler = async (req: Request, res: Response) => {
   try {
     const result = await db.select().from(workspaces).execute();
 
-    logger.info("fetching workspaces");
+    logger.info({ msg: `Fetching workspaces: ${result.length}` });
 
     const response = gatewayResponse().success(200, result, "Fetched workspaces");
 
     return res.status(response.code).send(response);
   } catch (err) {
-    const response = gatewayResponse().error(500, Error("Unable to fetch workspaces"), "Unable to fetch workspaces");
+    const message = "Unable to fetch workspaces";
 
-    logger.error(response);
-    req.log.error(response);
+    logger.error({ msg: message, err });
+
+    const response = gatewayResponse().error(500, Error(message), message);
 
     return res.status(response.code).send(response);
   }
