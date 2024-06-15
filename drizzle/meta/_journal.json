@@ -5,22 +5,15 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1704353560472,
-      "tag": "0000_puzzling_warpath",
+      "when": 1716151842436,
+      "tag": "0000_striped_warbird",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "5",
-      "when": 1704701343338,
-      "tag": "0001_sleepy_zaladane",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "5",
-      "when": 1704869459353,
-      "tag": "0002_even_shinko_yamashiro",
+      "when": 1716190000271,
+      "tag": "0001_good_the_liberteens",
       "breakpoints": true
     }
   ]
