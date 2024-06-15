@@ -1,10 +1,8 @@
 {
-  "id": "0273ed27-7b1f-47d4-ae9b-82481ad77e7c",
-  "prevId": "19a6b5e6-4b93-4f5e-bbfd-b2e76a4f84ed",
-  "version": "5",
-  "dialect": "pg",
+  "version": "7",
+  "dialect": "postgresql",
   "tables": {
-    "accounts": {
+    "public.accounts": {
       "name": "accounts",
       "schema": "",
       "columns": {
@@ -54,14 +52,14 @@
       "uniqueConstraints": {
         "accounts_email_unique": {
           "name": "accounts_email_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "email"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       }
     },
-    "profiles": {
+    "public.profiles": {
       "name": "profiles",
       "schema": "",
       "columns": {
@@ -104,7 +102,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "workspace_memberships": {
+    "public.workspace_memberships": {
       "name": "workspace_memberships",
       "schema": "",
       "columns": {
@@ -139,7 +137,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "workspaces": {
+    "public.workspaces": {
       "name": "workspaces",
       "schema": "",
       "columns": {
@@ -185,8 +183,10 @@
   "enums": {},
   "schemas": {},
   "_meta": {
-    "columns": {},
     "schemas": {},
-    "tables": {}
-  }
+    "tables": {},
+    "columns": {}
+  },
+  "id": "0273ed27-7b1f-47d4-ae9b-82481ad77e7c",
+  "prevId": "19a6b5e6-4b93-4f5e-bbfd-b2e76a4f84ed"
 }

@@ -12,7 +12,7 @@ export const accounts = pgTable("accounts", {
   phone: varchar("phone", { length: 256 }),
   createdAt: timestamp("created_at", { precision: 6, withTimezone: true }).defaultNow(),
   email: text("email").unique().notNull(),
-  isSuperAdmin: boolean("is_super_admin").default(false) // TODO added a global super admin flag for global non-workspace routes.
+  isSuperAdmin: boolean("is_super_admin").default(false)
 });
 
 export const accountRelations = relations(accounts, ({ many }) => ({
@@ -48,7 +48,7 @@ export const profiles = pgTable("profiles", {
   name: text("name").notNull(),
   createdAt: timestamp("created_at", { precision: 6, withTimezone: true }).defaultNow(),
   workspaceId: uuid("workspace_id").notNull(),
-  accountId: uuid("account_id").notNull().default("00000000-0000-0000-0000-000000000000")
+  accountId: uuid("account_id").notNull().default("00000000-0000-0000-0000-000000000000").unique()
 });
 
 export const profileRelations = relations(profiles, ({ one }) => ({
