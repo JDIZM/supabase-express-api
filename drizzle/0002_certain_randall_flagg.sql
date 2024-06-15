@@ -1,1 +1,0 @@
-ALTER TABLE "profiles" ADD CONSTRAINT "profiles_account_id_unique" UNIQUE("account_id");

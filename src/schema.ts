@@ -48,7 +48,7 @@ export const profiles = pgTable("profiles", {
   name: text("name").notNull(),
   createdAt: timestamp("created_at", { precision: 6, withTimezone: true }).defaultNow(),
   workspaceId: uuid("workspace_id").notNull(),
-  accountId: uuid("account_id").notNull().default("00000000-0000-0000-0000-000000000000").unique()
+  accountId: uuid("account_id").notNull().default("00000000-0000-0000-0000-000000000000")
 });
 
 export const profileRelations = relations(profiles, ({ one }) => ({
