@@ -18,8 +18,9 @@
     "build": "pkgroll",
     "build:tsc": "rm -rf dist && tsc -p tsconfig.json",
     "test": "vitest --run --coverage",
-    "migrate:create": "npx drizzle-kit generate:pg",
-    "migrate:up": "tsx ./src/services/db/migrations.ts",
+    "migrate:create": "npx drizzle-kit generate",
+    "migrate:up": "npx drizzle-kit up",
+    "migrate:push": "npx drizzle-kit push",
     "seed": "tsx ./src/services/db/seed.ts --supabase=$npm_config_supabase",
     "studio": "npx drizzle-kit studio"
   },
@@ -31,7 +32,7 @@
     "@typescript-eslint/parser": "^7.11.0",
     "@vitest/coverage-v8": "^1.6.0",
     "dotenv": "^16.4.5",
-    "drizzle-kit": "^0.21.4",
+    "drizzle-kit": "^0.22.7",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-node": "^0.3.9",
@@ -45,9 +46,7 @@
     "vitest": "^1.6.0",
     "zod": "^3.23.8"
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "volta": {
     "node": "20.13.0"
   },
@@ -63,7 +62,7 @@
     "chalk": "^5.3.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
-    "drizzle-orm": "^0.30.10",
+    "drizzle-orm": "^0.31.2",
     "drizzle-zod": "^0.5.1",
     "express": "^4.19.2",
     "helmet": "^7.1.0",
