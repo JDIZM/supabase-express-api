@@ -1,29 +1,26 @@
 import type { Request, Response } from "express";
 import { db } from "@/services/db/drizzle.ts";
 import { logger, gatewayResponse } from "@/helpers/index.ts";
-import { accounts, accountSelectSchema, accountInsertSchema, uuidSchema } from "@/schema.ts";
+import { accounts, accountSelectSchema, uuidSchema } from "@/schema.ts";
 import { eq } from "drizzle-orm";
-import type { InferInsertModel } from "drizzle-orm";
+import { createDbAccount } from "./accounts.methods.ts";
 
 // @ts-expect-error no-unused-parameters
 export async function getAccounts(req: Request, res: Response) {
   try {
     const result = await db.select().from(accounts).execute();
 
-    logger.info("Fetched accounts", 200);
+    logger.info({ msg: `Fetched accounts: ${result.length}` });
+
     const response = gatewayResponse<typeof result>().success(200, result);
 
     return res.status(response.code).send(response);
   } catch (err) {
-    if (err instanceof Error) {
-      logger.error("Unable to fetch accounts", 500, err);
-      const response = gatewayResponse().error(500, err, "Unable to fetch accounts");
+    const message = "Unable to fetch accounts";
 
-      return res.status(response.code).send(response);
-    }
+    logger.error({ msg: message, err });
 
-    logger.error("Unable to fetch accounts", 500, err);
-    const response = gatewayResponse().error(500, Error("Internal server error"), "Unable to fetch accounts");
+    const response = gatewayResponse().error(500, Error(message), message);
 
     res.status(response.code).send(response);
   }
@@ -46,67 +43,46 @@ export async function getAccount(req: Request, res: Response) {
     const parsedAccount = accountSelectSchema.safeParse(result[0]);
 
     if (!parsedAccount.success) {
-      logger.error("Unable to fetch account", 400, parsedAccount.error);
+      logger.error({ msg: "Unable to fetch account", error: parsedAccount.error });
+
       const response = gatewayResponse().error(400, parsedAccount.error, "Unable to fetch account");
 
       return res.status(response.code).send(response);
     }
 
-    logger.info("Fetched account", 200, req.params.id);
+    logger.info({ msg: `Fetched account with UUID ${req.params.id}` });
+
     const response = gatewayResponse<typeof parsedAccount.data>().success(200, parsedAccount.data);
 
     return res.status(response.code).send(response);
   } catch (err) {
-    if (err instanceof Error) {
-      logger.error("Unable to fetch account", 500, err);
-      const response = gatewayResponse().error(500, err, "Unable to fetch account");
+    const message = "Unable to fetch account";
 
-      return res.status(response.code).send(response);
-    }
+    logger.error({ msg: message, err });
 
-    logger.error("Unable to fetch account", 500, err);
-    const response = gatewayResponse().error(500, Error("Internal server error"), "Unable to fetch account");
+    const response = gatewayResponse().error(500, Error(message), message);
 
     return res.status(response.code).send(response);
   }
-}
-
-export async function createDbAccount(account: InferInsertModel<typeof accounts>) {
-  accountInsertSchema.parse(account);
-
-  const response = await db.insert(accounts).values(account).returning();
-
-  const result = response[0];
-
-  if (!result) {
-    throw new Error("Unable to create account");
-  }
-
-  logger.debug("created account: ", result.uuid);
-
-  return result.uuid;
 }
 
 export async function createAccount(req: Request, res: Response) {
   try {
     const { fullName, phone, email } = req.body;
 
+    logger.info({ msg: `Creating account...` });
+
     const accountId = await createDbAccount({ fullName, phone, email });
 
-    logger.info("Account created", 200, accountId);
     const response = gatewayResponse().success(200, accountId);
 
     return res.status(response.code).send(response);
   } catch (err) {
-    if (err instanceof Error) {
-      logger.error("Unable to create account", 400, err);
-      const response = gatewayResponse().error(400, err, "Unable to create account");
+    const message = "Unable to create account";
 
-      return res.status(response.code).send(response);
-    }
+    logger.error({ msg: message, err });
 
-    logger.error("Unable to create account", 500, err);
-    const response = gatewayResponse().error(500, Error("Unable to create account"), "Unable to create account");
+    const response = gatewayResponse().error(500, Error(message), message);
 
     return res.status(response.code).send(response);
   }

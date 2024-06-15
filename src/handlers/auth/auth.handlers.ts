@@ -1,7 +1,7 @@
 import { supabase } from "@/services/supabase.ts";
 import type { Request, Response } from "express";
 import { logger, gatewayResponse } from "@/helpers/index.ts";
-import { createDbAccount } from "@/handlers/accounts/accounts.handlers.ts";
+import { createDbAccount } from "@/handlers/accounts/accounts.methods.ts";
 
 export const signUpWithSupabase = async (email: string, password: string) => {
   const { data, error } = await supabase.auth.signUp({

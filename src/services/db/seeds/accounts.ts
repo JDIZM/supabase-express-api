@@ -19,7 +19,7 @@ const accountsArray: InferInsertModel<typeof accounts>[] = [
 async function createAccount(account: InferInsertModel<typeof accounts>) {
   const response = await db.insert(accounts).values(account).returning();
   console.log("created account: ", response);
-  // we know that the response will be an array of one element
+
   return response[0];
 }
 
