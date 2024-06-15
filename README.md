@@ -60,7 +60,7 @@ npm run dev
 cp .env.example .env
 
 # view it running on localhost
-curl localhost:3000
+curl localhost:4000
 ```
 
 ## Testing
@@ -87,10 +87,10 @@ docker build . --tag node-express --platform linux/amd64
 docker build . --target dev --tag node-express
 
 # start the docker container
-docker run -d -p 3000:3000 node-express
+docker run -d -p 4000:4000 node-express
 
 # view it running on localhost
-curl localhost:3000
+curl localhost:4000
 ```
 
 ## Database
@@ -177,18 +177,24 @@ Routes will have their permission level defined in `./src/helpers/permissions.ts
 
 When a user makes a request to a route the route will check the user's role/claim against the permission level of the resource.
 
-### Route permission levels
+### Global route level permissions
+
+`isSuperAdmin` - is defined at the account level and can access all resources regardless of the workspace membership or resource permission level.
+
+### Resource route permission levels
 
 1. Owner - Route can only be accessed by the owner of the resource. Defined by the id of the resource being accessed matching the id of the user making the request.
-2. User - Can access all resources with user permissions.
-3. Admin - Can access all resources.
 
-### Claims / Roles
+### Workspace route permission levels
 
-A claim is defined when the user is created which defines the user's role and permissions level.
+Ensure every request includes a workspace context. This can be done using the `x-workspace-id header`.
 
-1. User - default user permissions
-2. Admin - admin permissions
+Passing the `x-workspace-id` header will allow the user to access the workspace resources if they are a member of the workspace with a sufficient role.
+
+A role/claim is defined when the account is added to the workspace as a member.
+
+1. User - Can access all resources with user permissions.
+2. Admin - Can access all resources.
 
 ## Supabase Auth
 
