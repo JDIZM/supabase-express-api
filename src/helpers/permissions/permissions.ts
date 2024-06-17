@@ -6,13 +6,10 @@ export const API_ROUTES = {
   signUp: "/signup",
   accounts: "/accounts",
   accountById: "/accounts/:id",
-  accountsAll: "/accounts/all",
   profiles: "/profiles",
   profileById: "/profiles/:id",
-  profilesAll: "/profiles/all",
   workspaces: "/workspaces",
-  workspaceById: "/workspaces/:id",
-  workspacesAll: "/workspaces/all"
+  workspaceById: "/workspaces/:id"
 } as const;
 
 export type RouteName = keyof typeof API_ROUTES;
@@ -33,26 +30,53 @@ export type ResourcePermissions = {
   [Method: string]: Role;
 };
 
-export type PermissionsMap = Map<Route, ResourcePermissions>;
+export type ResourceMetadata = {
+  authenticated: boolean;
+  super?: boolean;
+};
+
+export type ResourceWithMeta = {
+  permissions: ResourcePermissions;
+} & ResourceMetadata;
+
+export type PermissionsMap = Map<Route, ResourceWithMeta>;
 
 export const permissions: PermissionsMap = new Map();
 
-permissions.set(API_ROUTES.root, { GET: "" });
+permissions.set(API_ROUTES.root, { permissions: { GET: "" }, authenticated: false });
+permissions.set(API_ROUTES.login, { permissions: { POST: "" }, authenticated: false });
+permissions.set(API_ROUTES.signUp, { permissions: { POST: "" }, authenticated: false });
 
-permissions.set(API_ROUTES.login, { POST: "" });
-permissions.set(API_ROUTES.signUp, { POST: "" });
+permissions.set(API_ROUTES.accounts, {
+  permissions: { GET: "", POST: "" },
+  authenticated: true,
+  super: true
+});
 
-permissions.set(API_ROUTES.accounts, { GET: "admin", POST: "user" });
-permissions.set(API_ROUTES.accountById, { GET: "owner", POST: "owner", PUT: "owner", PATCH: "owner" });
-permissions.set(API_ROUTES.accountsAll, { GET: "admin", POST: "admin" });
+permissions.set(API_ROUTES.accountById, {
+  permissions: { GET: "owner", POST: "owner", PATCH: "owner" },
+  authenticated: true
+});
 
-permissions.set(API_ROUTES.profiles, { GET: "admin", POST: "user" });
-permissions.set(API_ROUTES.profileById, { GET: "owner", POST: "owner", PUT: "owner", PATCH: "owner" });
-permissions.set(API_ROUTES.profilesAll, { GET: "admin", POST: "admin" });
+permissions.set(API_ROUTES.profiles, {
+  permissions: { GET: "" },
+  authenticated: true
+});
 
-permissions.set(API_ROUTES.workspaces, { GET: "owner", POST: "user" });
-permissions.set(API_ROUTES.workspaceById, { GET: "user", POST: "owner", PUT: "owner", PATCH: "owner" });
-permissions.set(API_ROUTES.workspacesAll, { GET: "admin", POST: "admin" });
+permissions.set(API_ROUTES.profileById, {
+  permissions: { GET: "owner", POST: "owner", PATCH: "owner" },
+  authenticated: true
+});
+
+permissions.set(API_ROUTES.workspaces, {
+  permissions: { GET: "", POST: "" },
+  authenticated: true
+});
+
+permissions.set(API_ROUTES.workspaceById, {
+  permissions: { GET: "user" },
+  authenticated: true
+});
 
 /**
  * This validates that permissions are set for all routes
@@ -63,7 +87,6 @@ export const hasRoutesWithNoPermissionsSet = (routes: Routes, permissions: Permi
   const permissionRoutes = [...permissions.keys()];
 
   const hasInvalidRoute = routes.some((route) => {
-    console.log("route", route);
     return !permissionRoutes.includes(route);
   });
 
@@ -74,6 +97,8 @@ const hasInvalidRoute = hasRoutesWithNoPermissionsSet(Object.values(API_ROUTES),
 
 if (hasInvalidRoute) {
   const errorMessage = "There are routes without permissions set.";
+
   logger.error(errorMessage);
+
   throw new Error(errorMessage);
 }
