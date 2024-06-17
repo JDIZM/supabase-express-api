@@ -38,12 +38,11 @@ async function createWorkspace(accountId: string) {
   return workspace[0];
 }
 
-async function createProfile(workspaceId: string, accountId: string, email: string) {
+async function createProfile(workspaceId: string, accountId: string) {
   const profile = await db
     .insert(profiles)
     .values({
       name: "JDIZM",
-      // email,
       workspaceId,
       accountId
     })
@@ -86,7 +85,7 @@ export async function seedAccounts() {
       throw new Error("Unable to create workspace");
     }
 
-    const profile = await createProfile(workspace.uuid, account.uuid, account.email);
+    const profile = await createProfile(workspace.uuid, account.uuid);
 
     if (!profile) {
       throw new Error("Unable to create profile");
