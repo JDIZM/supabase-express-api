@@ -169,23 +169,21 @@ This project uses JWT bearer token for authentication. The claims, id and sub mu
 
 How permissions work.
 
-A resource will have a permission level. A user will have a role/claim.
+A resource will have a permission level for each route method based on users role within the workspace. Workspace permissions can be defined in `./src/helpers/permissions.ts`.
 
-Routes will have their permission level defined in `./src/helpers/permissions.ts`
+Workspace permissions:
+Admin: Highest level of access to all resources within the workspace.
+User: Regular user with limited permissions.
 
-When a user makes a request to a route the route will check the user's role/claim against the permission level of the resource.
+Resource permissions:
+Owner: Has access to their own resources
 
-### Global route level permissions
-
-`isSuperAdmin` - is defined at the account level and can access all resources regardless of the workspace membership or resource permission level.
-
-### Resource route permission levels
-
-1. Owner - Route can only be accessed by the owner of the resource. Defined by the id of the resource being accessed matching the id of the user making the request.
+Account permissions:
+SuperAdmin: Has access to all super only resources.
 
 ### Workspace route permission levels
 
-Ensure every request includes a workspace context. This can be done using the `x-workspace-id header`.
+Ensure every request that requires workspace permissions includes a workspace context. This can be done using the `x-workspace-id header`.
 
 Passing the `x-workspace-id` header will allow the user to access the workspace resources if they are a member of the workspace with a sufficient role.
 
