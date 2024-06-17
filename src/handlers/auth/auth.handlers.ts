@@ -33,21 +33,19 @@ export const signUp = async (req: Request, res: Response) => {
     logger.info("User signed up", 200, user.id);
 
     const dbAccount = await createDbAccount({ email, fullName, phone, uuid: user.id });
-    logger.info("Account created in DB", 200, dbAccount);
+    logger.info({ msg: `Account created in DB with id: ${dbAccount}` });
 
     const response = gatewayResponse().success(200, user);
 
     return res.status(response.code).send(response);
   } catch (err) {
-    if (err instanceof Error) {
-      logger.error("Unable to sign up", 400, err);
-      const response = gatewayResponse().error(400, err, "Unable to sign up");
+    const error = err as Error;
 
-      return res.status(response.code).send(response);
-    }
+    const message = "Unable to sign up";
 
-    logger.error("Unable to sign up", 500, err);
-    const response = gatewayResponse().error(500, Error("Internal server error"), "Unable to sign up");
+    logger.error({ msg: message, error: err });
+
+    const response = gatewayResponse().error(400, error, error.message);
 
     return res.status(response.code).send(response);
   }

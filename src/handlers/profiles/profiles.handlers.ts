@@ -3,6 +3,36 @@ import { profiles, profileInsertSchema } from "@/schema.ts";
 import { db } from "@/services/db/drizzle.ts";
 import { eq } from "drizzle-orm";
 import type { Request, Response } from "express";
+import { getProfilesByAccountId } from "./profiles.methods.ts";
+
+// @ts-expect-error no-unused-parameter
+export async function getProfiles(req: Request, res: Response) {
+  try {
+    const { account } = res.locals;
+
+    const accountId = account?.uuid;
+
+    if (!accountId) {
+      throw new Error("Account id is required");
+    }
+
+    logger.info({ msg: `Fetching profiles for account: ${accountId}` });
+
+    const result = await getProfilesByAccountId(accountId);
+
+    const response = gatewayResponse().success(200, result, "Fetched profiles for account");
+
+    return res.status(response.code).send(response);
+  } catch (err) {
+    const error = err as Error;
+
+    logger.error({ msg: "Unable to fetch profiles for account", error });
+
+    const response = gatewayResponse().error(400, error, error.message);
+
+    return res.status(response.code).send(response);
+  }
+}
 
 // @ts-expect-error no-unused-parameter
 export async function getAllProfiles(req: Request, res: Response) {
@@ -15,11 +45,11 @@ export async function getAllProfiles(req: Request, res: Response) {
 
     return res.status(response.code).send(response);
   } catch (err) {
-    const message = "Unable to fetch all profiles";
+    const error = err as Error;
 
-    logger.error({ msg: message, err });
+    logger.error({ msg: "Unable to fetch all profiles", error });
 
-    const response = gatewayResponse().error(500, Error(message), message);
+    const response = gatewayResponse().error(400, error, error.message);
 
     return res.status(response.code).send(response);
   }
@@ -41,33 +71,11 @@ export async function getProfile(req: Request, res: Response) {
 
     return res.status(response.code).send(response);
   } catch (err) {
-    const message = "Unable to fetch profile";
+    const error = err as Error;
 
-    logger.error({ msg: message, err });
+    logger.error({ msg: "Unable to fetch profile", error });
 
-    const response = gatewayResponse().error(500, Error(message), message);
-
-    return res.status(response.code).send(response);
-  }
-}
-
-export async function createProfile(req: Request, res: Response) {
-  try {
-    profileInsertSchema.parse(req.body);
-
-    logger.info({ msg: "Creating profile" });
-
-    const result = await db.insert(profiles).values(req.body).returning();
-
-    logger.info({ msg: `Created profile: ${result[0]?.uuid}` });
-
-    const response = gatewayResponse().success(201, result, "Created profile");
-
-    return res.status(response.code).send(response);
-  } catch (err) {
-    logger.error({ msg: "Unable to create profile", err });
-
-    const response = gatewayResponse().error(500, Error("Unable to create profile"), "Unable to create profile");
+    const response = gatewayResponse().error(400, error, error.message);
 
     return res.status(response.code).send(response);
   }
@@ -82,6 +90,7 @@ export async function updateProfile(req: Request, res: Response) {
     profileInsertSchema.parse(req.body);
 
     const equals = eq(profiles.uuid, req.params.id);
+
     const result = await db.update(profiles).set(req.body).where(equals).execute();
 
     logger.info({ msg: `Updating profile: ${req.params.id}` });
@@ -90,9 +99,11 @@ export async function updateProfile(req: Request, res: Response) {
 
     return res.status(response.code).send(response);
   } catch (err) {
-    logger.error("Unable to update profile", err);
+    const error = err as Error;
 
-    const response = gatewayResponse().error(500, Error("Unable to update profile"), "Unable to update profile");
+    logger.error({ msg: "Unable to update profile", error });
+
+    const response = gatewayResponse().error(400, error, error.message);
 
     return res.status(response.code).send(response);
   }

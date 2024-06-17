@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import type { Role } from "@/helpers/permissions/permissions.ts";
 import { workspaceMemberships } from "@/schema.ts";
 import { db } from "@/services/db/drizzle.ts";
-import { logger } from "@/helpers/index.ts";
+import { gatewayResponse, logger } from "@/helpers/index.ts";
 import { and, eq } from "drizzle-orm";
 
 // Type guard function
@@ -15,9 +15,9 @@ export async function createMembership(workspaceId: string, accountId: string, r
     throw new Error("Invalid role");
   }
 
-  logger.info({ msg: `Creating membership for ${accountId} in ${workspaceId} as ${role}` });
+  logger.info({ msg: `Creating membership for account: ${accountId} in workspace: ${workspaceId} as role: ${role}` });
 
-  const membership = await db
+  const [membership] = await db
     .insert(workspaceMemberships)
     .values({
       role,
@@ -26,16 +26,20 @@ export async function createMembership(workspaceId: string, accountId: string, r
     })
     .returning();
 
-  logger.info({ msg: `Created membership for ${accountId} in ${workspaceId} as ${role}` });
+  if (!membership) {
+    throw new Error("Unable to create membership");
+  }
 
-  return membership[0];
+  logger.info({ msg: `Created membership for account: ${accountId} in workspace: ${workspaceId} as role: ${role}` });
+
+  return membership;
 }
 
 /**
- * Check if the user is a member of the workspace.
+ * Check if the account is a member of the workspace.
  */
 export async function checkMembership(accountId: string, workspaceId: string): Promise<[boolean, string]> {
-  logger.info({ msg: `Checking membership for ${accountId} in ${workspaceId}` });
+  logger.info({ msg: `Checking membership for account: ${accountId} in workspace: ${workspaceId}` });
 
   if (!accountId || !workspaceId) {
     return [false, ""];
@@ -64,8 +68,18 @@ export async function createMembershipHandler(req: Request, res: Response) {
 
     const membership = await createMembership(workspaceId, accountId, role);
 
-    return res.status(200).send(membership);
+    const response = gatewayResponse().success(200, membership, "Membership created");
+
+    return res.status(response.code).send(response);
   } catch (err) {
-    return res.status(500).send(err);
+    const error = err as Error;
+
+    const message = "Error creating membership";
+
+    logger.error({ msg: message, error });
+
+    const response = gatewayResponse().error(400, error, message);
+
+    return res.status(response.code).send(response);
   }
 }

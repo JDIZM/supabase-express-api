@@ -1,86 +1,134 @@
-import { workspaces, workspaceInsertSchema, uuidSchema } from "@/schema.ts";
+import { workspaces, uuidSchema } from "@/schema.ts";
 import type { Request, Response } from "express";
 import { db } from "@/services/db/drizzle.ts";
 import { logger, gatewayResponse } from "@/helpers/index.ts";
-import { eq, type InferInsertModel } from "drizzle-orm";
+import { eq } from "drizzle-orm";
+import { createDbWorkspace } from "./workspaces.methods.ts";
+import { createMembership } from "../memberships/memberships.handlers.ts";
+import { createDbProfile } from "../profiles/profiles.methods.ts";
 
-export const createWorkspace = async (workspace: InferInsertModel<typeof workspaces>) => {
-  const { name, accountId, description } = workspace;
-
-  logger.debug({ msg: `Creating workspace ${name} for ${accountId}` });
-
-  workspaceInsertSchema.parse({ name, accountId, description });
-
-  const result = await db.insert(workspaces).values({ name, accountId, description }).returning();
-
-  return result;
-};
-
-export const createWorkspaceHandler = async (req: Request, res: Response) => {
+/**
+ * Creates a new workspace for the current account and
+ * creates a workspace membership for the account with an admin role.
+ */
+export const createWorkspace = async (req: Request, res: Response) => {
   try {
-    const { name, accountId, description } = req.body;
+    const { name, description } = req.body;
+    const { account } = res.locals;
+    const { uuid: accountId } = account;
 
     logger.info({ msg: `Creating workspace ${name} for ${accountId}` });
 
-    uuidSchema.parse({ uuid: accountId });
+    const workspace = await createDbWorkspace({ name, accountId, description });
 
-    workspaceInsertSchema.parse({ name, accountId, description });
+    const membership = await createMembership(workspace.uuid, accountId, "admin");
 
-    const workspace = await db.insert(workspaces).values({ name, accountId, description }).returning();
+    const profile = await createDbProfile({
+      name: account.fullName,
+      // name: null, // TODO testing error response.
+      accountId,
+      workspaceId: workspace.uuid
+    });
 
-    const response = gatewayResponse().success(200, workspace, "HELLO");
+    const response = gatewayResponse().success(
+      200,
+      {
+        workspace,
+        profile,
+        membership
+      },
+      "Created workspace"
+    );
 
     return res.status(response.code).send(response);
   } catch (err) {
+    const error = err as Error;
+
     const message = "Unable to create workspace";
 
-    logger.error({ msg: message, err });
+    logger.error({ msg: message, error });
 
-    const response = gatewayResponse().error(500, Error(message), message);
+    const response = gatewayResponse().error(400, error, error.message);
 
     return res.status(response.code).send(response);
   }
 };
 
-export const fetchWorkspaceHandler = async (req: Request, res: Response) => {
+export const fetchWorkspace = async (req: Request, res: Response) => {
   try {
     uuidSchema.parse({ uuid: req.params.id });
 
     logger.info({ msg: `Fetching workspace: ${req.params.id}` });
 
     if (!req.params.id) {
-      // TODO zod parse should remove undefined type?
       throw new Error("Workspace id is required");
     }
 
     const equals = eq(workspaces.uuid, req.params.id);
 
-    const workspace = await db.select().from(workspaces).where(equals).execute();
     const relations = await db.query.workspaces.findFirst({
+      where: equals,
       with: {
-        account: true,
-        profiles: true
+        profiles: {
+          columns: {
+            uuid: true,
+            name: true
+          }
+        }
       }
     });
 
-    const response = gatewayResponse().success(200, { relations, workspace }, "Fetched workspace");
+    const response = gatewayResponse().success(200, relations, "Fetched workspace");
 
     return res.status(response.code).send(response);
   } catch (err) {
+    const error = err as Error;
+
     const message = "Unable to fetch workspace";
 
-    logger.error({ msg: message, err });
+    logger.error({ msg: message, error });
 
-    const response = gatewayResponse().error(500, Error(message), message);
+    const response = gatewayResponse().error(500, error, error.message);
 
     return res.status(response.code).send(response);
   }
 };
 
 // @ts-expect-error no-unused-parameter
-export const fetchWorkspacesHandler = async (req: Request, res: Response) => {
+export const fetchWorkspaces = async (req: Request, res: Response) => {
   try {
     const result = await db.select().from(workspaces).execute();
+
+    logger.info({ msg: `Fetching workspaces: ${result.length}` });
+
+    const response = gatewayResponse().success(200, result, "Fetched workspaces");
+
+    return res.status(response.code).send(response);
+  } catch (err) {
+    const error = err as Error;
+
+    const message = "Unable to fetch workspaces";
+
+    logger.error({ msg: message, error });
+
+    const response = gatewayResponse().error(500, error, error.message);
+
+    return res.status(response.code).send(response);
+  }
+};
+
+// @ts-expect-error no-unused-parameter
+export const fetchWorkspacesByAccountId = async (req: Request, res: Response) => {
+  try {
+    const { account } = res.locals;
+
+    const { uuid: accountId } = account;
+
+    logger.info({ msg: `Fetching workspaces for account: ${accountId}` });
+
+    const equals = eq(workspaces.accountId, accountId);
+
+    const result = await db.select().from(workspaces).where(equals).execute();
 
     logger.info({ msg: `Fetching workspaces: ${result.length}` });
 
@@ -97,3 +145,14 @@ export const fetchWorkspacesHandler = async (req: Request, res: Response) => {
     return res.status(response.code).send(response);
   }
 };
+
+// @ts-expect-error no-unused-parameter
+export async function updateWorkspace(req: Request, res: Response) {
+  return res.status(200).send("updateWorkspace");
+}
+
+// TODO invite members to workspace handler.
+// @ts-expect-error no-unused-parameter
+export async function inviteMembers(req: Request, res: Response) {
+  return res.status(200).send("inviteMembers");
+}
