@@ -46,7 +46,7 @@ export const createWorkspace = async (req: Request, res: Response) => {
 
     const message = "Unable to create workspace";
 
-    logger.error({ msg: message, error });
+    logger.error({ msg: message, err: error });
 
     const response = gatewayResponse().error(400, error, error.message);
 
@@ -86,7 +86,7 @@ export const fetchWorkspace = async (req: Request, res: Response) => {
 
     const message = "Unable to fetch workspace";
 
-    logger.error({ msg: message, error });
+    logger.error({ msg: message, err: error });
 
     const response = gatewayResponse().error(500, error, error.message);
 
@@ -109,7 +109,7 @@ export const fetchWorkspaces = async (req: Request, res: Response) => {
 
     const message = "Unable to fetch workspaces";
 
-    logger.error({ msg: message, error });
+    logger.error({ msg: message, err: error });
 
     const response = gatewayResponse().error(500, error, error.message);
 
@@ -136,11 +136,13 @@ export const fetchWorkspacesByAccountId = async (req: Request, res: Response) =>
 
     return res.status(response.code).send(response);
   } catch (err) {
+    const error = err as Error;
+
     const message = "Unable to fetch workspaces";
 
-    logger.error({ msg: message, err });
+    logger.error({ msg: message, err: error });
 
-    const response = gatewayResponse().error(500, Error(message), message);
+    const response = gatewayResponse().error(500, error, message);
 
     return res.status(response.code).send(response);
   }

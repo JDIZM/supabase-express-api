@@ -76,8 +76,11 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
     res.locals = { id: user.id, sub: user.id, account };
 
     return next();
-  } catch (error) {
-    const response = gatewayResponse().error(403, error as Error, "isAuthenticated error");
+  } catch (err) {
+    const error = err as Error;
+    logger.error({ err: error });
+
+    const response = gatewayResponse().error(403, error as Error, error.message);
 
     logger.error({ msg: "isAuthenticated error:", response });
 
