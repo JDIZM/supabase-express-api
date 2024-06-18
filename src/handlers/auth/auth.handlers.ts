@@ -10,7 +10,7 @@ export const signUpWithSupabase = async (email: string, password: string) => {
   });
 
   if (error) {
-    logger.error("signUpWithSupabase error", error);
+    logger.error({ msg: "Unable to sign up", err: error });
     return null;
   }
 
@@ -24,7 +24,8 @@ export const signUp = async (req: Request, res: Response) => {
     const user = await signUpWithSupabase(email, password);
 
     if (!user) {
-      logger.error("Unable to sign up", 400);
+      logger.error({ msg: "Unable to sign up" });
+
       const response = gatewayResponse().error(400, new Error("Unable to sign up"), "Unable to sign up");
 
       return res.status(response.code).send(response);
@@ -43,7 +44,7 @@ export const signUp = async (req: Request, res: Response) => {
 
     const message = "Unable to sign up";
 
-    logger.error({ msg: message, error: err });
+    logger.error({ msg: message, err });
 
     const response = gatewayResponse().error(400, error, error.message);
 

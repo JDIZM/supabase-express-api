@@ -76,7 +76,7 @@ export async function createMembershipHandler(req: Request, res: Response) {
 
     const message = "Error creating membership";
 
-    logger.error({ msg: message, error });
+    logger.error({ msg: message, err: error });
 
     const response = gatewayResponse().error(400, error, message);
 

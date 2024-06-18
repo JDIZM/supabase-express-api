@@ -26,7 +26,7 @@ export async function getProfiles(req: Request, res: Response) {
   } catch (err) {
     const error = err as Error;
 
-    logger.error({ msg: "Unable to fetch profiles for account", error });
+    logger.error({ msg: "Unable to fetch profiles for account", err: error });
 
     const response = gatewayResponse().error(400, error, error.message);
 
@@ -47,7 +47,7 @@ export async function getAllProfiles(req: Request, res: Response) {
   } catch (err) {
     const error = err as Error;
 
-    logger.error({ msg: "Unable to fetch all profiles", error });
+    logger.error({ msg: "Unable to fetch all profiles", err: error });
 
     const response = gatewayResponse().error(400, error, error.message);
 
@@ -73,7 +73,7 @@ export async function getProfile(req: Request, res: Response) {
   } catch (err) {
     const error = err as Error;
 
-    logger.error({ msg: "Unable to fetch profile", error });
+    logger.error({ msg: "Unable to fetch profile", err: error });
 
     const response = gatewayResponse().error(400, error, error.message);
 
@@ -101,7 +101,7 @@ export async function updateProfile(req: Request, res: Response) {
   } catch (err) {
     const error = err as Error;
 
-    logger.error({ msg: "Unable to update profile", error });
+    logger.error({ msg: "Unable to update profile", err: error });
 
     const response = gatewayResponse().error(400, error, error.message);
 

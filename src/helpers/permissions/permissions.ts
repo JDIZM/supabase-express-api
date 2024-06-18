@@ -43,9 +43,9 @@ export type PermissionsMap = Map<Route, ResourceWithMeta>;
 
 export const permissions: PermissionsMap = new Map();
 
-permissions.set(API_ROUTES.root, { permissions: { GET: "" }, authenticated: false });
-permissions.set(API_ROUTES.login, { permissions: { POST: "" }, authenticated: false });
-permissions.set(API_ROUTES.signUp, { permissions: { POST: "" }, authenticated: false });
+permissions.set(API_ROUTES.root, { permissions: {}, authenticated: false });
+permissions.set(API_ROUTES.login, { permissions: {}, authenticated: false });
+permissions.set(API_ROUTES.signUp, { permissions: {}, authenticated: false });
 
 permissions.set(API_ROUTES.accounts, {
   permissions: { GET: "", POST: "" },

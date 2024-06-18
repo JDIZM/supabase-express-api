@@ -19,7 +19,7 @@ export async function createDbProfile(profile: InferInsertModel<typeof profiles>
 
     return result;
   } catch (error) {
-    logger.error({ msg: "Error creating profile", error: error });
+    logger.error({ msg: "Error creating profile", err: error });
     throw error;
   }
 }
@@ -34,7 +34,7 @@ export async function getProfileById(profileId: string) {
 
     return result;
   } catch (error) {
-    logger.error({ msg: "Error getting profile by id", error: error });
+    logger.error({ msg: "Error getting profile by id", err: error });
     throw error;
   }
 }
@@ -55,7 +55,7 @@ export async function getProfilesByAccountId(accountId: string) {
 
     return relations;
   } catch (error) {
-    logger.error({ msg: "Error getting profiles by account id", error: error });
+    logger.error({ msg: "Error getting profiles by account id", err: error });
     throw error;
   }
 }
@@ -76,7 +76,7 @@ export const hasExistingProfile = async ({
 
     return !!result;
   } catch (error) {
-    logger.error({ msg: "Error checking for existing profile", error: error });
+    logger.error({ msg: "Error checking for existing profile", err: error });
     throw error;
   }
 };
