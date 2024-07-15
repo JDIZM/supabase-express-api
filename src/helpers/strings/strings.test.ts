@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { camelCase, capitalize, pascalCase, titleCase } from "./strings.js";
+import { camelCase, capitalize, pascalCase, titleCase } from "./strings.ts";
 
 describe("camelCase", () => {
   it("should convert a string to camelCase", () => {

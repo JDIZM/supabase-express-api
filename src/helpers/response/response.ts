@@ -1,6 +1,6 @@
 interface ErrorResponse {
   code: number;
-  error: Error;
+  error: string;
   message: string;
 }
 
@@ -31,7 +31,7 @@ export const gatewayResponse = <T>(): ReturnType<T> => {
     error: (code: number, error: Error, message: string) => {
       return {
         code,
-        error,
+        error: JSON.stringify(error),
         message
       };
     },

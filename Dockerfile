@@ -1,17 +1,50 @@
-# use a slimmer alpine image to consume less memory
-# https://viralganatra.com/docker-nodejs-production-secure-best-practices/
-FROM node:20-alpine
+FROM node:20-alpine as base
+
+ENV PNPM_VERSION=9.1.0
+
+RUN npm install -g pnpm@$PNPM_VERSION
 
 WORKDIR /app
 
 # install deps first so we can cache them
-COPY package*.json ./
-RUN npm ci && npm cache clean --force
+COPY package*.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
-# build the app
+FROM base AS builder
+
+WORKDIR /app
+
 COPY . .
+
 RUN mkdir dist
-RUN npm run build
+
+RUN pnpm build
+
+FROM base AS runner
+
+WORKDIR /app
+
+RUN addgroup --system --gid 1001 express
+RUN adduser --system --uid 1001 express
+
+COPY --from=builder --chown=express:express /app/node_modules /app/node_modules
+COPY --from=builder --chown=express:express /app/dist /app/dist
+COPY --from=builder --chown=express:express /app/package.json /app/package.json
+
+USER express
+
+EXPOSE 4000
+
+FROM runner AS dev
+
+WORKDIR /app
+
+COPY --from=builder --chown=express:express /app/.env /app/.env
 
 CMD ["node", "./dist/server.mjs"]
 
+FROM runner AS prod
+
+WORKDIR /app
+
+CMD ["node", "./dist/server.mjs"]

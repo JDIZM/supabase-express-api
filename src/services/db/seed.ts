@@ -1,8 +1,8 @@
-import { seedUsers } from "./seeds/users.ts";
-import { logger } from "../../helpers/logger.ts";
+import { seedAccounts } from "./seeds/accounts.ts";
+import { logger } from "../../helpers/index.ts";
 
 async function main(): Promise<void> {
-  logger.info("Seeding users...");
+  logger.info("Seeding accounts...");
 
   const args = process.argv.slice(2);
 
@@ -20,14 +20,13 @@ async function main(): Promise<void> {
 
   // Note if you are using supabase you will need to confirm the email addresses.
   if (options?.supabase) {
-    logger.info("Seeding users with supabase...");
-    const ids = await seedUsers(true);
-    logger.info("Created users with ids:", ids);
+    // TODO create accounts with supabase.
+    // logger.info("Seeding users with supabase...");
+    // await seedAccounts(true);
     return;
   }
 
-  const ids = await seedUsers();
-  logger.info("Created users with ids:", ids);
+  await seedAccounts();
 }
 
 try {

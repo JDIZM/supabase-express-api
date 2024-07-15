@@ -2,6 +2,14 @@
 version: "3.1"
 
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "4000:4000"
   db:
     image: postgres
     restart: always

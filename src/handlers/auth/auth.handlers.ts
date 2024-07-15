@@ -1,8 +1,7 @@
 import { supabase } from "@/services/supabase.ts";
 import type { Request, Response } from "express";
-import { gatewayResponse } from "@/helpers/response.ts";
-import { logger } from "@/helpers/logger.ts";
-import { createDbUser } from "@/handlers/users/users.handlers.ts";
+import { logger, gatewayResponse } from "@/helpers/index.ts";
+import { createDbAccount } from "@/handlers/accounts/accounts.methods.ts";
 
 export const signUpWithSupabase = async (email: string, password: string) => {
   const { data, error } = await supabase.auth.signUp({
@@ -11,7 +10,7 @@ export const signUpWithSupabase = async (email: string, password: string) => {
   });
 
   if (error) {
-    logger.error("signUpWithSupabase error", error);
+    logger.error({ msg: "Unable to sign up", err: error });
     return null;
   }
 
@@ -25,7 +24,8 @@ export const signUp = async (req: Request, res: Response) => {
     const user = await signUpWithSupabase(email, password);
 
     if (!user) {
-      logger.error("Unable to sign up", 400);
+      logger.error({ msg: "Unable to sign up" });
+
       const response = gatewayResponse().error(400, new Error("Unable to sign up"), "Unable to sign up");
 
       return res.status(response.code).send(response);
@@ -33,22 +33,20 @@ export const signUp = async (req: Request, res: Response) => {
 
     logger.info("User signed up", 200, user.id);
 
-    const dbUser = await createDbUser({ email, fullName, phone, role: "user", uuid: user.id });
-    logger.info("User created in DB", 200, dbUser);
+    const dbAccount = await createDbAccount({ email, fullName, phone, uuid: user.id });
+    logger.info({ msg: `Account created in DB with id: ${dbAccount}` });
 
     const response = gatewayResponse().success(200, user);
 
     return res.status(response.code).send(response);
   } catch (err) {
-    if (err instanceof Error) {
-      logger.error("Unable to sign up", 400, err);
-      const response = gatewayResponse().error(400, err, "Unable to sign up");
+    const error = err as Error;
 
-      return res.status(response.code).send(response);
-    }
+    const message = "Unable to sign up";
 
-    logger.error("Unable to sign up", 500, err);
-    const response = gatewayResponse().error(500, Error("Internal server error"), "Unable to sign up");
+    logger.error({ msg: message, err });
+
+    const response = gatewayResponse().error(400, error, error.message);
 
     return res.status(response.code).send(response);
   }

@@ -1,21 +1,17 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import { config } from "./config.js";
-import { pinoHttp } from "pino-http";
-import { routes } from "./routes/index.js";
-import { logger } from "./helpers/logger.js";
-import "./services/supabase.js";
 import cookieParser from "cookie-parser";
-
-const { logger: pino } = pinoHttp();
-
-logger.debug("config", config);
+import { config } from "./config.ts";
+import { pinoHttp } from "pino-http";
+import { routes } from "./routes/index.ts";
+import { logger } from "./helpers/index.ts";
+import { corsOptions } from "./cors.ts";
 
 const checkConfigIsValid = () => {
   Object.values(config).forEach((value) => {
     if (!value) {
-      logger.error("config is invalid", config);
+      logger.error({ msg: "config is invalid", config });
       throw new Error("config is invalid");
     }
   });
@@ -36,7 +32,8 @@ app.use(cookieParser());
 
 app.use(
   pinoHttp({
-    logger: pino
+    logger: logger,
+    autoLogging: true
   })
 );
 
@@ -46,15 +43,11 @@ app.use(express.urlencoded({ extended: true }));
 // parse application/json
 app.use(express.json());
 
-const corsWhitelist = [`http://localhost:${config.port}`, config.appUrl];
-
-const corsOptions = {
-  origin: corsWhitelist,
-  optionsSuccessStatus: 204
-};
-
+// Apply CORS middleware to all routes before defining them
 app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // Pre-flight requests
 
+// Define routes
 routes(app);
 
 app.listen(config.port, () => {

@@ -2,23 +2,25 @@
   "name": "node-express-backend-component",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/server.cjs",
+  "main": "dist/server.mjs",
   "module": "dist/server.mjs",
   "type": "module",
   "imports": {
     "@": "./src"
   },
+  "packageManager": "pnpm@9.1.0+sha512.67f5879916a9293e5cf059c23853d571beaf4f753c707f40cb22bed5fb1578c6aad3b6c4107ccb3ba0b35be003eb621a16471ac836c87beb53f9d54bb4612724",
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx --max-warnings 0",
     "format": "prettier -w '**/*.{js,ts,mjs,cjs,json,tsx,jsx}'",
     "format:check": "prettier --check '**/*.{js,ts,mjs,cjs,json,tsx,jsx}'",
     "tsc:check": "tsc -p tsconfig.json --noEmit",
-    "dev": "tsx watch ./src/server.ts",
+    "dev": "tsx watch ./src/server.ts | pino-pretty",
     "build": "pkgroll",
     "build:tsc": "rm -rf dist && tsc -p tsconfig.json",
     "test": "vitest --run --coverage",
-    "migrate:create": "npx drizzle-kit generate:pg",
-    "migrate:up": "tsx ./src/services/db/migrations.ts",
+    "migrate:create": "npx drizzle-kit generate",
+    "migrate:up": "npx drizzle-kit up",
+    "migrate:push": "npx drizzle-kit push",
     "seed": "tsx ./src/services/db/seed.ts --supabase=$npm_config_supabase",
     "studio": "npx drizzle-kit studio"
   },
@@ -26,21 +28,23 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^7.8.0",
-    "@typescript-eslint/parser": "^7.8.0",
+    "@typescript-eslint/eslint-plugin": "^7.11.0",
+    "@typescript-eslint/parser": "^7.11.0",
     "@vitest/coverage-v8": "^2.0.0",
     "dotenv": "^16.4.5",
-    "drizzle-kit": "^0.20.18",
+    "drizzle-kit": "^0.22.7",
     "eslint": "^8.57.0",
-    "eslint-config-prettier": "^9.0.0",
-    "eslint-import-resolver-typescript": "^3.5.5",
-    "eslint-plugin-import": "^2.27.5",
-    "pkgroll": "^2.0.2",
-    "prettier": "^3.0.0",
-    "tsx": "^4.9.3",
-    "typescript": "^5.4.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-import-resolver-node": "^0.3.9",
+    "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-plugin-import": "^2.29.1",
+    "pino-pretty": "^11.1.0",
+    "pkgroll": "^2.1.1",
+    "prettier": "^3.2.5",
+    "tsx": "^4.11.0",
+    "typescript": "^5.4.5",
     "vitest": "^2.0.0",
-    "zod": "^3.23.7"
+    "zod": "^3.23.8"
   },
   "files": [
     "dist"
@@ -49,12 +53,12 @@
     "node": "20.15.1"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.43.1",
-    "@types/bcrypt": "^5.0.0",
+    "@supabase/supabase-js": "^2.43.4",
+    "@types/bcrypt": "^5.0.2",
     "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.17",
-    "@types/node": "^20.12.10",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.12.13",
     "@types/pg": "^8.11.6",
     "bcrypt": "^5.1.1",
     "chalk": "^5.3.0",
@@ -65,7 +69,7 @@
     "express": "^4.19.2",
     "helmet": "^7.1.0",
     "pg": "^8.11.5",
-    "pino": "^9.0.0",
+    "pino": "^9.1.0",
     "pino-http": "^10.1.0"
   }
 }
