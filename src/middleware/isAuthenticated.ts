@@ -77,12 +77,7 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
 
     return next();
   } catch (err) {
-    const error = err as Error;
-    logger.error({ err: error });
-
-    const response = gatewayResponse().error(403, error as Error, error.message);
-
-    logger.error({ msg: "isAuthenticated error:", response });
+    const response = gatewayResponse().error(401, err as Error, "Not Authorized");
 
     return res.status(response.code).send(response);
   }

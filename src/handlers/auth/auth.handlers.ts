@@ -24,19 +24,18 @@ export const signUp = async (req: Request, res: Response) => {
     const user = await signUpWithSupabase(email, password);
 
     if (!user) {
-      logger.error({ msg: "Unable to sign up" });
+      const errorMessage = "Unable to sign up";
 
-      const response = gatewayResponse().error(400, new Error("Unable to sign up"), "Unable to sign up");
+      const response = gatewayResponse().error(400, new Error(errorMessage), errorMessage);
 
       return res.status(response.code).send(response);
     }
 
-    logger.info("User signed up", 200, user.id);
+    logger.info({ msg: `User signed up with id: ${user.id}` });
 
     const dbAccount = await createDbAccount({ email, fullName, phone, uuid: user.id });
-    logger.info({ msg: `Account created in DB with id: ${dbAccount}` });
 
-    const response = gatewayResponse().success(200, user);
+    const response = gatewayResponse().success(200, `Account created in DB with id: ${dbAccount}`);
 
     return res.status(response.code).send(response);
   } catch (err) {
@@ -52,8 +51,10 @@ export const signUp = async (req: Request, res: Response) => {
   }
 };
 
+// TODO add httpOnly cookie for sessions.. https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#security
 export const signInWithPassword = async (req: Request, res: Response) => {
   const { email, password } = req.body;
+
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password
@@ -61,7 +62,6 @@ export const signInWithPassword = async (req: Request, res: Response) => {
 
   if (error) {
     const response = gatewayResponse().error(400, error, "Unable to sign in with password");
-    logger.error("Unable to sign in with password", error);
 
     return res.status(response.code).send(response);
   }

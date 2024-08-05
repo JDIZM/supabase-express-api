@@ -16,13 +16,7 @@ export async function getAccounts(req: Request, res: Response) {
 
     return res.status(response.code).send(response);
   } catch (err) {
-    const error = err as Error;
-
-    const message = "Unable to fetch accounts";
-
-    logger.error({ msg: message, err });
-
-    const response = gatewayResponse().error(400, error, error.message);
+    const response = gatewayResponse().error(400, err as Error, "Unable to fetch accounts");
 
     res.status(response.code).send(response);
   }
@@ -58,13 +52,7 @@ export async function getAccount(req: Request, res: Response) {
 
     return res.status(response.code).send(response);
   } catch (err) {
-    const error = err as Error;
-
-    const message = "Unable to fetch account";
-
-    logger.error({ msg: message, err });
-
-    const response = gatewayResponse().error(400, error, error.message);
+    const response = gatewayResponse().error(400, err as Error, "Unable to fetch account");
 
     return res.status(response.code).send(response);
   }
@@ -82,13 +70,7 @@ export async function createAccount(req: Request, res: Response) {
 
     return res.status(response.code).send(response);
   } catch (err) {
-    const error = err as Error;
-
-    const message = "Unable to create account";
-
-    logger.error({ msg: message, err: error });
-
-    const response = gatewayResponse().error(400, error, error.message);
+    const response = gatewayResponse().error(400, err as Error, "Unable to create account");
 
     return res.status(response.code).send(response);
   }

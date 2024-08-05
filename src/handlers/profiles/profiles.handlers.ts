@@ -8,27 +8,21 @@ import { getProfilesByAccountId } from "./profiles.methods.ts";
 // @ts-expect-error no-unused-parameter
 export async function getProfiles(req: Request, res: Response) {
   try {
-    const { account } = res.locals;
+    const { id } = res.locals;
 
-    const accountId = account?.uuid;
-
-    if (!accountId) {
+    if (!id) {
       throw new Error("Account id is required");
     }
 
-    logger.info({ msg: `Fetching profiles for account: ${accountId}` });
+    logger.info({ msg: `Fetching profiles for account: ${id}` });
 
-    const result = await getProfilesByAccountId(accountId);
+    const result = await getProfilesByAccountId(id);
 
     const response = gatewayResponse().success(200, result, "Fetched profiles for account");
 
     return res.status(response.code).send(response);
   } catch (err) {
-    const error = err as Error;
-
-    logger.error({ msg: "Unable to fetch profiles for account", err: error });
-
-    const response = gatewayResponse().error(400, error, error.message);
+    const response = gatewayResponse().error(400, err as Error, "Unable to fetch profiles for account");
 
     return res.status(response.code).send(response);
   }
@@ -45,11 +39,7 @@ export async function getAllProfiles(req: Request, res: Response) {
 
     return res.status(response.code).send(response);
   } catch (err) {
-    const error = err as Error;
-
-    logger.error({ msg: "Unable to fetch all profiles", err: error });
-
-    const response = gatewayResponse().error(400, error, error.message);
+    const response = gatewayResponse().error(400, err as Error, "Unable to fetch all profiles");
 
     return res.status(response.code).send(response);
   }
@@ -71,11 +61,7 @@ export async function getProfile(req: Request, res: Response) {
 
     return res.status(response.code).send(response);
   } catch (err) {
-    const error = err as Error;
-
-    logger.error({ msg: "Unable to fetch profile", err: error });
-
-    const response = gatewayResponse().error(400, error, error.message);
+    const response = gatewayResponse().error(400, err as Error, "Unable to fetch profile");
 
     return res.status(response.code).send(response);
   }
@@ -99,11 +85,7 @@ export async function updateProfile(req: Request, res: Response) {
 
     return res.status(response.code).send(response);
   } catch (err) {
-    const error = err as Error;
-
-    logger.error({ msg: "Unable to update profile", err: error });
-
-    const response = gatewayResponse().error(400, error, error.message);
+    const response = gatewayResponse().error(400, err as Error, "Unable to update profile");
 
     return res.status(response.code).send(response);
   }

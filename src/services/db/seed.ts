@@ -34,6 +34,6 @@ try {
   await main();
   process.exit(0);
 } catch (err) {
-  logger.error("error seeding database...", err);
+  logger.error({ msg: "Error seeding database", error: err });
   process.exit(1);
 }

@@ -1,3 +1,5 @@
+import { logger } from "../logger/logger.ts";
+
 interface ErrorResponse {
   code: number;
   error: string;
@@ -29,13 +31,17 @@ interface ReturnType<T> {
 export const gatewayResponse = <T>(): ReturnType<T> => {
   return {
     error: (code: number, error: Error, message: string) => {
+      logger.error({ msg: message, err: error });
+
       return {
         code,
-        error: JSON.stringify(error),
+        error: error.message,
         message
       };
     },
     success: (code: number, data: T, message = "success") => {
+      logger.info({ msg: message });
+
       return {
         code,
         data,

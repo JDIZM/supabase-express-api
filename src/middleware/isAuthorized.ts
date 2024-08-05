@@ -121,7 +121,8 @@ export const isAuthorized = async (req: Request, res: Response, next: NextFuncti
 
     return res.status(403).json({ message: "Forbidden" });
   } catch (err) {
-    logger.error({ msg: "isAuthorized", err });
-    return res.status(500).json({ message: "Internal server error" });
+    const response = gatewayResponse().error(403, err as Error, "Not Authorized");
+
+    return res.status(response.code).json(response);
   }
 };

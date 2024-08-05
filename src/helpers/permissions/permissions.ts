@@ -98,7 +98,7 @@ const hasInvalidRoute = hasRoutesWithNoPermissionsSet(Object.values(API_ROUTES),
 if (hasInvalidRoute) {
   const errorMessage = "There are routes without permissions set.";
 
-  logger.error(errorMessage);
+  logger.error({ msg: errorMessage });
 
   throw new Error(errorMessage);
 }
