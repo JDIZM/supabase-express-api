@@ -18,9 +18,13 @@ export type Route = (typeof API_ROUTES)[RouteName];
 
 export type Routes = Route[];
 
-export const roles = ["admin", "user", "owner"] as const;
+export const ROLES = {
+  Admin: "admin",
+  User: "user",
+  Owner: "owner"
+} as const;
 
-export type Role = (typeof roles)[number] | "";
+export type Role = (typeof ROLES)[keyof typeof ROLES] | "";
 
 export type Method = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
@@ -54,7 +58,7 @@ permissions.set(API_ROUTES.accounts, {
 });
 
 permissions.set(API_ROUTES.accountById, {
-  permissions: { GET: "owner", POST: "owner", PATCH: "owner" },
+  permissions: { GET: ROLES.Owner, POST: ROLES.Owner, PATCH: ROLES.Owner },
   authenticated: true
 });
 
@@ -64,7 +68,7 @@ permissions.set(API_ROUTES.profiles, {
 });
 
 permissions.set(API_ROUTES.profileById, {
-  permissions: { GET: "owner", POST: "owner", PATCH: "owner" },
+  permissions: { GET: ROLES.Owner, POST: ROLES.Owner, PATCH: ROLES.Owner },
   authenticated: true
 });
 
@@ -74,14 +78,13 @@ permissions.set(API_ROUTES.workspaces, {
 });
 
 permissions.set(API_ROUTES.workspaceById, {
-  permissions: { GET: "user" },
+  permissions: { GET: ROLES.User },
   authenticated: true
 });
 
 /**
  * This validates that permissions are set for all routes
  * in the permissions map.
- *
  */
 export const hasRoutesWithNoPermissionsSet = (routes: Routes, permissions: PermissionsMap): boolean => {
   const permissionRoutes = [...permissions.keys()];

@@ -1,8 +1,5 @@
 import { logger, gatewayResponse, permissions } from "@/helpers/index.ts";
-// import { supabase } from "@/services/supabase.ts";
-import { db } from "@/services/db/drizzle.ts";
-import { accounts } from "@/schema.ts";
-import { eq } from "drizzle-orm";
+import { supabase } from "@/services/supabase.ts";
 import type { Route } from "@/helpers/index.ts";
 import type { NextFunction, Request, Response } from "express";
 import type { Method } from "@/helpers/permissions/permissions.ts";
@@ -44,36 +41,26 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
 
   try {
     // Verify token using your auth service.
-    // TODO use local db user.
-    // const user = { id: "5f29e851-e7a1-4cf2-8e5a-5037a85a4224" }; // admin and super admin
-    const user = { id: "e2abbf9a-093b-426a-a078-09256517934d" }; // user
 
-    // TODO - uncomment this when using supabase.
+    // TODO use a local db user and bypass token verification.
+    const user = { id: "dd715937-ad7c-4a18-8214-0bd4d3c062a4" };
+    // <-- Comment out the following block to use a local db user and bypass supabase
     // const {
     //   data: { user },
     //   error
     // } = await supabase.auth.getUser(token);
-    //
 
     // if (error || !user) {
-    //   throw new Error("User not found", {
-    //     cause: error,
+    //   throw new Error(error?.message, {
+    //     cause: error
     //   });
     // }
+    // End comment -->
 
     logger.debug({ msg: `Verified user token for id: ${user.id}` });
 
-    // get account from DB.
-    const [account] = await db.select().from(accounts).where(eq(accounts.uuid, user.id)).execute();
-
-    if (!account) {
-      throw new Error("DB User not found");
-    }
-
-    logger.debug({ msg: `Fetched account from db with id: ${account.uuid}` });
-
     // Attach user to res.locals and verify permissions in isAuthorized middleware
-    res.locals = { id: user.id, sub: user.id, account };
+    res.locals = { id: user.id, sub: user.id };
 
     return next();
   } catch (err) {
