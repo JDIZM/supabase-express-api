@@ -18,7 +18,7 @@ export async function getProfiles(req: Request, res: Response) {
 
     const result = await getProfilesByAccountId(id);
 
-    const response = gatewayResponse().success(200, result, "Fetched profiles for account");
+    const response = gatewayResponse().success(200, result, `Fetched profiles for account: ${id}`);
 
     return res.status(response.code).send(response);
   } catch (err) {

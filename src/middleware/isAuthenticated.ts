@@ -1,8 +1,8 @@
 import { logger, gatewayResponse, permissions } from "@/helpers/index.ts";
-import { supabase } from "@/services/supabase.ts";
 import type { Route } from "@/helpers/index.ts";
 import type { NextFunction, Request, Response } from "express";
 import type { Method } from "@/helpers/permissions/permissions.ts";
+import { verifyToken } from "@/handlers/auth/auth.methods.ts";
 
 const getIpFromRequest = (req: Request): string | undefined => {
   const ips =
@@ -18,6 +18,7 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
   const token = authHeader && authHeader.split(" ")[1];
 
   const routeKey = (req.baseUrl + req.route.path) as Route;
+
   const routeMethod = req.method as Method;
 
   const resourcePermissions = permissions.permissions.get(routeKey);
@@ -33,34 +34,26 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
     return next();
   }
 
-  if (!token && requiresAuth) {
+  if (!token) {
     logger.error({ msg: "isAuthenticated: A token is required for authentication", routeKey, routeMethod });
 
     return res.status(403).send("A token is required for authentication");
   }
 
   try {
-    // Verify token using your auth service.
+    const verifiedToken = await verifyToken(token);
+    console.log("verifiedToken", verifiedToken);
 
-    // TODO use a local db user and bypass token verification.
-    const user = { id: "dd715937-ad7c-4a18-8214-0bd4d3c062a4" };
-    // <-- Comment out the following block to use a local db user and bypass supabase
-    // const {
-    //   data: { user },
-    //   error
-    // } = await supabase.auth.getUser(token);
+    if (!verifiedToken) {
+      throw new Error("Invalid token");
+    }
 
-    // if (error || !user) {
-    //   throw new Error(error?.message, {
-    //     cause: error
-    //   });
-    // }
-    // End comment -->
+    const { sub } = verifiedToken;
 
-    logger.debug({ msg: `Verified user token for id: ${user.id}` });
+    logger.debug({ msg: `Verified user token for id: ${sub}` });
 
     // Attach user to res.locals and verify permissions in isAuthorized middleware
-    res.locals = { id: user.id, sub: user.id };
+    res.locals = { id: sub, sub };
 
     return next();
   } catch (err) {

@@ -9,7 +9,6 @@ export const ENV = process.env.NODE_ENV ?? "development";
 
 export const getStage = (env: string): Stage => {
   if (!stages.includes(env as Stage)) {
-    logger.error(`Invalid environment: ${ENV}`);
     throw new Error(`Invalid environment: ${ENV}`);
   }
   return env as Stage;
@@ -32,5 +31,6 @@ export const config = {
   db_password: process.env.POSTGRES_PASSWORD || "postgres",
   db_name: process.env.POSTGRES_DB || "test",
   supabaseUrl: process.env.SUPABASE_URL || "https://example.supabase.co",
-  supabaseKey: process.env.SUPABASE_PK || "example-key"
+  supabaseKey: process.env.SUPABASE_PK || "example-key",
+  jwtSecret: process.env.SUPABASE_AUTH_JWT_SECRET || "super-secret-key-that-should-be-replaced"
 };
