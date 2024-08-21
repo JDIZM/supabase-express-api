@@ -50,7 +50,7 @@
     "dist"
   ],
   "volta": {
-    "node": "20.16.0"
+    "node": "20.17.0"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.43.4",
