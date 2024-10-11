@@ -33,7 +33,7 @@
     "@typescript-eslint/parser": "^8.0.0",
     "@vitest/coverage-v8": "^2.0.0",
     "dotenv": "^16.4.5",
-    "drizzle-kit": "^0.24.0",
+    "drizzle-kit": "^0.25.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-node": "^0.3.9",
