@@ -1,10 +1,13 @@
-FROM node:20-alpine as base
+FROM node:20-alpine AS base
 
 ENV PNPM_VERSION=9.1.0
 
 RUN npm install -g pnpm@$PNPM_VERSION
 
 WORKDIR /app
+
+ARG NODE_ENV
+ENV NODE_ENV=${NODE_ENV}
 
 # install deps first so we can cache them
 COPY package*.json pnpm-lock.yaml ./

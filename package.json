@@ -28,6 +28,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.6",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@vitest/coverage-v8": "^2.0.0",
@@ -68,6 +69,7 @@
     "drizzle-zod": "^0.5.1",
     "express": "^4.19.2",
     "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
     "pg": "^8.11.5",
     "pino": "^9.1.0",
     "pino-http": "^10.1.0"

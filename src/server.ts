@@ -51,5 +51,5 @@ app.options("*", cors(corsOptions)); // Pre-flight requests
 routes(app);
 
 app.listen(config.port, () => {
-  logger.info(`[server]: Server is running at http://localhost:${config.port}`);
+  logger.info(`[server]: Server is running on port: ${config.port}`);
 });

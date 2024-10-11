@@ -71,11 +71,31 @@ Run the unit tests with `npm run test`
 
 It's also recommended to install the [vitest extension for vscode](https://marketplace.visualstudio.com/items?itemName=ZixuanChen.vitest-explorer).
 
+## Supabase CLI
+
+You can install the supabase cli for local development.
+
+- https://supabase.com/docs/guides/cli/getting-started
+- https://supabase.com/docs/guides/cli/local-development
+
 ## Database
 
 You can view the database with `npx drizzle-kit studio` or `npm run studio`.
 
 You can spin up a local copy of the database and application with `docker-compose` but this is not required when using the Supabase db.
+When using the supabase cli we can run a local copy of the db with `supabase start`.
+
+### Developing locally with supabase
+
+This will provide you with a connection string, you can update the local environment variables in the .env file with the details from the connection string.
+
+`postgresql://postgres:postgres@localhost:54322/postgres`
+
+Visit the Supabase dashboard: http://localhost:54323 and manage your database locally.
+
+### Local Postgres with Docker
+
+You can spin up a local database and application with `docker-compose` but this is not required when using the Supabase db or cli.
 
 ```
 docker compose up -d
@@ -96,6 +116,7 @@ POSTGRES_HOST=mypostgres
 ```
 
 Then run the application in docker and connect to the same network.
+
 ```bash
 docker run --network mynetwork --name node-express -d -p 4000:4000 node-express
 ```
@@ -171,26 +192,28 @@ How permissions work.
 
 A resource will have a permission level for each route method based on users role within the workspace. Workspace permissions can be defined in `./src/helpers/permissions.ts`.
 
-Workspace permissions:
+Workspace level permissions:
 Admin: Highest level of access to all resources within the workspace.
 User: Regular user with limited permissions.
 
-Resource permissions:
+Resource level permissions:
 Owner: Has access to their own resources
 
-Account permissions:
+Account level permissions:
 SuperAdmin: Has access to all super only resources.
 
 ### Workspace route permission levels
 
-Ensure every request that requires workspace permissions includes a workspace context. This can be done using the `x-workspace-id header`.
+Ensure every request that requires workspace permissions includes a workspace context.
 
-Passing the `x-workspace-id` header will allow the user to access the workspace resources if they are a member of the workspace with a sufficient role.
+This can be done by passing the `x-workspace-id` header when making a request.
+
+This will allow the user to access the workspace resources if they are a member of the workspace with a sufficient role.
 
 A role/claim is defined when the account is added to the workspace as a member.
 
 1. User - Can access all resources with user permissions.
-2. Admin - Can access all resources.
+2. Admin - Can access all resources within the workspace.
 
 ## Supabase Auth
 
@@ -220,5 +243,3 @@ For information on confguring the app level environment variables see [How to us
 - `POSTGRES_DB`: `postgres`
 - `SUPABASE_URL`: `https://<supabase-id>.supabase.co`
 - `SUPABASE_PK`: `abcdefghijklm`
-
-

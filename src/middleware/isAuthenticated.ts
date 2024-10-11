@@ -1,11 +1,8 @@
 import { logger, gatewayResponse, permissions } from "@/helpers/index.ts";
-// import { supabase } from "@/services/supabase.ts";
-import { db } from "@/services/db/drizzle.ts";
-import { accounts } from "@/schema.ts";
-import { eq } from "drizzle-orm";
 import type { Route } from "@/helpers/index.ts";
 import type { NextFunction, Request, Response } from "express";
 import type { Method } from "@/helpers/permissions/permissions.ts";
+import { verifyToken } from "@/handlers/auth/auth.methods.ts";
 
 const getIpFromRequest = (req: Request): string | undefined => {
   const ips =
@@ -21,6 +18,7 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
   const token = authHeader && authHeader.split(" ")[1];
 
   const routeKey = (req.baseUrl + req.route.path) as Route;
+
   const routeMethod = req.method as Method;
 
   const resourcePermissions = permissions.permissions.get(routeKey);
@@ -36,53 +34,30 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
     return next();
   }
 
-  if (!token && requiresAuth) {
+  if (!token) {
     logger.error({ msg: "isAuthenticated: A token is required for authentication", routeKey, routeMethod });
 
     return res.status(403).send("A token is required for authentication");
   }
 
   try {
-    // Verify token using your auth service.
-    // TODO use local db user.
-    // const user = { id: "5f29e851-e7a1-4cf2-8e5a-5037a85a4224" }; // admin and super admin
-    const user = { id: "e2abbf9a-093b-426a-a078-09256517934d" }; // user
+    const verifiedToken = await verifyToken(token);
+    console.log("verifiedToken", verifiedToken);
 
-    // TODO - uncomment this when using supabase.
-    // const {
-    //   data: { user },
-    //   error
-    // } = await supabase.auth.getUser(token);
-    //
-
-    // if (error || !user) {
-    //   throw new Error("User not found", {
-    //     cause: error,
-    //   });
-    // }
-
-    logger.debug({ msg: `Verified user token for id: ${user.id}` });
-
-    // get account from DB.
-    const [account] = await db.select().from(accounts).where(eq(accounts.uuid, user.id)).execute();
-
-    if (!account) {
-      throw new Error("DB User not found");
+    if (!verifiedToken) {
+      throw new Error("Invalid token");
     }
 
-    logger.debug({ msg: `Fetched account from db with id: ${account.uuid}` });
+    const { sub } = verifiedToken;
+
+    logger.debug({ msg: `Verified user token for id: ${sub}` });
 
     // Attach user to res.locals and verify permissions in isAuthorized middleware
-    res.locals = { id: user.id, sub: user.id, account };
+    res.locals = { id: sub, sub };
 
     return next();
   } catch (err) {
-    const error = err as Error;
-    logger.error({ err: error });
-
-    const response = gatewayResponse().error(403, error as Error, error.message);
-
-    logger.error({ msg: "isAuthenticated error:", response });
+    const response = gatewayResponse().error(401, err as Error, "Not Authorized");
 
     return res.status(response.code).send(response);
   }

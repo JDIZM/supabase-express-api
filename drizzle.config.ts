@@ -12,9 +12,9 @@ export default {
   dbCredentials: {
     host: config.db_host,
     user: config.db_user,
-    port: 5432,
+    port: config.db_port,
     password: config.db_password,
     database: config.db_name,
-    ssl: config.env !== "dev"
+    ssl: config.env !== "development"
   }
 } satisfies Config;

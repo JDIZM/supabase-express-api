@@ -1,4 +1,4 @@
-import { workspaces, uuidSchema } from "@/schema.ts";
+import { workspaces, uuidSchema, accounts } from "@/schema.ts";
 import type { Request, Response } from "express";
 import { db } from "@/services/db/drizzle.ts";
 import { logger, gatewayResponse } from "@/helpers/index.ts";
@@ -14,19 +14,24 @@ import { createDbProfile } from "../profiles/profiles.methods.ts";
 export const createWorkspace = async (req: Request, res: Response) => {
   try {
     const { name, description } = req.body;
-    const { account } = res.locals;
-    const { uuid: accountId } = account;
+    const { id } = res.locals;
 
-    logger.info({ msg: `Creating workspace ${name} for ${accountId}` });
+    logger.info({ msg: `Creating workspace ${name} for ${id}` });
 
-    const workspace = await createDbWorkspace({ name, accountId, description });
+    const workspace = await createDbWorkspace({ name, accountId: id, description });
 
-    const membership = await createMembership(workspace.uuid, accountId, "admin");
+    const membership = await createMembership(workspace.uuid, id, "admin");
+
+    const [account] = await db.select().from(accounts).where(eq(accounts.uuid, id)).execute();
+
+    if (!account) {
+      throw new Error("DB User not found");
+    }
 
     const profile = await createDbProfile({
       name: account.fullName,
       // name: null, // TODO testing error response.
-      accountId,
+      accountId: id,
       workspaceId: workspace.uuid
     });
 
@@ -42,13 +47,7 @@ export const createWorkspace = async (req: Request, res: Response) => {
 
     return res.status(response.code).send(response);
   } catch (err) {
-    const error = err as Error;
-
-    const message = "Unable to create workspace";
-
-    logger.error({ msg: message, err: error });
-
-    const response = gatewayResponse().error(400, error, error.message);
+    const response = gatewayResponse().error(400, err as Error, "Unable to create workspace");
 
     return res.status(response.code).send(response);
   }
@@ -82,13 +81,7 @@ export const fetchWorkspace = async (req: Request, res: Response) => {
 
     return res.status(response.code).send(response);
   } catch (err) {
-    const error = err as Error;
-
-    const message = "Unable to fetch workspace";
-
-    logger.error({ msg: message, err: error });
-
-    const response = gatewayResponse().error(500, error, error.message);
+    const response = gatewayResponse().error(500, err as Error, "Unable to fetch workspace");
 
     return res.status(response.code).send(response);
   }
@@ -105,13 +98,7 @@ export const fetchWorkspaces = async (req: Request, res: Response) => {
 
     return res.status(response.code).send(response);
   } catch (err) {
-    const error = err as Error;
-
-    const message = "Unable to fetch workspaces";
-
-    logger.error({ msg: message, err: error });
-
-    const response = gatewayResponse().error(500, error, error.message);
+    const response = gatewayResponse().error(500, err as Error, "Unable to fetch workspaces");
 
     return res.status(response.code).send(response);
   }
@@ -120,29 +107,21 @@ export const fetchWorkspaces = async (req: Request, res: Response) => {
 // @ts-expect-error no-unused-parameter
 export const fetchWorkspacesByAccountId = async (req: Request, res: Response) => {
   try {
-    const { account } = res.locals;
+    const { id } = res.locals;
 
-    const { uuid: accountId } = account;
+    logger.info({ msg: `Fetching workspaces for account: ${id}` });
 
-    logger.info({ msg: `Fetching workspaces for account: ${accountId}` });
-
-    const equals = eq(workspaces.accountId, accountId);
+    const equals = eq(workspaces.accountId, id);
 
     const result = await db.select().from(workspaces).where(equals).execute();
 
-    logger.info({ msg: `Fetching workspaces: ${result.length}` });
+    logger.info({ msg: `Fetched workspaces: ${result.length}` });
 
     const response = gatewayResponse().success(200, result, "Fetched workspaces");
 
     return res.status(response.code).send(response);
   } catch (err) {
-    const error = err as Error;
-
-    const message = "Unable to fetch workspaces";
-
-    logger.error({ msg: message, err: error });
-
-    const response = gatewayResponse().error(500, error, message);
+    const response = gatewayResponse().error(500, err as Error, "Unable to fetch workspaces");
 
     return res.status(response.code).send(response);
   }

@@ -6,7 +6,7 @@ import * as schema from "../../schema.ts";
 
 const client = new pg.Client({
   host: config.db_host,
-  port: 5432,
+  port: config.db_port,
   user: config.db_user,
   password: config.db_password,
   database: config.db_name
@@ -18,7 +18,7 @@ client
     logger.info("connected to database");
   })
   .catch((err) => {
-    logger.error("database connection error", err);
+    logger.error({ msg: "database connection error", error: err });
     process.exit(1);
   });
 

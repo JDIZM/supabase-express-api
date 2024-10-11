@@ -72,13 +72,7 @@ export async function createMembershipHandler(req: Request, res: Response) {
 
     return res.status(response.code).send(response);
   } catch (err) {
-    const error = err as Error;
-
-    const message = "Error creating membership";
-
-    logger.error({ msg: message, err: error });
-
-    const response = gatewayResponse().error(400, error, message);
+    const response = gatewayResponse().error(400, err as Error, "Error creating membership");
 
     return res.status(response.code).send(response);
   }
