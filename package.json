@@ -29,11 +29,11 @@
   "license": "ISC",
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.6",
-    "@typescript-eslint/eslint-plugin": "^7.11.0",
-    "@typescript-eslint/parser": "^7.11.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
     "@vitest/coverage-v8": "^2.0.0",
     "dotenv": "^16.4.5",
-    "drizzle-kit": "^0.23.0",
+    "drizzle-kit": "^0.24.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-node": "^0.3.9",
@@ -51,7 +51,7 @@
     "dist"
   ],
   "volta": {
-    "node": "20.16.0"
+    "node": "20.17.0"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.43.4",
@@ -65,7 +65,7 @@
     "chalk": "^5.3.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
-    "drizzle-orm": "^0.32.0",
+    "drizzle-orm": "^0.33.0",
     "drizzle-zod": "^0.5.1",
     "express": "^4.19.2",
     "helmet": "^7.1.0",
