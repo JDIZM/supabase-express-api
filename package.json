@@ -51,7 +51,7 @@
     "dist"
   ],
   "volta": {
-    "node": "20.18.0"
+    "node": "22.12.0"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.43.4",
@@ -59,7 +59,7 @@
     "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
-    "@types/node": "^20.12.13",
+    "@types/node": "^22.0.0",
     "@types/pg": "^8.11.6",
     "bcrypt": "^5.1.1",
     "chalk": "^5.3.0",
