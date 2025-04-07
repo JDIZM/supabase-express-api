@@ -29,8 +29,8 @@
   "license": "ISC",
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.6",
-    "@typescript-eslint/eslint-plugin": "^8.0.0",
-    "@typescript-eslint/parser": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.29.0",
+    "@typescript-eslint/parser": "^8.29.0",
     "@vitest/coverage-v8": "^2.0.0",
     "dotenv": "^16.4.5",
     "drizzle-kit": "^0.30.0",
@@ -38,14 +38,14 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-node": "^0.3.9",
     "eslint-import-resolver-typescript": "^3.6.1",
-    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-import": "^2.31.0",
     "pino-pretty": "^13.0.0",
     "pkgroll": "^2.1.1",
     "prettier": "^3.2.5",
-    "tsx": "^4.11.0",
-    "typescript": "^5.4.5",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3",
     "vitest": "^2.0.0",
-    "zod": "^3.23.8"
+    "zod": "^3.24.2"
   },
   "files": [
     "dist"
@@ -62,7 +62,7 @@
     "@types/node": "^20.12.13",
     "@types/pg": "^8.11.6",
     "bcrypt": "^5.1.1",
-    "chalk": "^5.3.0",
+    "chalk": "^5.4.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "drizzle-orm": "^0.41.0",
@@ -70,8 +70,8 @@
     "express": "^4.19.2",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
-    "pg": "^8.11.5",
-    "pino": "^9.1.0",
-    "pino-http": "^10.1.0"
+    "pg": "^8.14.1",
+    "pino": "^9.6.0",
+    "pino-http": "^10.4.0"
   }
 }
