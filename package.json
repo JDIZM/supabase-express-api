@@ -19,6 +19,7 @@
     "build:tsc": "rm -rf dist && tsc -p tsconfig.json",
     "test": "vitest --run --coverage",
     "migrate:create": "npx drizzle-kit generate",
+    "migrate": "npx drizzle-kit migrate",
     "migrate:up": "npx drizzle-kit up",
     "migrate:push": "npx drizzle-kit push",
     "seed": "tsx ./src/services/db/seed.ts --supabase=$npm_config_supabase",
@@ -54,6 +55,8 @@
     "node": "20.19.0"
   },
   "dependencies": {
+    "@sentry/node": "^9.11.0",
+    "@sentry/profiling-node": "^9.11.0",
     "@supabase/supabase-js": "^2.43.4",
     "@types/bcrypt": "^5.0.2",
     "@types/cookie-parser": "^1.4.7",
