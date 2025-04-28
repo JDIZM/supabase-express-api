@@ -39,6 +39,7 @@ app.use(cookieParser());
 app.use(
   pinoHttp({
     logger: logger,
+    // Logs every request.
     autoLogging: true
   })
 );
@@ -70,4 +71,12 @@ app.use(errorHandler);
 
 export const server = app.listen(config.port, () => {
   logger.info(`[server]: Server is running on port: ${config.port}`);
+});
+
+// Graceful shutdown
+process.on("SIGTERM", () => {
+  logger.debug("SIGTERM signal received: closing HTTP server");
+  server.close(() => {
+    logger.debug("HTTP server closed");
+  });
 });
