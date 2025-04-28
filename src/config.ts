@@ -29,7 +29,7 @@ export const config = {
   db_port: Number(process.env.POSTGRES_PORT) || 5432,
   db_user: process.env.POSTGRES_USER || "postgres",
   db_password: process.env.POSTGRES_PASSWORD || "postgres",
-  db_name: process.env.POSTGRES_DB || "test",
+  db_name: process.env.POSTGRES_DB || "postgres",
   supabaseUrl: process.env.SUPABASE_URL || "https://example.supabase.co",
   supabaseKey: process.env.SUPABASE_PK || "example-key",
   jwtSecret: process.env.SUPABASE_AUTH_JWT_SECRET || "super-secret-key-that-should-be-replaced"
