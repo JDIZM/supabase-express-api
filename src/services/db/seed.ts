@@ -19,6 +19,8 @@ async function main(): Promise<void> {
     }, {});
 
   // Note if you are using supabase you will need to confirm the email addresses.
+  // Unless you add them manually and check auto confirm;
+  // Seed users created on the local db will be auto confirmed.
   if (options?.supabase) {
     // TODO create accounts with supabase.
     // logger.info("Seeding users with supabase...");
