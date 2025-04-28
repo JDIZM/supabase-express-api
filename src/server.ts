@@ -8,7 +8,11 @@ import { routes } from "./routes/index.ts";
 import { logger } from "./helpers/index.ts";
 import { corsOptions } from "./cors.ts";
 
-const checkConfigIsValid = () => {
+import type { Request, Response } from "express";
+
+import "./services/sentry.ts"; // Initialize Sentry if enabled.
+
+const checkConfigIsValid = (): void => {
   Object.values(config).forEach((value) => {
     if (!value) {
       logger.error({ msg: "config is invalid", config });
