@@ -7,6 +7,8 @@ import { pinoHttp } from "pino-http";
 import { routes } from "./routes/index.ts";
 import { logger } from "./helpers/index.ts";
 import { corsOptions } from "./cors.ts";
+import { errorHandler } from "./middleware/errorHandler.ts";
+import "./helpers/permissions.ts";
 
 import type { Request, Response } from "express";
 
@@ -63,6 +65,9 @@ app.get("/health", (_req: Request, res: Response) => {
 // Define routes
 routes(app);
 
-app.listen(config.port, () => {
+// Use the global error handler after defining routes to make sure it's called last.
+app.use(errorHandler);
+
+export const server = app.listen(config.port, () => {
   logger.info(`[server]: Server is running on port: ${config.port}`);
 });
