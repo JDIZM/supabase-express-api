@@ -138,22 +138,6 @@ export const isAuthorized = async (req: Request, res: Response, next: NextFuncti
       }
     }
 
-    // FIXME is this even being hit? my current workspace id is not set..
-    if (!workspaceId) {
-      logger.error(
-        {
-          id,
-          routeKey,
-          resourcePermission,
-          routeMethod,
-          workspaceId
-        },
-        "isAuthorized: No workspace id"
-      );
-
-      throw new Error("Forbidden: No workspace id");
-    }
-
     res.status(403).json({ message: "Forbidden" });
     return;
   } catch (err) {
