@@ -52,7 +52,7 @@
     "dist"
   ],
   "volta": {
-    "node": "20.19.0"
+    "node": "22.15.0"
   },
   "dependencies": {
     "@sentry/node": "^9.11.0",
