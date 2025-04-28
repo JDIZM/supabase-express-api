@@ -1,9 +1,8 @@
 import { logger } from "@/helpers/index.ts";
-import { workspaceInsertSchema, workspaces } from "@/schema.ts";
+import { workspaceInsertSchema, workspaces, type WorkspaceInsertType, type WorkspaceSelectType } from "@/schema.ts";
 import { db } from "@/services/db/drizzle.ts";
-import type { InferInsertModel } from "drizzle-orm";
 
-export const createDbWorkspace = async (workspace: InferInsertModel<typeof workspaces>) => {
+export const createDbWorkspace = async (workspace: WorkspaceInsertType): Promise<WorkspaceSelectType> => {
   const { name, accountId, description } = workspace;
 
   workspaceInsertSchema.parse({ name, accountId, description });

@@ -6,7 +6,7 @@ import type { Request, Response } from "express";
 import { getProfilesByAccountId } from "./profiles.methods.ts";
 
 // @ts-expect-error no-unused-parameter
-export async function getProfiles(req: Request, res: Response) {
+export async function getProfiles(req: Request, res: Response): Promise<void> {
   try {
     const { id } = res.locals;
 
@@ -20,16 +20,18 @@ export async function getProfiles(req: Request, res: Response) {
 
     const response = gatewayResponse().success(200, result, `Fetched profiles for account: ${id}`);
 
-    return res.status(response.code).send(response);
+    res.status(response.code).send(response);
+    return;
   } catch (err) {
     const response = gatewayResponse().error(400, err as Error, "Unable to fetch profiles for account");
 
-    return res.status(response.code).send(response);
+    res.status(response.code).send(response);
+    return;
   }
 }
 
 // @ts-expect-error no-unused-parameter
-export async function getAllProfiles(req: Request, res: Response) {
+export async function getAllProfiles(req: Request, res: Response): Promise<void> {
   try {
     const result = await db.select().from(profiles).execute();
 
@@ -37,15 +39,17 @@ export async function getAllProfiles(req: Request, res: Response) {
 
     const response = gatewayResponse().success(200, result, "Fetched profiles");
 
-    return res.status(response.code).send(response);
+    res.status(response.code).send(response);
+    return;
   } catch (err) {
     const response = gatewayResponse().error(400, err as Error, "Unable to fetch all profiles");
 
-    return res.status(response.code).send(response);
+    res.status(response.code).send(response);
+    return;
   }
 }
 
-export async function getProfile(req: Request, res: Response) {
+export async function getProfile(req: Request, res: Response): Promise<void> {
   try {
     if (!req.params.id) {
       throw new Error("Profile id is required");
@@ -59,15 +63,17 @@ export async function getProfile(req: Request, res: Response) {
 
     const response = gatewayResponse().success(200, profile, "Fetched profile");
 
-    return res.status(response.code).send(response);
+    res.status(response.code).send(response);
+    return;
   } catch (err) {
     const response = gatewayResponse().error(400, err as Error, "Unable to fetch profile");
 
-    return res.status(response.code).send(response);
+    res.status(response.code).send(response);
+    return;
   }
 }
 
-export async function updateProfile(req: Request, res: Response) {
+export async function updateProfile(req: Request, res: Response): Promise<void> {
   try {
     if (!req.params.id) {
       throw new Error("Profile id is required");
@@ -83,10 +89,12 @@ export async function updateProfile(req: Request, res: Response) {
 
     const response = gatewayResponse().success(200, result, "Updated profile");
 
-    return res.status(response.code).send(response);
+    res.status(response.code).send(response);
+    return;
   } catch (err) {
     const response = gatewayResponse().error(400, err as Error, "Unable to update profile");
 
-    return res.status(response.code).send(response);
+    res.status(response.code).send(response);
+    return;
   }
 }
