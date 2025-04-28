@@ -1,5 +1,5 @@
 import { pgTable, uuid, text, timestamp, varchar, boolean } from "drizzle-orm/pg-core";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm/relations";
 
@@ -22,6 +22,15 @@ export const accountRelations = relations(accounts, ({ many }) => ({
 
 export const accountInsertSchema = createInsertSchema(accounts);
 export const accountSelectSchema = createSelectSchema(accounts);
+export const accountUpdateSchema = createUpdateSchema(accounts);
+
+export type AccountInsertType = z.infer<typeof accountInsertSchema>;
+export type AccountSelectType = z.infer<typeof accountSelectSchema>;
+
+export type AccountWithRelations = AccountSelectType & {
+  workspaces: WorkspaceMembershipSelectType[];
+  profiles: Pick<ProfileSelectType, "uuid" | "name" | "workspaceId">[];
+};
 
 // Workspaces belong to a user/account, has many profiles.
 export const workspaces = pgTable("workspaces", {
@@ -42,6 +51,9 @@ export const workspaceRelations = relations(workspaces, ({ one, many }) => ({
 
 export const workspaceInsertSchema = createInsertSchema(workspaces);
 export const workspaceSelectSchema = createSelectSchema(workspaces);
+
+export type WorkspaceInsertType = z.infer<typeof workspaceInsertSchema>;
+export type WorkspaceSelectType = z.infer<typeof workspaceSelectSchema>;
 
 export const profiles = pgTable("profiles", {
   uuid: uuid("uuid").defaultRandom().primaryKey(),
@@ -65,6 +77,9 @@ export const profileRelations = relations(profiles, ({ one }) => ({
 export const profileInsertSchema = createInsertSchema(profiles);
 export const profileSelectSchema = createSelectSchema(profiles);
 
+export type ProfileInsertType = z.infer<typeof profileInsertSchema>;
+export type ProfileSelectType = z.infer<typeof profileSelectSchema>;
+
 export const workspaceMemberships = pgTable("workspace_memberships", {
   uuid: uuid("uuid").defaultRandom().primaryKey(),
   workspaceId: uuid("workspace_id").notNull(),
@@ -85,3 +100,6 @@ export const workspaceMembershipsRelations = relations(workspaceMemberships, ({ 
 
 export const workspaceMembershipInsertSchema = createInsertSchema(workspaceMemberships);
 export const workspaceMembershipSelectSchema = createSelectSchema(workspaceMemberships);
+
+export type WorkspaceMembershipInsertType = z.infer<typeof workspaceMembershipInsertSchema>;
+export type WorkspaceMembershipSelectType = z.infer<typeof workspaceMembershipSelectSchema>;
