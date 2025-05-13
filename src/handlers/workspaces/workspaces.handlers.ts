@@ -14,15 +14,19 @@ import { asyncHandler } from "@/helpers/request.ts";
  */
 export const createWorkspace = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { name, description } = req.body;
-  const { id } = res.locals;
+  const { accountId } = req;
 
-  logger.info({ msg: `Creating workspace ${name} for ${id}` });
+  if (!accountId) {
+    throw new Error("Account id is required");
+  }
 
-  const workspace = await createDbWorkspace({ name, accountId: id, description });
+  logger.info({ msg: `Creating workspace ${name} for ${accountId}` });
 
-  const membership = await createMembership(workspace.uuid, id, "admin");
+  const workspace = await createDbWorkspace({ name, accountId, description });
 
-  const [account] = await db.select().from(accounts).where(eq(accounts.uuid, id)).execute();
+  const membership = await createMembership(workspace.uuid, accountId, "admin");
+
+  const [account] = await db.select().from(accounts).where(eq(accounts.uuid, accountId)).execute();
 
   if (!account) {
     throw new Error("DB User not found");
@@ -30,7 +34,7 @@ export const createWorkspace = asyncHandler(async (req: Request, res: Response):
 
   const profile = await createDbProfile({
     name: account.fullName,
-    accountId: id,
+    accountId,
     workspaceId: workspace.uuid
   });
 
@@ -84,12 +88,16 @@ export const fetchWorkspaces = asyncHandler(async (_req: Request, res: Response)
   res.status(response.code).send(response);
 });
 
-export const fetchWorkspacesByAccountId = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
-  const { id } = res.locals;
+export const fetchWorkspacesByAccountId = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const { accountId } = req;
 
-  logger.info({ msg: `Fetching workspaces for account: ${id}` });
+  if (!accountId) {
+    throw new Error("Account id is required");
+  }
 
-  const equals = eq(workspaces.accountId, id);
+  logger.info({ msg: `Fetching workspaces for account: ${accountId}` });
+
+  const equals = eq(workspaces.accountId, accountId);
   const result = await db.select().from(workspaces).where(equals).execute();
 
   if (result.length === 0) {

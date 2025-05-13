@@ -4,21 +4,22 @@ import { db } from "@/services/db/drizzle.ts";
 import { eq } from "drizzle-orm";
 import type { Request, Response } from "express";
 import { getProfilesByAccountId } from "./profiles.methods.ts";
+import { asyncHandler } from "@/helpers/request.ts";
 
-// @ts-expect-error no-unused-parameter
-export async function getProfiles(req: Request, res: Response): Promise<void> {
+export const getProfiles = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = res.locals;
+    const { accountId } = req;
+    logger.info(`Fetching profiles for account: ${accountId}`);
 
-    if (!id) {
+    if (!accountId) {
       throw new Error("Account id is required");
     }
 
-    logger.info({ msg: `Fetching profiles for account: ${id}` });
+    logger.info({ msg: `Fetching profiles for account: ${accountId}` });
 
-    const result = await getProfilesByAccountId(id);
+    const result = await getProfilesByAccountId(accountId);
 
-    const response = gatewayResponse().success(200, result, `Fetched profiles for account: ${id}`);
+    const response = gatewayResponse().success(200, result, `Fetched profiles for account: ${accountId}`);
 
     res.status(response.code).send(response);
     return;
@@ -28,10 +29,10 @@ export async function getProfiles(req: Request, res: Response): Promise<void> {
     res.status(response.code).send(response);
     return;
   }
-}
+});
 
 // @ts-expect-error no-unused-parameter
-export async function getAllProfiles(req: Request, res: Response): Promise<void> {
+export const getAllProfiles = async (req: Request, res: Response): Promise<void> => {
   try {
     const result = await db.select().from(profiles).execute();
 
@@ -47,9 +48,9 @@ export async function getAllProfiles(req: Request, res: Response): Promise<void>
     res.status(response.code).send(response);
     return;
   }
-}
+};
 
-export async function getProfile(req: Request, res: Response): Promise<void> {
+export const getProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.params.id) {
       throw new Error("Profile id is required");
@@ -71,9 +72,9 @@ export async function getProfile(req: Request, res: Response): Promise<void> {
     res.status(response.code).send(response);
     return;
   }
-}
+};
 
-export async function updateProfile(req: Request, res: Response): Promise<void> {
+export const updateProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.params.id) {
       throw new Error("Profile id is required");
@@ -97,4 +98,4 @@ export async function updateProfile(req: Request, res: Response): Promise<void> 
     res.status(response.code).send(response);
     return;
   }
-}
+};

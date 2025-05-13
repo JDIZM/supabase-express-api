@@ -46,14 +46,13 @@ const isOwner = async (id: string, resourceId: string, resourceType: string): Pr
 
 export const isAuthorized = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { id, accountId, sub } = res.locals;
+    const { accountId, workspaceId } = req;
 
     const routeMethod = req.method as Method;
     const routeKey = (req.baseUrl + req.route.path) as Route;
-    const workspaceId = req.headers["x-workspace-id"];
 
     logger.debug(`Authorizing for workspace id: ${workspaceId}`);
-    logger.debug(res.locals, "isAuthorized: res.locals");
+    logger.debug(req, "isAuthorized: req");
 
     const resourcePermissions = permissions.permissions.get(routeKey);
     const resourcePermission = resourcePermissions && resourcePermissions.permissions[routeMethod];
@@ -70,7 +69,7 @@ export const isAuthorized = async (req: Request, res: Response, next: NextFuncti
       "isAuthorized: middleware"
     );
 
-    if (requiresAuth && (!sub || !accountId)) {
+    if (requiresAuth && !accountId) {
       logger.error({ accountId, routeKey, resourcePermission, routeMethod, workspaceId }, "Unauthorized user");
 
       res.status(401).send("Unauthorized");
@@ -78,7 +77,7 @@ export const isAuthorized = async (req: Request, res: Response, next: NextFuncti
     }
 
     // Super admin only has access to routes that have super admin permissions enabled.
-    if (resourcePermissions?.super) {
+    if (resourcePermissions?.super && accountId) {
       const [account] = await db.select().from(accounts).where(eq(accounts.uuid, accountId)).execute();
 
       if (!account) {
@@ -93,7 +92,7 @@ export const isAuthorized = async (req: Request, res: Response, next: NextFuncti
         throw new Error(`Forbidden: account id: ${accountId} is not a super admin`);
       }
 
-      logger.debug({ routeKey, workspaceId, isSuperAdmin }, `isAuthorized: Super admin for account id: ${id}`);
+      logger.debug({ routeKey, workspaceId, isSuperAdmin }, `isAuthorized: Super admin for account id: ${accountId}`);
 
       return next();
     }
@@ -105,16 +104,17 @@ export const isAuthorized = async (req: Request, res: Response, next: NextFuncti
     }
 
     // An owner has access to all resources they own regardless of the workspace.
-    if (resourcePermission.includes(ROLES.Owner)) {
+    if (resourcePermission.includes(ROLES.Owner) && accountId) {
       // Check if the user is the owner of the resource
       const resourceId = req.params?.id || "";
       const resourceType = determineResourceType(routeKey);
 
       // Some resources require a db call to check if the user is the owner.
-      const isUserOwner = await isOwner(id, resourceId, resourceType);
+      const isUserOwner = await isOwner(accountId, resourceId, resourceType);
+
+      logger.debug({ routeKey, accountId, workspaceId, isUserOwner }, "isAuthorized: Owner");
 
       if (isUserOwner) {
-        logger.debug({ accountId, resourceId, resourceType }, "isAuthorized: Owner");
         return next();
       }
 
@@ -124,8 +124,8 @@ export const isAuthorized = async (req: Request, res: Response, next: NextFuncti
     }
 
     // Ensure the user is a member of the workspace and has the required role by validating the x-workspace-id header.
-    if (workspaceId) {
-      const [isMember, role] = await checkMembership(accountId, workspaceId as string);
+    if (workspaceId && accountId) {
+      const [isMember, role] = await checkMembership(accountId, workspaceId);
 
       logger.debug({ isMember, role }, "isAuthorized: checkMembership");
 

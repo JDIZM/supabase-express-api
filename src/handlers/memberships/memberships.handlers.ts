@@ -1,8 +1,9 @@
 import type { Request, Response } from "express";
 import { gatewayResponse, logger } from "@/helpers/index.ts";
 import { createMembership } from "./memberships.methods.ts";
+import { asyncHandler } from "@/helpers/request.ts";
 
-export async function createMembershipHandler(req: Request, res: Response): Promise<void> {
+export const createMembershipHandler = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { workspaceId, accountId, role } = req.body;
 
   logger.info({ msg: `Creating membership for ${accountId} in ${workspaceId} as ${role}` });
@@ -12,4 +13,4 @@ export async function createMembershipHandler(req: Request, res: Response): Prom
   const response = gatewayResponse().success(200, membership, "Membership created");
 
   res.status(response.code).send(response);
-}
+});

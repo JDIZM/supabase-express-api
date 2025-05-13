@@ -5,14 +5,15 @@ import { createDbAccount } from "@/handlers/accounts/accounts.methods.ts";
 import type { User } from "@supabase/supabase-js";
 import { asyncHandler } from "@/helpers/request.ts";
 
-export const signUpWithSupabase = async (email: string, password: string): Promise<User> => {
+export const signUpWithSupabase = async (email: string, password: string): Promise<User | Error> => {
   const { data, error } = await supabase.auth.signUp({
     email,
     password
   });
 
   if (error || !data?.user) {
-    throw new Error("Unable to sign up", {
+    logger.error({ error }, "Unable to sign up with Supabase");
+    return new Error("Unable to sign up", {
       cause: error
     });
   }
@@ -24,6 +25,15 @@ export const signUp = asyncHandler(async (req: Request, res: Response): Promise<
   const { email, password, fullName, phone } = req.body;
 
   const user = await signUpWithSupabase(email, password);
+
+  if (!user || user instanceof Error) {
+    // Don't expose the original error to the client. This is a security risk.
+    // eg "code": "user_already_exists"
+    // We also don't want to throw errors in the handler, because they will be caught by the asyncHandler and reported to Sentry.
+    const response = gatewayResponse<string>().error(401, Error("Unable to sign up"), "Unable to sign up");
+    res.status(response.code).send(response);
+    return;
+  }
 
   logger.info({ msg: `User signed up with id: ${user.id}` });
 
@@ -46,9 +56,12 @@ export const signInWithPassword = asyncHandler(
       });
 
       if (error) {
-        throw new Error("Unable to sign in", {
-          cause: error
-        });
+        // Don't expose the original error to the client. This is a security risk.
+        // We also don't want to throw errors in the handler, because they will be caught by the asyncHandler and reported to Sentry.
+        logger.error({ error }, "Unable to signInWithPassword");
+        const response = gatewayResponse<string>().error(401, Error("Unable to sign in"), "Unable to sign in");
+        res.status(response.code).send(response);
+        return;
       }
 
       logger.info("User signed in", 200, data.user.id);

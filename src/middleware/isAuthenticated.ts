@@ -58,10 +58,11 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
 
     const { sub } = verifiedToken;
 
-    logger.debug({ msg: `Verified user token for id: ${sub}` });
+    logger.debug({ msg: `Verified user token for accountId: ${sub}` });
 
-    // Attach user to res.locals and verify permissions in isAuthorized middleware
-    res.locals = { id: sub, sub, accountId: sub };
+    // Attach user and workspace to request and verify permissions in isAuthorized middleware or to be used within route handlers.
+    req.accountId = sub;
+    req.workspaceId = (req.headers["x-workspace-id"] as string) ?? "";
 
     return next();
   } catch (err) {
