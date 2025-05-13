@@ -22,7 +22,6 @@ module.exports = {
   settings: {
     // Tells eslint how to resolve imports
     "import/resolver": {
-      // using the newer eslint-import-resolver-typescript plugin
       // see: https://www.npmjs.com/package/eslint-import-resolver-typescript
       node: {
         extensions: [".js", ".jsx", ".ts", ".tsx", ".d.ts"]
@@ -37,9 +36,10 @@ module.exports = {
     }
   },
   rules: {
-    // Add your own rules here to override ones from the extended configs.
     "@typescript-eslint/no-explicit-any": "warn",
-    "arrow-parens": ["error", "always"]
+    "arrow-parens": ["error", "always"],
+    "@typescript-eslint/explicit-function-return-type": "warn",
+    "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }]
   },
   overrides: [
     {

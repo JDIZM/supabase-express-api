@@ -1,7 +1,7 @@
 import { logger, gatewayResponse, permissions } from "@/helpers/index.ts";
 import type { Route } from "@/helpers/index.ts";
 import type { NextFunction, Request, Response } from "express";
-import type { Method } from "@/helpers/permissions/permissions.ts";
+import type { Method } from "@/helpers/permissions.ts";
 import { verifyToken } from "@/handlers/auth/auth.methods.ts";
 
 const getIpFromRequest = (req: Request): string | undefined => {
@@ -13,7 +13,7 @@ const getIpFromRequest = (req: Request): string | undefined => {
   return result;
 };
 
-export const isAuthenticated = async (req: Request, res: Response, next: NextFunction) => {
+export const isAuthenticated = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
 
@@ -26,18 +26,26 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
 
   const ips = getIpFromRequest(req);
 
-  logger.debug({ msg: "isAuthenticated middleware", ips, routeKey, routeMethod, resourcePermissions, requiresAuth });
+  logger.debug(
+    {
+      ips,
+      routeKey,
+      routeMethod,
+      resourcePermissions,
+      requiresAuth
+    },
+    "isAuthenticated middleware"
+  );
 
   if (!requiresAuth) {
     logger.debug({ msg: "isAuthenticated: No authentication required", routeKey });
-
     return next();
   }
 
   if (!token) {
     logger.error({ msg: "isAuthenticated: A token is required for authentication", routeKey, routeMethod });
-
-    return res.status(403).send("A token is required for authentication");
+    res.status(403).send("A token is required for authentication");
+    return;
   }
 
   try {
@@ -50,15 +58,17 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
 
     const { sub } = verifiedToken;
 
-    logger.debug({ msg: `Verified user token for id: ${sub}` });
+    logger.debug({ msg: `Verified user token for accountId: ${sub}` });
 
-    // Attach user to res.locals and verify permissions in isAuthorized middleware
-    res.locals = { id: sub, sub };
+    // Attach user and workspace to request and verify permissions in isAuthorized middleware or to be used within route handlers.
+    req.accountId = sub;
+    req.workspaceId = (req.headers["x-workspace-id"] as string) ?? "";
 
     return next();
   } catch (err) {
     const response = gatewayResponse().error(401, err as Error, "Not Authorized");
 
-    return res.status(response.code).send(response);
+    res.status(response.code).send(response);
+    return;
   }
 };

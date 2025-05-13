@@ -1,8 +1,19 @@
 import { db } from "@/services/db/drizzle.ts";
-import { profiles, workspaces, workspaceMemberships, accounts } from "@/schema.ts";
+import {
+  profiles,
+  workspaces,
+  workspaceMemberships,
+  accounts,
+  type AccountInsertType,
+  type AccountSelectType,
+  accountInsertSchema,
+  type WorkspaceSelectType,
+  type ProfileSelectType,
+  type WorkspaceMembershipInsertType
+} from "@/schema.ts";
 import type { InferInsertModel } from "drizzle-orm";
 
-const accountsArray: InferInsertModel<typeof accounts>[] = [
+const accountsArray: AccountInsertType[] = [
   {
     fullName: "James D",
     phone: "555-555-5555",
@@ -16,30 +27,40 @@ const accountsArray: InferInsertModel<typeof accounts>[] = [
   }
 ];
 
-async function createAccount(account: InferInsertModel<typeof accounts>) {
-  const response = await db.insert(accounts).values(account).returning();
-  console.log("created account: ", response);
+async function createAccount(account: AccountInsertType): Promise<AccountSelectType> {
+  accountInsertSchema.parse(account);
 
-  return response[0];
+  const [result]: AccountSelectType[] = await db.insert(accounts).values(account).returning();
+  console.log("created account: ", result);
+
+  if (!result) {
+    throw new Error("Unable to create account");
+  }
+
+  return result;
 }
 
-async function createWorkspace(accountId: string) {
-  const workspace = await db
+async function createWorkspace(accountId: string, index: number): Promise<WorkspaceSelectType> {
+  const [workspace] = await db
     .insert(workspaces)
     .values({
-      name: "My Workspace",
+      name: `My Workspace ${index}`,
       description: "This is a test workspace.",
-      accountId
+      accountId: accountId
     })
     .returning();
 
   console.log("created workspace: ", workspace);
 
-  return workspace[0];
+  if (!workspace) {
+    throw new Error("Unable to create workspace");
+  }
+
+  return workspace;
 }
 
-async function createProfile(workspaceId: string, accountId: string) {
-  const profile = await db
+async function createProfile(workspaceId: string, accountId: string): Promise<ProfileSelectType> {
+  const [profile]: ProfileSelectType[] = await db
     .insert(profiles)
     .values({
       name: "JDIZM",
@@ -48,13 +69,17 @@ async function createProfile(workspaceId: string, accountId: string) {
     })
     .returning();
 
+  if (!profile) {
+    throw new Error("Unable to create profile");
+  }
+
   console.log("created profile: ", profile);
 
-  return profile[0];
+  return profile;
 }
 
-async function createMembership(workspaceId: string, accountId: string) {
-  const membership = await db
+async function createMembership(workspaceId: string, accountId: string): Promise<WorkspaceMembershipInsertType> {
+  const [membership] = await db
     .insert(workspaceMemberships)
     .values({
       role: "admin",
@@ -63,13 +88,16 @@ async function createMembership(workspaceId: string, accountId: string) {
     })
     .returning();
 
+  if (!membership) {
+    throw new Error("Unable to create membership");
+  }
   console.log("created membership: ", membership);
 
-  return membership[0];
+  return membership;
 }
 
-export async function seedAccounts() {
-  async function createAccounts(acc: InferInsertModel<typeof accounts>) {
+export async function seedAccounts(): Promise<void> {
+  async function createAccounts(acc: InferInsertModel<typeof accounts>, index: number): Promise<void> {
     if (!acc) {
       throw new Error("no account specified");
     }
@@ -79,7 +107,8 @@ export async function seedAccounts() {
     if (!account) {
       throw new Error("Unable to create account");
     }
-    const workspace = await createWorkspace(account.uuid);
+
+    const workspace = await createWorkspace(account.uuid, index);
 
     if (!workspace) {
       throw new Error("Unable to create workspace");
@@ -98,5 +127,5 @@ export async function seedAccounts() {
     }
   }
 
-  await Promise.all(accountsArray.map((account) => createAccounts(account)));
+  await Promise.all(accountsArray.map((account, index) => createAccounts(account, index)));
 }

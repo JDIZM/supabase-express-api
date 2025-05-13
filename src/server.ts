@@ -7,8 +7,16 @@ import { pinoHttp } from "pino-http";
 import { routes } from "./routes/index.ts";
 import { logger } from "./helpers/index.ts";
 import { corsOptions } from "./cors.ts";
+import { errorHandler } from "./middleware/errorHandler.ts";
+import { randomUUID } from "crypto";
 
-const checkConfigIsValid = () => {
+import "./helpers/permissions.ts";
+
+import type { Request, Response } from "express";
+
+import "./services/sentry.ts"; // Initialize Sentry if enabled.
+
+const checkConfigIsValid = (): void => {
   Object.values(config).forEach((value) => {
     if (!value) {
       logger.error({ msg: "config is invalid", config });
@@ -33,7 +41,13 @@ app.use(cookieParser());
 app.use(
   pinoHttp({
     logger: logger,
-    autoLogging: true
+    // Logs every request.
+    autoLogging: true,
+    genReqId: (req) => req.headers["x-request-id"] || randomUUID(),
+    customProps: (req, _res) => ({
+      accountId: (req as Request).accountId,
+      workspaceId: req.headers["x-workspace-id"]
+    })
   })
 );
 
@@ -47,9 +61,29 @@ app.use(express.json());
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions)); // Pre-flight requests
 
+app.get("/health", (_req: Request, res: Response) => {
+  const data = {
+    uptime: process.uptime(),
+    message: "Ok",
+    date: new Date()
+  };
+  res.status(200).send(data);
+});
+
 // Define routes
 routes(app);
 
-app.listen(config.port, () => {
+// Use the global error handler after defining routes to make sure it's called last.
+app.use(errorHandler);
+
+export const server = app.listen(config.port, () => {
   logger.info(`[server]: Server is running on port: ${config.port}`);
+});
+
+// Graceful shutdown
+process.on("SIGTERM", () => {
+  logger.debug("SIGTERM signal received: closing HTTP server");
+  server.close(() => {
+    logger.debug("HTTP server closed");
+  });
 });

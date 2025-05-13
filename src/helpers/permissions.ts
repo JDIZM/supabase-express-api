@@ -1,4 +1,4 @@
-import { logger } from "../index.ts";
+import { logger } from "./index.ts";
 
 export const API_ROUTES = {
   root: "/",
@@ -35,7 +35,11 @@ export type ResourcePermissions = {
 };
 
 export type ResourceMetadata = {
+  // Defines if the route requires authentication.
+  // If true, the route is only accessible to authenticated users.
   authenticated: boolean;
+  // A super user only route.
+  // If true, the route is only accessible to super users.
   super?: boolean;
 };
 
@@ -82,6 +86,8 @@ permissions.set(API_ROUTES.workspaceById, {
   authenticated: true
 });
 
+logger.info(permissions, "route permissions set");
+
 /**
  * This validates that permissions are set for all routes
  * in the permissions map.
@@ -99,9 +105,5 @@ export const hasRoutesWithNoPermissionsSet = (routes: Routes, permissions: Permi
 const hasInvalidRoute = hasRoutesWithNoPermissionsSet(Object.values(API_ROUTES), permissions);
 
 if (hasInvalidRoute) {
-  const errorMessage = "There are routes without permissions set.";
-
-  logger.error({ msg: errorMessage });
-
-  throw new Error(errorMessage);
+  throw new Error("There are routes without permissions set.");
 }

@@ -1,4 +1,4 @@
-# node-express-backend-component
+# supabase-express-api
 
 - [tsx](https://github.com/esbuild-kit/tsx)
 - [pkgroll](https://github.com/privatenumber/pkgroll)
@@ -16,11 +16,12 @@
   - [supabase-js](https://supabase.com/docs/reference/javascript/introduction)
 - [helmet](https://helmetjs.github.io/)
 - [cookie-parser](https://www.npmjs.com/package/cookie-parser)
+- [@sentry/node](https://docs.sentry.io/platforms/javascript/guides/node/)
 
 A node/express backend API template for getting started with a new project that includes authentication, permissions, and a database configured to
 use [Supabase](https://supabase.io/) or a local/cloud Postgres database.
 
-This comes pre-defined with a workspaces model that allows accounts (users) to create workspaces and invite other profiles (users presence within a workspace) to access the workspace (membership). see the [Permissions](#Permissions) section for more information on how permissions are defined.
+This comes pre-defined with a workspaces model that allows accounts (users) to create workspaces and invite other profiles (users presence within a workspace) to access the workspace (membership). see the [Permissions](#permissions) section for more information on how permissions are defined.
 
 The contents of a workspace is not defined in this template and can be customized to suit the needs of the project.
 
@@ -38,19 +39,34 @@ This project requires node.js to be installed. This project uses volta to manage
 
 To install volta run the following command in the terminal.
 
-```
+```bash
 curl https://get.volta.sh | bash
 ```
 
-You will need a Postgres database to run this project. You can use Docker to run a Postgres database or use a service like [Supabase](https://supabase.com/).
+You will need a Postgres database to run this project. You can use Docker to run a Postgres database or use a service like [Supabase](https://supabase.com/). The auth provider can be replaced with any other Auth providers eg Firebase, Auth0, Keycloak you just need to implement the authentication middleware to verify the token and decode the claims and modify the auth handlers to use your provider.
 
-See the [Database](#Database) section for more information on how to configure the database connection.
+See the [Database](#database) section for more information on how to configure the database connection.
+
+Authentication is handled by [Supabase](https://supabase.com/) and requires a Supabase account. You can sign up for a free account at [supabase.com](https://supabase.com/).
+
+### Install PNPM
+
+If using volta we can install corepack globally and let volta manage the binary, corepack will let us use the correct version of pnpm based on the `packageManager` field in the package.json file.
+
+```bash
+npm install --global corepack@latest
+
+corepack enable pnpm
+```
+
+see the [installation docs for pnpm](https://pnpm.io/installation) and the [corepack docs](https://github.com/nodejs/corepack)
+for more information on how to install pnpm and corepack.
 
 ### ENV
 
 Create a .env file in the root of the project and copy the contents of .env.example into it.
 
-```
+```bash
 cp .env.example .env
 ```
 
@@ -58,9 +74,16 @@ see the section on [Deployment with DigitalOcean](#deployment-with-digitalocean)
 
 ### Install dependencies
 
+```bash
+pnpm i
 ```
-# install dependencies
-npm i
+
+### Setup the database
+
+The first time setting up the database you will need to run the `migrate` command to create the database tables and apply the migrations.
+
+```bash
+pnpm run migrate
 ```
 
 ## Testing
@@ -80,9 +103,10 @@ You can install the supabase cli for local development.
 
 ## Database
 
-You can view the database with `npx drizzle-kit studio` or `npm run studio`.
+You can view the database with `pnpx drizzle-kit studio` or `pnpm run studio`.
 
 You can spin up a local copy of the database and application with `docker-compose` but this is not required when using the Supabase db.
+
 When using the supabase cli we can run a local copy of the db with `supabase start`.
 
 ### Developing locally with supabase
@@ -91,13 +115,13 @@ This will provide you with a connection string, you can update the local environ
 
 `postgresql://postgres:postgres@localhost:54322/postgres`
 
-Visit the Supabase dashboard: http://localhost:54323 and manage your database locally.
+Visit the Supabase dashboard: http://localhost:54323 and manage your database locally. Note: It appears that the database name needs to be `postgres` to be able to work with the Supabase dashboard.
 
 ### Local Postgres with Docker
 
 You can spin up a local database and application with `docker-compose` but this is not required when using the Supabase db or cli.
 
-```
+```bash
 docker compose up -d
 ```
 
@@ -125,38 +149,52 @@ Note: If you are using a local database and running the application within docke
 
 ### Migrations
 
+When running the migrations for the first time on a new database run:
+
+```bash
+pnpm run migrate
+```
+
 When the schema/model is changed make sure to create a new migration and run it against the db.
 
-1. Create a new migration
+### 1. Create a new migration
+
+```bash
+pnpm run migrate:create
 
 ```
-npm run migrate:create
 
-```
+### 2. Run the migrations
 
-2. Run the migrations
+```bash
+# first run the migrations
+pnpm run migrate:up
 
-```
-npm run migrate:up
+# then run
+pnpm migrate:push
 ```
 
 ### Seeds
 
 You can run the seeds to populate the database with initial data.
 
-Before seeding the db make sure to run the migrations. If you want to populate the seeds with specific user email, password or id's related to the users created in Supabase. You can update the seeds in `./src/seeds/` with the required data and make sure to pass the `--supabase=true` flag to the seed command and it will create the users in Supabase and associate the id's with the db records.
+Before seeding the db make sure to run the migrations. If you want to populate the seeds with specific user email, password or id's related to the users created in Supabase. You can update the seeds in `./src/seeds/` with the required data.
 
-Note: If you are creating users with Supabase you will need to confirm the email addresses.
+You will need to add these users to supabase auth and confirm the email addresses.
 
-```
-npm run seed
+<!-- and make sure to pass the `--supabase=true` flag to the seed command and it will create the users in Supabase and associate the id's with the db records.
+
+Note: If you are creating users with Supabase you will need to confirm the email addresses.-->
+
+```bash
+pnpm run seed
 ```
 
 Be sure to update the seeds as new migrations are added.
 
 ## Build with docker
 
-```
+```bash
 # build the app
 npm run build
 
