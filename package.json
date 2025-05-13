@@ -40,7 +40,6 @@
     "eslint-import-resolver-node": "^0.3.9",
     "eslint-import-resolver-typescript": "^3.6.1",
     "eslint-plugin-import": "^2.31.0",
-    "pino-http": "^10.4.0",
     "pino-pretty": "^13.0.0",
     "pkgroll": "^2.1.1",
     "prettier": "^3.2.5",
@@ -74,6 +73,7 @@
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.14.1",
-    "pino": "^9.6.0"
+    "pino": "^9.6.0",
+    "pino-http": "^10.4.0"
   }
 }
