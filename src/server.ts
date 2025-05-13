@@ -8,6 +8,8 @@ import { routes } from "./routes/index.ts";
 import { logger } from "./helpers/index.ts";
 import { corsOptions } from "./cors.ts";
 import { errorHandler } from "./middleware/errorHandler.ts";
+import { randomUUID } from "crypto";
+
 import "./helpers/permissions.ts";
 
 import type { Request, Response } from "express";
@@ -40,7 +42,12 @@ app.use(
   pinoHttp({
     logger: logger,
     // Logs every request.
-    autoLogging: true
+    autoLogging: true,
+    genReqId: (req) => req.headers["x-request-id"] || randomUUID(),
+    customProps: (req, _res) => ({
+      accountId: (req as Request).accountId,
+      workspaceId: req.headers["x-workspace-id"]
+    })
   })
 );
 
