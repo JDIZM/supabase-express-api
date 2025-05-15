@@ -31,7 +31,7 @@ interface ReturnType<T> {
 export const gatewayResponse = <T>(): ReturnType<T> => {
   return {
     error: (code: number, error: Error, message: string): ErrorResponse => {
-      logger.error({ msg: message, err: error });
+      logger.error({ code, msg: message, err: error });
 
       return {
         code,
@@ -40,7 +40,7 @@ export const gatewayResponse = <T>(): ReturnType<T> => {
       };
     },
     success: (code: number, data: T, message = "success"): SuccessResponse<T> => {
-      logger.info({ msg: message });
+      logger.info({ code, msg: message });
 
       return {
         code,
