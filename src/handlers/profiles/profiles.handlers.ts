@@ -31,8 +31,7 @@ export const getProfiles = asyncHandler(async (req: Request, res: Response): Pro
   }
 });
 
-// @ts-expect-error no-unused-parameter
-export const getAllProfiles = async (req: Request, res: Response): Promise<void> => {
+export const getAllProfiles = async (_req: Request, res: Response): Promise<void> => {
   try {
     const result = await db.select().from(profiles).execute();
 

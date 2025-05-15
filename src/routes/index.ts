@@ -15,8 +15,7 @@ import { getProfile, getProfiles } from "@/handlers/profiles/profiles.handlers.t
 const { API_ROUTES } = permissions;
 
 export function routes(app: Application): void {
-  // @ts-expect-error no-unused-parameters
-  app.get(API_ROUTES.root, isAuthenticated, isAuthorized, (req, res) => {
+  app.get(API_ROUTES.root, isAuthenticated, isAuthorized, (_req, res) => {
     res.send(`Routes are active! route: ${API_ROUTES.root} with test ${test}`);
   });
   app.post(API_ROUTES.login, isAuthenticated, isAuthorized, signInWithPassword);

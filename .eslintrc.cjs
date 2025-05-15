@@ -39,7 +39,7 @@ module.exports = {
     "@typescript-eslint/no-explicit-any": "warn",
     "arrow-parens": ["error", "always"],
     "@typescript-eslint/explicit-function-return-type": "warn",
-    "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }]
+    "@typescript-eslint/no-unused-vars": ["warn", { args: "all", argsIgnorePattern: "^_", varsIgnorePattern: "^_" }]
   },
   overrides: [
     {
