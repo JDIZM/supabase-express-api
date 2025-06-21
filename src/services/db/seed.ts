@@ -1,5 +1,6 @@
 import { seedAccounts } from "./seeds/accounts.ts";
 import { logger } from "../../helpers/index.ts";
+import { signUpWithSupabase } from "@/handlers/auth/auth.handlers.ts";
 
 async function main(): Promise<void> {
   logger.info("Seeding accounts...");
@@ -21,13 +22,13 @@ async function main(): Promise<void> {
   // Note if you are using supabase you will need to confirm the email addresses.
   // Unless you add them manually and check auto confirm;
   // Seed users created on the local db will be auto confirmed.
-  if (options?.supabase) {
-    // TODO create accounts with supabase.
-    // logger.info("Seeding users with supabase...");
-    // await seedAccounts(true);
+  if (options?.supabase === "true") {
+    logger.info("Seeding accounts with Supabase user creation...");
+    await seedAccounts(true, signUpWithSupabase);
     return;
   }
 
+  logger.info("Seeding accounts locally only...");
   await seedAccounts();
 }
 
