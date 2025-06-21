@@ -138,9 +138,6 @@ export async function seedAccounts(
       uuid: supabaseUserId // If supabaseUserId is undefined, Drizzle uses defaultRandom()
     };
 
-    if (!acc) {
-      throw new Error("no account specified");
-    }
     const account = await createAccount(acc);
 
     if (!account) {
