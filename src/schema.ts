@@ -1,6 +1,6 @@
 import { pgTable, uuid, text, timestamp, varchar, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { relations } from "drizzle-orm/relations";
 
 // Validate UUID
