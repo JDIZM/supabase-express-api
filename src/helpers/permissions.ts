@@ -1,4 +1,4 @@
-import { logger } from "./index.ts";
+import { logger } from "./logger.ts";
 
 export const API_ROUTES = {
   root: "/",
