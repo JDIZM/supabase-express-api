@@ -11,25 +11,33 @@ import {
   type ProfileSelectType,
   type WorkspaceMembershipInsertType
 } from "@/schema.ts";
+import type { User } from "@supabase/supabase-js";
+import { logger } from "@/helpers/index.ts";
 import type { InferInsertModel } from "drizzle-orm";
 
-const accountsArray: AccountInsertType[] = [
+type SeedAccountType = AccountInsertType & {
+  password?: string; // Password is only needed for Supabase signup during seeding
+};
+
+const accountsArray: SeedAccountType[] = [
   {
     fullName: "James D",
     phone: "555-555-5555",
     email: "james.d@example.com",
-    isSuperAdmin: true
+    isSuperAdmin: true,
+    // Add a default password for seeding if using signUpWithSupabase
+    password: "password123"
   },
   {
     fullName: "Jane D",
     phone: "555-555-5555",
-    email: "jane.d@example.com"
+    email: "jane.d@example.com",
+    password: "password123" // Temporary password for seeding
   }
 ];
 
 async function createAccount(account: AccountInsertType): Promise<AccountSelectType> {
   accountInsertSchema.parse(account);
-
   const [result]: AccountSelectType[] = await db.insert(accounts).values(account).returning();
   console.log("created account: ", result);
 
@@ -96,11 +104,39 @@ async function createMembership(workspaceId: string, accountId: string): Promise
   return membership;
 }
 
-export async function seedAccounts(): Promise<void> {
-  async function createAccounts(acc: InferInsertModel<typeof accounts>, index: number): Promise<void> {
-    if (!acc) {
-      throw new Error("no account specified");
+export async function seedAccounts(
+  syncWithSupabase = false,
+  signUpSupabase?: (email: string, password: string) => Promise<User | Error>
+): Promise<void> {
+  async function createSeedDataForAccount(accountData: SeedAccountType, index: number): Promise<void> {
+    let supabaseUserId: string | undefined;
+
+    if (syncWithSupabase && signUpSupabase && accountData.email && accountData.password) {
+      logger.info(`Attempting to create Supabase user for: ${accountData.email}`);
+      const supabaseUser = await signUpSupabase(accountData.email, accountData.password);
+      if (supabaseUser instanceof Error) {
+        logger.error(
+          `Failed to create Supabase user ${accountData.email}: ${supabaseUser.message}. Skipping this user.`
+        );
+        // Decide how to handle Supabase signup failure during seeding:
+        // For now, we'll try to create locally without a synced UUID or skip.
+        // throw supabaseUser;
+        // Or decide to continue without Supabase sync for this user
+        return; // Skip this user if Supabase creation fails
+      }
+      supabaseUserId = supabaseUser.id;
+      logger.info(`Supabase user created for ${accountData.email} with UUID: ${supabaseUserId}`);
     }
+
+    // Prepare account object for local DB insertion, omitting the password
+    const acc: InferInsertModel<typeof accounts> = {
+      // accounts here refers to the table schema
+      fullName: accountData.fullName,
+      email: accountData.email,
+      phone: accountData.phone,
+      isSuperAdmin: accountData.isSuperAdmin,
+      uuid: supabaseUserId // If supabaseUserId is undefined, Drizzle uses defaultRandom()
+    };
 
     const account = await createAccount(acc);
 
@@ -127,5 +163,5 @@ export async function seedAccounts(): Promise<void> {
     }
   }
 
-  await Promise.all(accountsArray.map((account, index) => createAccounts(account, index)));
+  await Promise.all(accountsArray.map((accData, index) => createSeedDataForAccount(accData, index)));
 }

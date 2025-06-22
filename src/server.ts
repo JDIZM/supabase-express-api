@@ -8,7 +8,7 @@ import { routes } from "./routes/index.ts";
 import { logger } from "./helpers/index.ts";
 import { corsOptions } from "./cors.ts";
 import { errorHandler } from "./middleware/errorHandler.ts";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 
 import "./helpers/permissions.ts";
 
