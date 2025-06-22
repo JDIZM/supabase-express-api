@@ -1,7 +1,8 @@
 import { pgTable, uuid, text, timestamp, varchar, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { relations } from "drizzle-orm/relations";
+import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
 
 // Validate UUID
 export const uuidSchema = z.object({ uuid: z.string().uuid() });
@@ -20,12 +21,14 @@ export const accountRelations = relations(accounts, ({ many }) => ({
   profiles: many(profiles)
 }));
 
+// In drizzle-zod 0.7.0, schema customization must be done differently
 export const accountInsertSchema = createInsertSchema(accounts);
 export const accountSelectSchema = createSelectSchema(accounts);
 export const accountUpdateSchema = createUpdateSchema(accounts);
 
-export type AccountInsertType = z.infer<typeof accountInsertSchema>;
-export type AccountSelectType = z.infer<typeof accountSelectSchema>;
+// Use drizzle-orm's inference types directly to avoid zod compatibility issues
+export type AccountInsertType = InferInsertModel<typeof accounts>;
+export type AccountSelectType = InferSelectModel<typeof accounts>;
 
 export type AccountWithRelations = AccountSelectType & {
   workspaces: WorkspaceMembershipSelectType[];
@@ -52,8 +55,8 @@ export const workspaceRelations = relations(workspaces, ({ one, many }) => ({
 export const workspaceInsertSchema = createInsertSchema(workspaces);
 export const workspaceSelectSchema = createSelectSchema(workspaces);
 
-export type WorkspaceInsertType = z.infer<typeof workspaceInsertSchema>;
-export type WorkspaceSelectType = z.infer<typeof workspaceSelectSchema>;
+export type WorkspaceInsertType = InferInsertModel<typeof workspaces>;
+export type WorkspaceSelectType = InferSelectModel<typeof workspaces>;
 
 export const profiles = pgTable("profiles", {
   uuid: uuid("uuid").defaultRandom().primaryKey(),
@@ -77,8 +80,8 @@ export const profileRelations = relations(profiles, ({ one }) => ({
 export const profileInsertSchema = createInsertSchema(profiles);
 export const profileSelectSchema = createSelectSchema(profiles);
 
-export type ProfileInsertType = z.infer<typeof profileInsertSchema>;
-export type ProfileSelectType = z.infer<typeof profileSelectSchema>;
+export type ProfileInsertType = InferInsertModel<typeof profiles>;
+export type ProfileSelectType = InferSelectModel<typeof profiles>;
 
 export const workspaceMemberships = pgTable("workspace_memberships", {
   uuid: uuid("uuid").defaultRandom().primaryKey(),
@@ -101,5 +104,5 @@ export const workspaceMembershipsRelations = relations(workspaceMemberships, ({ 
 export const workspaceMembershipInsertSchema = createInsertSchema(workspaceMemberships);
 export const workspaceMembershipSelectSchema = createSelectSchema(workspaceMemberships);
 
-export type WorkspaceMembershipInsertType = z.infer<typeof workspaceMembershipInsertSchema>;
-export type WorkspaceMembershipSelectType = z.infer<typeof workspaceMembershipSelectSchema>;
+export type WorkspaceMembershipInsertType = InferInsertModel<typeof workspaceMemberships>;
+export type WorkspaceMembershipSelectType = InferSelectModel<typeof workspaceMemberships>;
