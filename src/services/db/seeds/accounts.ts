@@ -19,11 +19,12 @@ type SeedAccountType = AccountInsertType & {
   password?: string; // Password is only needed for Supabase signup during seeding
 };
 
+// Replace the emails with working emails when seeding with Supabase.
 const accountsArray: SeedAccountType[] = [
   {
     fullName: "James D",
     phone: "555-555-5555",
-    email: "james.d@example.com",
+    email: "user1@example.com",
     isSuperAdmin: true,
     // Add a default password for seeding if using signUpWithSupabase
     password: "password123"
@@ -31,7 +32,8 @@ const accountsArray: SeedAccountType[] = [
   {
     fullName: "Jane D",
     phone: "555-555-5555",
-    email: "jane.d@example.com",
+    email: "user2@example.com",
+    isSuperAdmin: false,
     password: "password123" // Temporary password for seeding
   }
 ];

@@ -216,6 +216,23 @@ Note: If you are creating users with Supabase you will need to confirm the email
 pnpm run seed
 ```
 
+#### Development Workspace Setup
+
+After seeding the database, you can create development workspaces for testing:
+
+```bash
+# Create a single workspace
+pnpm dev:workspace --email=user@example.com --name="Test Workspace"
+
+# Create a workspace with specific profile name and role
+pnpm dev:workspace --email=user@example.com --name="Client Project" --profile="John" --role=user
+
+# Create multiple test workspaces
+pnpm dev:workspaces --email=user@example.com
+```
+
+**Note**: The account email must exist in the database (created during seeding) before creating workspaces.
+
 Be sure to update the seeds as new migrations are added.
 
 ## Build with docker
