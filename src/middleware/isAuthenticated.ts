@@ -50,7 +50,7 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
 
   try {
     const verifiedToken = await verifyToken(token);
-    console.log("verifiedToken", verifiedToken);
+    logger.debug(verifiedToken, "verifiedToken");
 
     if (!verifiedToken) {
       throw new Error("Invalid token");

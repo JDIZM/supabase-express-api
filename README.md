@@ -233,6 +233,26 @@ pnpm dev:workspaces --email=user@example.com
 
 **Note**: The account email must exist in the database (created during seeding) before creating workspaces.
 
+#### JWT Token Testing
+
+Test and generate JWT tokens for API development and debugging:
+
+```bash
+# Generate a test token for development
+pnpm token-test --generate --account-id=965df6bf-ab16-4fc0-a6b1-3da31d48f832 --email=user1@example.com
+
+# Verify a token with full payload information
+pnpm token-test --token=<jwt-token> --show-payload --check-expiry
+
+# Test if your JWT secret works with a token
+pnpm token-test --token=<jwt-token> --test-secret
+
+# Decode token without verification (debugging)
+pnpm token-test --token=<jwt-token> --decode-only
+```
+
+**Note**: Use actual account IDs from your seeded database when generating tokens.
+
 Be sure to update the seeds as new migrations are added.
 
 ## Build with docker

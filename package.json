@@ -25,6 +25,7 @@
     "seed": "tsx ./src/services/db/seed.ts --supabase=$npm_config_supabase",
     "dev:workspace": "tsx ./scripts/dev-setup.ts --email=$npm_config_email --name=$npm_config_name",
     "dev:workspaces": "tsx ./scripts/dev-setup.ts --email=$npm_config_email",
+    "token-test": "tsx ./scripts/token-test.ts",
     "studio": "npx drizzle-kit studio"
   },
   "keywords": [],
