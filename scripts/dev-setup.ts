@@ -115,7 +115,7 @@ async function createMultipleWorkspaces(
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
-  
+
   if (args.length === 0) {
     logger.info("Usage examples:");
     logger.info("  # Create single workspace");
