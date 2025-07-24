@@ -10,7 +10,10 @@ export const API_ROUTES = {
   profiles: "/profiles",
   profileById: "/profiles/:id",
   workspaces: "/workspaces",
-  workspaceById: "/workspaces/:id"
+  workspaceById: "/workspaces/:id",
+  workspaceMembers: "/workspaces/:id/members",
+  workspaceMemberRole: "/workspaces/:id/members/:memberId/role",
+  workspaceMemberRemove: "/workspaces/:id/members/:memberId"
 } as const;
 
 export type RouteName = keyof typeof API_ROUTES;
@@ -88,7 +91,22 @@ permissions.set(API_ROUTES.workspaces, {
 });
 
 permissions.set(API_ROUTES.workspaceById, {
-  permissions: { GET: ROLES.User },
+  permissions: { GET: ROLES.User, DELETE: ROLES.Admin },
+  authenticated: true
+});
+
+permissions.set(API_ROUTES.workspaceMembers, {
+  permissions: { POST: ROLES.Admin },
+  authenticated: true
+});
+
+permissions.set(API_ROUTES.workspaceMemberRole, {
+  permissions: { PUT: ROLES.Admin },
+  authenticated: true
+});
+
+permissions.set(API_ROUTES.workspaceMemberRemove, {
+  permissions: { DELETE: ROLES.Admin },
   authenticated: true
 });
 

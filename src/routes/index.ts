@@ -7,8 +7,14 @@ import {
   createWorkspace,
   fetchWorkspace,
   fetchWorkspacesByAccountId,
-  updateWorkspace
+  updateWorkspace,
+  deleteWorkspace
 } from "@/handlers/workspaces/workspaces.handlers.ts";
+import {
+  addWorkspaceMember,
+  updateMemberRole,
+  removeMember
+} from "@/handlers/memberships/memberships.handlers.ts";
 import { getAccount, getAccounts, createAccount, updateAccount } from "@/handlers/accounts/accounts.handlers.ts";
 import { getProfile, getProfiles } from "@/handlers/profiles/profiles.handlers.ts";
 import { getCurrentUser } from "@/handlers/me/me.handlers.ts";
@@ -39,4 +45,10 @@ export function routes(app: Application): void {
 
   app.get(API_ROUTES.workspaceById, isAuthenticated, isAuthorized, fetchWorkspace);
   app.patch(API_ROUTES.workspaceById, isAuthenticated, isAuthorized, updateWorkspace);
+  app.delete(API_ROUTES.workspaceById, isAuthenticated, isAuthorized, deleteWorkspace);
+
+  // Member management routes
+  app.post(API_ROUTES.workspaceMembers, isAuthenticated, isAuthorized, addWorkspaceMember);
+  app.put(API_ROUTES.workspaceMemberRole, isAuthenticated, isAuthorized, updateMemberRole);
+  app.delete(API_ROUTES.workspaceMemberRemove, isAuthenticated, isAuthorized, removeMember);
 }

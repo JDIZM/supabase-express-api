@@ -1,8 +1,8 @@
-import { workspaces, uuidSchema, accounts } from "@/schema.ts";
+import { workspaces, uuidSchema, accounts, profiles, workspaceMemberships } from "@/schema.ts";
 import type { Request, Response } from "express";
 import { db } from "@/services/db/drizzle.ts";
 import { logger, gatewayResponse } from "@/helpers/index.ts";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { createDbWorkspace } from "./workspaces.methods.ts";
 import { createMembership } from "../memberships/memberships.methods.ts";
 import { createDbProfile } from "../profiles/profiles.methods.ts";
@@ -61,17 +61,51 @@ export const fetchWorkspace = asyncHandler(async (req: Request, res: Response): 
 
   const equals = eq(workspaces.uuid, req.params.id);
 
-  const relations = await db.query.workspaces.findFirst({
-    where: equals,
-    with: {
-      profiles: {
-        columns: {
-          uuid: true,
-          name: true
-        }
+  // Get workspace with complete member information
+  const workspace = await db
+    .select({
+      uuid: workspaces.uuid,
+      name: workspaces.name,
+      description: workspaces.description,
+      createdAt: workspaces.createdAt,
+      accountId: workspaces.accountId
+    })
+    .from(workspaces)
+    .where(equals)
+    .limit(1);
+
+  if (!workspace.length) {
+    throw new Error("Workspace not found");
+  }
+
+  // Get all members with their roles and account info
+  const members = await db
+    .select({
+      membership: {
+        uuid: workspaceMemberships.uuid,
+        role: workspaceMemberships.role
+      },
+      profile: {
+        uuid: profiles.uuid,
+        name: profiles.name,
+        createdAt: profiles.createdAt
+      },
+      account: {
+        uuid: accounts.uuid,
+        fullName: accounts.fullName,
+        email: accounts.email
       }
-    }
-  });
+    })
+    .from(workspaceMemberships)
+    .innerJoin(accounts, eq(workspaceMemberships.accountId, accounts.uuid))
+    .innerJoin(profiles, and(eq(profiles.workspaceId, req.params.id), eq(profiles.accountId, accounts.uuid)))
+    .where(eq(workspaceMemberships.workspaceId, req.params.id));
+
+  const relations = {
+    ...workspace[0],
+    members,
+    memberCount: members.length
+  };
 
   const response = gatewayResponse().success(200, relations, "Fetched workspace");
 
@@ -120,3 +154,47 @@ export async function inviteMembers(_req: Request, res: Response): Promise<void>
   // TODO check the person making the request has the correct permissions to add users and set roles.
   res.status(200).send("inviteMembers");
 }
+
+/**
+ * DELETE /workspaces/:id
+ * Delete a workspace (admin only)
+ * Requires: Admin role in the workspace
+ */
+export const deleteWorkspace = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const workspaceId = req.params.id;
+
+  if (!workspaceId) {
+    throw new Error("Workspace ID is required");
+  }
+
+  uuidSchema.parse({ uuid: workspaceId });
+
+  logger.info({ msg: `Deleting workspace: ${workspaceId}` });
+
+  // Get workspace info
+  const [workspace] = await db.select().from(workspaces).where(eq(workspaces.uuid, workspaceId)).limit(1);
+
+  if (!workspace) {
+    throw new Error("Workspace not found");
+  }
+
+  // Delete workspace and all related data in transaction
+  await db.transaction(async (tx) => {
+    // Delete all profiles in the workspace
+    await tx.delete(profiles).where(eq(profiles.workspaceId, workspaceId));
+
+    // Delete all memberships
+    await tx.delete(workspaceMemberships).where(eq(workspaceMemberships.workspaceId, workspaceId));
+
+    // Delete the workspace
+    await tx.delete(workspaces).where(eq(workspaces.uuid, workspaceId));
+  });
+
+  const response = gatewayResponse().success(
+    200,
+    { deletedWorkspaceId: workspaceId, workspaceName: workspace.name },
+    `Workspace "${workspace.name}" deleted successfully`
+  );
+
+  res.status(response.code).send(response);
+});
