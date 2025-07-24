@@ -115,29 +115,29 @@ async function createMultipleWorkspaces(
 
 function parseArguments(args: string[]): Record<string, string> {
   const options: Record<string, string> = {};
-  
+
   for (const arg of args) {
     // Skip if not a flag
-    if (!arg.startsWith('--')) continue;
-    
+    if (!arg.startsWith("--")) continue;
+
     // Remove leading dashes
-    const cleanArg = arg.replace(/^-+/, '');
-    
+    const cleanArg = arg.replace(/^-+/, "");
+
     // Split by first equals sign to handle values with equals signs
-    const equalIndex = cleanArg.indexOf('=');
+    const equalIndex = cleanArg.indexOf("=");
     if (equalIndex === -1) continue;
-    
+
     const key = cleanArg.substring(0, equalIndex);
     const value = cleanArg.substring(equalIndex + 1);
-    
+
     // Remove surrounding quotes if present
-    const trimmedValue = value.replace(/^['"]|['"]$/g, '');
-    
+    const trimmedValue = value.replace(/^['"]|['"]$/g, "");
+
     if (key && trimmedValue) {
       options[key] = trimmedValue;
     }
   }
-  
+
   return options;
 }
 
@@ -163,7 +163,7 @@ async function main(): Promise<void> {
     logger.error("Email is required. Use --email=your@email.com");
     process.exit(1);
   }
-  
+
   // Basic email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
@@ -179,7 +179,7 @@ async function main(): Promise<void> {
   }
 
   // Validate role if provided
-  if (options.role && !['admin', 'user'].includes(options.role)) {
+  if (options.role && !["admin", "user"].includes(options.role)) {
     logger.error(`Invalid role: ${options.role}. Must be 'admin' or 'user'.`);
     process.exit(1);
   }
@@ -191,12 +191,12 @@ async function main(): Promise<void> {
       logger.error("Workspace name cannot be empty.");
       process.exit(1);
     }
-    
+
     if (options.name.length > 100) {
       logger.error("Workspace name must be 100 characters or less.");
       process.exit(1);
     }
-    
+
     await createWorkspaceForAccount({
       accountEmail: email,
       workspaceName: options.name.trim(),
