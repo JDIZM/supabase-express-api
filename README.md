@@ -1,151 +1,177 @@
-# supabase-express-api
+# Supabase Express API
 
-- [tsx](https://github.com/esbuild-kit/tsx)
-- [pkgroll](https://github.com/privatenumber/pkgroll)
-- [eslint](https://eslint.org/)
-- [prettier](https://prettier.io/)
-- [typescript](https://www.typescriptlang.org/)
-- [vitest](https://vitest.dev/)
-- [zod](https://zod.dev/)
-- [drizzle](https://orm.drizzle.team/)
-  - [drizzle with supabase](https://orm.drizzle.team/docs/get-started-postgresql#supabase)
-- [drizzle-zod](https://orm.drizzle.team/docs/zod)
-- [drizzle-kit](https://orm.drizzle.team/kit-docs/overview)
-- [postgres](https://www.postgresql.org/)
-- [supabase](https://supabase.io/)
-  - [supabase-js](https://supabase.com/docs/reference/javascript/introduction)
-- [helmet](https://helmetjs.github.io/)
-- [cookie-parser](https://www.npmjs.com/package/cookie-parser)
-- [@sentry/node](https://docs.sentry.io/platforms/javascript/guides/node/)
+A production-ready Node.js/Express API template with TypeScript, authentication, and multi-tenant workspace system.
 
-A node/express backend API template for getting started with a new project that includes authentication, permissions, and a database configured to
-use [Supabase](https://supabase.io/) or a local/cloud Postgres database.
+## Overview
 
-This comes pre-defined with a workspaces model that allows accounts (users) to create workspaces and invite other profiles (users presence within a workspace) to access the workspace (membership). see the [Permissions](#permissions) section for more information on how permissions are defined.
+This template provides a robust foundation for building scalable APIs with:
 
-The contents of a workspace is not defined in this template and can be customized to suit the needs of the project.
+- **Authentication** - JWT-based auth with Supabase integration
+- **Multi-tenancy** - Workspace-based system with role-based permissions
+- **Database** - PostgreSQL with Drizzle ORM and migrations
+- **Security** - Helmet, CORS, input validation, and error handling
+- **Developer Experience** - ESM support, hot reload, testing, and Docker
 
-## ESM Node
+## Features
 
-https://www.typescriptlang.org/docs/handbook/esm-node.html
+### Core Features
 
-This project has been setup to use ESM Node. This allows us to use ES6 imports in Node.
+- 🔐 **Authentication & Authorization** - JWT bearer tokens with Supabase
+- 🏢 **Workspace Management** - Multi-tenant workspace system
+- 👥 **User Management** - Account creation, profiles, and memberships
+- 🛡️ **Role-based Permissions** - SuperAdmin, Admin, User, and Owner roles
+- 📊 **Database Management** - Migrations, seeding, and Drizzle ORM
+- ⚡ **Real-time Development** - Hot reload with tsx and pkgroll
 
-This uses [tsx](https://github.com/esbuild-kit/tsx) as a dev server and [pkgroll](https://github.com/privatenumber/pkgroll) to bundle and build the project.
+### API Endpoints
 
-## Requirements
+- `/auth` - Authentication (login, signup)
+- `/accounts` - User account management
+- `/workspaces` - Workspace CRUD operations
+- `/profiles` - User profiles within workspaces
+- `/memberships` - Workspace membership management
 
-This project requires node.js to be installed. This project uses volta to manage node versions.
+### Tech Stack
 
-To install volta run the following command in the terminal.
+- **Runtime**: Node.js 22+ with ESM modules
+- **Framework**: Express.js with TypeScript
+- **Database**: PostgreSQL with [Drizzle ORM](https://orm.drizzle.team/)
+- **Authentication**: [Supabase](https://supabase.io/) with JWT
+- **Validation**: [Zod](https://zod.dev/) schemas
+- **Testing**: [Vitest](https://vitest.dev/) with coverage
+- **Tooling**: ESLint, Prettier, tsx, pkgroll
+- **Monitoring**: Sentry integration
+- **Security**: Helmet, CORS, input sanitization
+
+## Quick Start
+
+### Prerequisites
+
+- **Node.js 22+** - This project uses [Volta](https://volta.sh/) for Node version management
+- **PostgreSQL** - Either local, cloud, or Supabase
+- **Supabase Account** - For authentication (free tier available)
+
+### Installation
+
+1. **Install Node.js with Volta**:
+
+   ```bash
+   curl https://get.volta.sh | bash
+   ```
+
+2. **Install pnpm**:
+
+   ```bash
+   npm install --global corepack@latest
+   corepack enable pnpm
+   ```
+
+3. **Clone and setup**:
+
+   ```bash
+   git clone <repository-url>
+   cd supabase-express-api
+   cp .env.example .env
+   pnpm install
+   ```
+
+4. **Configure environment** (edit `.env`):
+
+   ```bash
+   # Database
+   POSTGRES_HOST=localhost
+   POSTGRES_USER=postgres
+   POSTGRES_PASSWORD=your-password
+   POSTGRES_DB=your-database
+
+   # Supabase
+   SUPABASE_URL=https://your-project.supabase.co
+   SUPABASE_PK=your-public-key
+   ```
+
+5. **Initialize database**:
+
+   ```bash
+   pnpm run migrate
+   pnpm run seed
+   ```
+
+6. **Start development server**:
+   ```bash
+   pnpm dev
+   ```
+
+## Architecture
+
+### ESM Support
+
+This project uses **ESM (ECMAScript Modules)** for modern JavaScript imports:
+
+- Development: [tsx](https://github.com/esbuild-kit/tsx) for hot reloading
+- Production: [pkgroll](https://github.com/privatenumber/pkgroll) for bundling
+- Import aliases: `@/` maps to `src/` directory
+
+### Database Schema
+
+Multi-tenant workspace system with:
+
+- **accounts** - User accounts with super admin support
+- **workspaces** - Tenant containers owned by accounts
+- **profiles** - User presence within workspaces
+- **workspace_memberships** - Role-based access control
+
+## Development
+
+### Available Scripts
+
+- `pnpm dev` - Start development server with hot reload
+- `pnpm build` - Build for production
+- `pnpm test` - Run tests with coverage
+- `pnpm lint` - Lint code with ESLint
+- `pnpm format` - Format code with Prettier
+- `pnpm tsc:check` - Type check without compilation
+
+### Testing
+
+Uses [Vitest](https://vitest.dev/) for unit testing. Install the [Vitest VS Code extension](https://marketplace.visualstudio.com/items?itemName=ZixuanChen.vitest-explorer) for the best experience.
+
+## Database Setup
+
+### Database Management
+
+- **View Database**: `pnpm run studio` - Opens Drizzle Kit studio
+- **Migrations**: `pnpm run migrate` - Apply pending migrations
+- **Seeding**: `pnpm run seed` - Populate with sample data
+
+### Local Development Options
+
+#### Option 1: Supabase CLI (Recommended)
 
 ```bash
-curl https://get.volta.sh | bash
+# Install Supabase CLI
+pnpm add -D supabase
+
+# Start local Supabase
+supabase start
+
+# Use connection string in .env
+# postgresql://postgres:postgres@localhost:54322/postgres
 ```
 
-You will need a Postgres database to run this project. You can use Docker to run a Postgres database or use a service like [Supabase](https://supabase.com/). The auth provider can be replaced with any other Auth providers eg Firebase, Auth0, Keycloak you just need to implement the authentication middleware to verify the token and decode the claims and modify the auth handlers to use your provider.
+Access dashboard at http://localhost:54323
 
-See the [Database](#database) section for more information on how to configure the database connection.
-
-Authentication is handled by [Supabase](https://supabase.com/) and requires a Supabase account. You can sign up for a free account at [supabase.com](https://supabase.com/).
-
-### Install PNPM
-
-If using volta we can install corepack globally and let volta manage the binary, corepack will let us use the correct version of pnpm based on the `packageManager` field in the package.json file.
+#### Option 2: Docker PostgreSQL
 
 ```bash
-npm install --global corepack@latest
-
-corepack enable pnpm
-```
-
-see the [installation docs for pnpm](https://pnpm.io/installation) and the [corepack docs](https://github.com/nodejs/corepack)
-for more information on how to install pnpm and corepack.
-
-### ENV
-
-Create a .env file in the root of the project and copy the contents of .env.example into it.
-
-```bash
-cp .env.example .env
-```
-
-see the section on [Deployment with DigitalOcean](#deployment-with-digitalocean) for more information on how to configure the environment variables for deployment in different environments (eg. development and production).
-
-### Install dependencies
-
-```bash
-pnpm i
-```
-
-### Setup the database
-
-The first time setting up the database you will need to run the `migrate` command to create the database tables and apply the migrations.
-
-```bash
-pnpm run migrate
-```
-
-## Testing
-
-This project uses [vitest](https://vitest.dev/) for unit testing.
-
-Run the unit tests with `npm run test`
-
-It's also recommended to install the [vitest extension for vscode](https://marketplace.visualstudio.com/items?itemName=ZixuanChen.vitest-explorer).
-
-## Supabase CLI
-
-You can install the supabase cli for local development.
-
-- https://supabase.com/docs/guides/cli/getting-started
-- https://supabase.com/docs/guides/cli/local-development
-
-## Database
-
-You can view the database with `pnpx drizzle-kit studio` or `pnpm run studio`.
-
-You can spin up a local copy of the database and application with `docker-compose` but this is not required when using the Supabase db.
-
-When using the supabase cli we can run a local copy of the db with `supabase start`.
-
-### Developing locally with supabase
-
-This will provide you with a connection string, you can update the local environment variables in the .env file with the details from the connection string.
-
-`postgresql://postgres:postgres@localhost:54322/postgres`
-
-Visit the Supabase dashboard: http://localhost:54323 and manage your database locally. Note: It appears that the database name needs to be `postgres` to be able to work with the Supabase dashboard.
-
-### Local Postgres with Docker
-
-You can spin up a local database and application with `docker-compose` but this is not required when using the Supabase db or cli.
-
-```bash
+# Simple setup
 docker compose up -d
-```
 
-Alternatively you can create a local network and connect the containers to the network.
-
-```bash
+# Or with custom network
 docker network create mynetwork
-
-docker run --network mynetwork --name mypostgres -d -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=example -e POSTGRES_DB=postgres postgres:15
+docker run --network mynetwork --name postgres \
+  -e POSTGRES_PASSWORD=example \
+  -p 5432:5432 -d postgres:15
 ```
-
-Then when running the application in docker you can connect to the database with the container name.
-
-```bash
-POSTGRES_HOST=mypostgres
-```
-
-Then run the application in docker and connect to the same network.
-
-```bash
-docker run --network mynetwork --name node-express -d -p 4000:4000 node-express
-```
-
-Note: If you are using a local database and running the application within docker on the host machine you will need to set `POSTGRES_HOST=host.docker.internal` in the .env file. [Read the docs for more info](https://docs.docker.com/desktop/networking/#i-want-to-connect-from-a-container-to-a-service-on-the-host)
 
 ### Migrations
 
@@ -167,11 +193,14 @@ pnpm run migrate:create
 ### 2. Run the migrations
 
 ```bash
-# first run the migrations
-pnpm run migrate:up
+# Apply the migration files to the database
+pnpm run migrate
+```
 
-# then run
-pnpm migrate:push
+Alternatively, if you want to push the schema directly without migration files:
+
+```bash
+pnpm run migrate:push
 ```
 
 ### Seeds
@@ -190,13 +219,30 @@ Note: If you are creating users with Supabase you will need to confirm the email
 pnpm run seed
 ```
 
+#### Development Workspace Setup
+
+After seeding the database, you can create development workspaces for testing:
+
+```bash
+# Create a single workspace
+pnpm dev:workspace --email=user1@example.com --name="Test Workspace"
+
+# Create a workspace with specific profile name and role
+pnpm dev:workspace --email=user1@example.com --name="Client Project" --profile="John" --role=user
+
+# Create multiple test workspaces
+pnpm dev:workspaces --email=user1@example.com
+```
+
+**Note**: The account email must exist in the database (created during seeding) before creating workspaces.
+
 Be sure to update the seeds as new migrations are added.
 
 ## Build with docker
 
 ```bash
 # build the app
-npm run build
+pnpm build
 
 # build with docker
 docker build . --tag node-express
