@@ -149,7 +149,7 @@ Uses [Vitest](https://vitest.dev/) for unit testing. Install the [Vitest VS Code
 
 ```bash
 # Install Supabase CLI
-npm install supabase --save-dev
+pnpm add -D supabase
 
 # Start local Supabase
 supabase start
@@ -193,11 +193,14 @@ pnpm run migrate:create
 ### 2. Run the migrations
 
 ```bash
-# first run the migrations
-pnpm run migrate:up
+# Apply the migration files to the database
+pnpm run migrate
+```
 
-# then run
-pnpm migrate:push
+Alternatively, if you want to push the schema directly without migration files:
+
+```bash
+pnpm run migrate:push
 ```
 
 ### Seeds
@@ -222,13 +225,13 @@ After seeding the database, you can create development workspaces for testing:
 
 ```bash
 # Create a single workspace
-pnpm dev:workspace --email=user@example.com --name="Test Workspace"
+pnpm dev:workspace --email=user1@example.com --name="Test Workspace"
 
 # Create a workspace with specific profile name and role
-pnpm dev:workspace --email=user@example.com --name="Client Project" --profile="John" --role=user
+pnpm dev:workspace --email=user1@example.com --name="Client Project" --profile="John" --role=user
 
 # Create multiple test workspaces
-pnpm dev:workspaces --email=user@example.com
+pnpm dev:workspaces --email=user1@example.com
 ```
 
 **Note**: The account email must exist in the database (created during seeding) before creating workspaces.
@@ -239,7 +242,7 @@ Be sure to update the seeds as new migrations are added.
 
 ```bash
 # build the app
-npm run build
+pnpm build
 
 # build with docker
 docker build . --tag node-express
