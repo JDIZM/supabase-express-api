@@ -4,6 +4,7 @@ export const API_ROUTES = {
   root: "/",
   login: "/login",
   signUp: "/signup",
+  me: "/me",
   accounts: "/accounts",
   accountById: "/accounts/:id",
   profiles: "/profiles",
@@ -54,6 +55,11 @@ export const permissions: PermissionsMap = new Map();
 permissions.set(API_ROUTES.root, { permissions: {}, authenticated: false });
 permissions.set(API_ROUTES.login, { permissions: {}, authenticated: false });
 permissions.set(API_ROUTES.signUp, { permissions: {}, authenticated: false });
+
+permissions.set(API_ROUTES.me, {
+  permissions: { GET: "" },
+  authenticated: true
+});
 
 permissions.set(API_ROUTES.accounts, {
   permissions: { GET: "", POST: "" },

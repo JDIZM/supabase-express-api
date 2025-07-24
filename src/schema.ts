@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, varchar, boolean } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, varchar, boolean, unique, index } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm/relations";
@@ -64,7 +64,12 @@ export const profiles = pgTable("profiles", {
   createdAt: timestamp("created_at", { precision: 6, withTimezone: true }).defaultNow(),
   workspaceId: uuid("workspace_id").notNull(),
   accountId: uuid("account_id").notNull().default("00000000-0000-0000-0000-000000000000")
-});
+}, (table) => ({
+  uniqueAccountWorkspace: unique("unique_account_workspace").on(table.accountId, table.workspaceId),
+  accountIdIdx: index("profiles_account_id_idx").on(table.accountId),
+  workspaceIdIdx: index("profiles_workspace_id_idx").on(table.workspaceId),
+  workspaceAccountIdx: index("profiles_workspace_account_idx").on(table.workspaceId, table.accountId)
+}));
 
 export const profileRelations = relations(profiles, ({ one }) => ({
   account: one(accounts, {
@@ -88,7 +93,11 @@ export const workspaceMemberships = pgTable("workspace_memberships", {
   workspaceId: uuid("workspace_id").notNull(),
   accountId: uuid("account_id").notNull(),
   role: text("role", { enum: ["admin", "user"] }).notNull()
-});
+}, (table) => ({
+  uniqueMembershipPerWorkspace: unique("unique_membership_per_workspace").on(table.accountId, table.workspaceId),
+  accountIdIdx: index("memberships_account_id_idx").on(table.accountId),
+  workspaceIdIdx: index("memberships_workspace_id_idx").on(table.workspaceId)
+}));
 
 export const workspaceMembershipsRelations = relations(workspaceMemberships, ({ one }) => ({
   workspace: one(workspaces, {

@@ -11,6 +11,7 @@ import {
 } from "@/handlers/workspaces/workspaces.handlers.ts";
 import { getAccount, getAccounts, createAccount, updateAccount } from "@/handlers/accounts/accounts.handlers.ts";
 import { getProfile, getProfiles } from "@/handlers/profiles/profiles.handlers.ts";
+import { getCurrentUser } from "@/handlers/me/me.handlers.ts";
 
 const { API_ROUTES } = permissions;
 
@@ -20,6 +21,8 @@ export function routes(app: Application): void {
   });
   app.post(API_ROUTES.login, isAuthenticated, isAuthorized, signInWithPassword);
   app.post(API_ROUTES.signUp, isAuthenticated, isAuthorized, signUp);
+
+  app.get(API_ROUTES.me, isAuthenticated, isAuthorized, getCurrentUser);
 
   app.get(API_ROUTES.accounts, isAuthenticated, isAuthorized, getAccounts);
   app.post(API_ROUTES.accounts, isAuthenticated, isAuthorized, createAccount);
