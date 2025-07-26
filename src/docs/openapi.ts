@@ -39,6 +39,95 @@ registry.registerComponent("securitySchemes", "bearerAuth", {
   bearerFormat: "JWT"
 });
 
+// Authentication routes
+registry.registerPath({
+  method: "post",
+  path: "/login",
+  summary: "User login",
+  description: "Authenticate user with email and password",
+  tags: ["Authentication"],
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            email: z.string().email().describe("User email address"),
+            password: z.string().min(6).describe("User password")
+          })
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: "Login successful",
+      content: {
+        "application/json": {
+          schema: SuccessResponseSchema.extend({
+            data: z.object({
+              token: z.string().describe("JWT access token"),
+              account: AccountSchema
+            })
+          })
+        }
+      }
+    },
+    400: {
+      description: "Invalid credentials",
+      content: {
+        "application/json": {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/signup",
+  summary: "User registration",
+  description: "Create a new user account",
+  tags: ["Authentication"],
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            email: z.string().email().describe("User email address"),
+            password: z.string().min(6).describe("User password"),
+            fullName: z.string().min(1).describe("User full name"),
+            phone: z.string().optional().describe("User phone number")
+          })
+        }
+      }
+    }
+  },
+  responses: {
+    201: {
+      description: "Account created successfully",
+      content: {
+        "application/json": {
+          schema: SuccessResponseSchema.extend({
+            data: z.object({
+              token: z.string().describe("JWT access token"),
+              account: AccountSchema
+            })
+          })
+        }
+      }
+    },
+    400: {
+      description: "Invalid input or email already exists",
+      content: {
+        "application/json": {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
 // Register API routes using Zod schemas
 registry.registerPath({
   method: "get",
@@ -585,70 +674,67 @@ registry.registerPath({
 });
 
 registry.registerPath({
-  method: "post",
-  path: "/admin/workspaces",
-  summary: "Create workspace for any account",
-  description: "Create a new workspace for any account (SuperAdmin only)",
+  method: "put",
+  path: "/admin/accounts/{id}/status",
+  summary: "Update account status",
+  description: "Activate, deactivate, or suspend an account (SuperAdmin only)",
   security: [{ bearerAuth: [] }],
   tags: ["Admin"],
   request: {
+    params: z.object({
+      id: z.uuid()
+    }),
     body: {
       content: {
         "application/json": {
           schema: z.object({
-            accountId: z.uuid(),
-            name: z.string().min(1).describe("Workspace name"),
-            description: z.string().optional().describe("Optional workspace description")
+            status: z.enum(["active", "inactive", "suspended"]).describe("New account status")
           })
         }
       }
     }
   },
   responses: {
-    201: {
-      description: "Workspace created successfully",
+    200: {
+      description: "Account status updated successfully",
       content: {
         "application/json": {
           schema: SuccessResponseSchema.extend({
             data: z.object({
-              workspace: WorkspaceSchema,
-              profile: ProfileSchema,
-              membership: MembershipSchema
+              account: AccountSchema
             })
           })
+        }
+      }
+    },
+    400: {
+      description: "Invalid status value",
+      content: {
+        "application/json": {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    403: {
+      description: "Forbidden - SuperAdmin access required",
+      content: {
+        "application/json": {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    404: {
+      description: "Account not found",
+      content: {
+        "application/json": {
+          schema: ErrorResponseSchema
         }
       }
     }
   }
 });
 
-registry.registerPath({
-  method: "delete",
-  path: "/admin/workspaces/{id}",
-  summary: "Delete any workspace",
-  description: "Delete any workspace and all its data (SuperAdmin only)",
-  security: [{ bearerAuth: [] }],
-  tags: ["Admin"],
-  request: {
-    params: z.object({
-      id: z.uuid()
-    })
-  },
-  responses: {
-    200: {
-      description: "Workspace deleted successfully",
-      content: {
-        "application/json": {
-          schema: SuccessResponseSchema.extend({
-            data: z.object({
-              message: z.string()
-            })
-          })
-        }
-      }
-    }
-  }
-});
+// SuperAdmin workspace control endpoints removed - users manage their own workspaces
 
 registry.registerPath({
   method: "get",

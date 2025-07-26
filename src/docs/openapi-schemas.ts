@@ -14,6 +14,7 @@ export const AccountSchema = z
     email: z.string().email(),
     phone: z.string().nullable(),
     isSuperAdmin: z.boolean(),
+    status: z.enum(["active", "inactive", "suspended"]),
     createdAt: z.string().datetime()
   })
   .openapi("Account");

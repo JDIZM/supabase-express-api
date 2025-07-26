@@ -13,7 +13,10 @@ export const accounts = pgTable("accounts", {
   phone: varchar("phone", { length: 256 }),
   createdAt: timestamp("created_at", { precision: 6, withTimezone: true }).defaultNow(),
   email: text("email").unique().notNull(),
-  isSuperAdmin: boolean("is_super_admin").default(false)
+  isSuperAdmin: boolean("is_super_admin").default(false),
+  status: text("status", { enum: ["active", "inactive", "suspended"] })
+    .default("active")
+    .notNull()
 });
 
 export const accountRelations = relations(accounts, ({ many }) => ({

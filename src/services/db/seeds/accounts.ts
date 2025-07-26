@@ -26,6 +26,7 @@ const accountsArray: SeedAccountType[] = [
     phone: "555-555-5555",
     email: "user1@example.com",
     isSuperAdmin: true,
+    status: "active",
     // Add a default password for seeding if using signUpWithSupabase
     password: "password123"
   },
@@ -34,6 +35,7 @@ const accountsArray: SeedAccountType[] = [
     phone: "555-555-5555",
     email: "user2@example.com",
     isSuperAdmin: false,
+    status: "active",
     password: "password123" // Temporary password for seeding
   }
 ];
@@ -137,6 +139,7 @@ export async function seedAccounts(
       email: accountData.email,
       phone: accountData.phone,
       isSuperAdmin: accountData.isSuperAdmin,
+      status: accountData.status || "active",
       uuid: supabaseUserId // If supabaseUserId is undefined, Drizzle uses defaultRandom()
     };
 

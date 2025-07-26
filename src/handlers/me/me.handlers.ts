@@ -31,6 +31,7 @@ export const getCurrentUser = asyncHandler(async (req: Request, res: Response): 
       email: accounts.email,
       phone: accounts.phone,
       isSuperAdmin: accounts.isSuperAdmin,
+      status: accounts.status,
       createdAt: accounts.createdAt
     })
     .from(accounts)

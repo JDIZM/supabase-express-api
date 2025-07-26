@@ -17,6 +17,7 @@ export const API_ROUTES = {
   // Admin routes
   adminAccounts: "/admin/accounts",
   adminAccountRole: "/admin/accounts/:id/role",
+  adminAccountStatus: "/admin/accounts/:id/status",
   adminWorkspaces: "/admin/workspaces",
   adminWorkspaceById: "/admin/workspaces/:id",
   adminMemberships: "/admin/memberships"
@@ -116,6 +117,12 @@ permissions.set(API_ROUTES.adminAccounts, {
 });
 
 permissions.set(API_ROUTES.adminAccountRole, {
+  permissions: { PUT: "" },
+  authenticated: true,
+  super: true
+});
+
+permissions.set(API_ROUTES.adminAccountStatus, {
   permissions: { PUT: "" },
   authenticated: true,
   super: true
