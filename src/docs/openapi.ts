@@ -13,7 +13,9 @@ import {
   ErrorResponseSchema,
   PaginationSchema,
   PaginationQuerySchema,
-  UuidParamSchema
+  UuidParamSchema,
+  AuditLogSchema,
+  AuditLogStatsSchema
 } from "./openapi-schemas.ts";
 
 const registry = new OpenAPIRegistry();
@@ -31,6 +33,8 @@ registry.register("MemberCreate", MemberCreateSchema);
 registry.register("SuccessResponse", SuccessResponseSchema);
 registry.register("ErrorResponse", ErrorResponseSchema);
 registry.register("Pagination", PaginationSchema);
+registry.register("AuditLog", AuditLogSchema);
+registry.register("AuditLogStats", AuditLogStatsSchema);
 
 // Security scheme for JWT Bearer token
 registry.registerComponent("securitySchemes", "bearerAuth", {
@@ -774,6 +778,118 @@ registry.registerPath({
               ),
               pagination: PaginationSchema
             })
+          })
+        }
+      }
+    },
+    403: {
+      description: "Forbidden - SuperAdmin access required",
+      content: {
+        "application/json": {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/admin/audit-logs",
+  summary: "List audit logs",
+  description: "Get audit logs with filtering and pagination (SuperAdmin only)",
+  security: [{ bearerAuth: [] }],
+  tags: ["Admin"],
+  request: {
+    query: z.object({
+      page: z.number().int().positive().default(1).describe("Page number for pagination"),
+      limit: z.number().int().min(1).max(100).default(50).describe("Number of items per page"),
+      action: z.string().optional().describe("Filter by action type"),
+      entityType: z.string().optional().describe("Filter by entity type"),
+      actorId: z.uuid().optional().describe("Filter by actor ID"),
+      entityId: z.uuid().optional().describe("Filter by entity ID"),
+      workspaceId: z.uuid().optional().describe("Filter by workspace ID"),
+      startDate: z.string().optional().describe("Filter by start date (ISO 8601)"),
+      endDate: z.string().optional().describe("Filter by end date (ISO 8601)")
+    })
+  },
+  responses: {
+    200: {
+      description: "List of audit logs with pagination and filters",
+      content: {
+        "application/json": {
+          schema: SuccessResponseSchema.extend({
+            data: z.object({
+              auditLogs: z.array(
+                z.object({
+                  auditLog: AuditLogSchema,
+                  actor: z
+                    .object({
+                      uuid: z.uuid(),
+                      email: z.string(),
+                      fullName: z.string()
+                    })
+                    .nullable(),
+                  target: z
+                    .object({
+                      uuid: z.uuid(),
+                      email: z.string(),
+                      fullName: z.string()
+                    })
+                    .nullable(),
+                  workspace: z
+                    .object({
+                      uuid: z.uuid(),
+                      name: z.string()
+                    })
+                    .nullable()
+                })
+              ),
+              pagination: PaginationSchema,
+              filters: z.object({
+                action: z.string().nullable(),
+                entityType: z.string().nullable(),
+                actorId: z.uuid().nullable(),
+                entityId: z.uuid().nullable(),
+                workspaceId: z.uuid().nullable(),
+                startDate: z.string().nullable(),
+                endDate: z.string().nullable()
+              })
+            })
+          })
+        }
+      }
+    },
+    403: {
+      description: "Forbidden - SuperAdmin access required",
+      content: {
+        "application/json": {
+          schema: ErrorResponseSchema
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/admin/audit-logs/stats",
+  summary: "Get audit log statistics",
+  description: "Get audit log statistics and analytics (SuperAdmin only)",
+  security: [{ bearerAuth: [] }],
+  tags: ["Admin"],
+  request: {
+    query: z.object({
+      days: z.number().int().min(1).max(365).default(30).describe("Number of days to analyze")
+    })
+  },
+  responses: {
+    200: {
+      description: "Audit log statistics",
+      content: {
+        "application/json": {
+          schema: SuccessResponseSchema.extend({
+            data: AuditLogStatsSchema
           })
         }
       }

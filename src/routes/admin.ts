@@ -11,6 +11,7 @@ import {
   listAllWorkspaces,
   listAllMemberships
 } from "@/handlers/admin/admin.handlers.ts";
+import { getAuditLogs, getAuditLogStats } from "@/handlers/admin/auditLogs.handlers.ts";
 
 export function adminRoutes(app: Application): void {
   // All admin routes require authentication, account status check, and SuperAdmin role
@@ -41,4 +42,15 @@ export function adminRoutes(app: Application): void {
 
   // Membership management
   app.get("/admin/memberships", adminRateLimit, isAuthenticated, checkAccountStatus, isAuthorized, listAllMemberships);
+
+  // Audit log management
+  app.get("/admin/audit-logs", adminRateLimit, isAuthenticated, checkAccountStatus, isAuthorized, getAuditLogs);
+  app.get(
+    "/admin/audit-logs/stats",
+    adminRateLimit,
+    isAuthenticated,
+    checkAccountStatus,
+    isAuthorized,
+    getAuditLogStats
+  );
 }

@@ -22,12 +22,12 @@ interface TokenPayload {
   };
 }
 
-interface TokenTestOptions {
-  token?: string;
-  secret?: string;
-  showPayload?: boolean;
-  checkExpiry?: boolean;
-}
+// interface TokenTestOptions {
+//   token?: string;
+//   secret?: string;
+//   showPayload?: boolean;
+//   checkExpiry?: boolean;
+// }
 
 class TokenTester {
   private secret: string;
@@ -95,7 +95,7 @@ class TokenTester {
       jwt.verify(token, this.secret);
       logger.info("✅ Secret is correct for this token");
       return true;
-    } catch (error) {
+    } catch {
       logger.error("❌ Secret is incorrect for this token");
       return false;
     }
@@ -104,7 +104,7 @@ class TokenTester {
   /**
    * Extract token information without verification (for debugging)
    */
-  decodeWithoutVerification(token: string): any {
+  decodeWithoutVerification(token: string): jwt.Jwt | null {
     try {
       const decoded = jwt.decode(token, { complete: true });
       logger.info(
@@ -176,7 +176,7 @@ class TokenTester {
   }
 }
 
-async function main() {
+async function main(): Promise<void> {
   const args = process.argv.slice(2);
 
   if (args.length === 0) {

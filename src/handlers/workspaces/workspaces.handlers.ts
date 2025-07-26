@@ -7,6 +7,7 @@ import { createDbWorkspace } from "./workspaces.methods.ts";
 import { createMembership } from "../memberships/memberships.methods.ts";
 import { createDbProfile } from "../profiles/profiles.methods.ts";
 import { asyncHandler } from "@/helpers/request.ts";
+import { HttpErrors, handleHttpError } from "@/helpers/HttpError.ts";
 
 /**
  * Creates a new workspace for the current account and
@@ -17,7 +18,8 @@ export const createWorkspace = asyncHandler(async (req: Request, res: Response):
   const { accountId } = req;
 
   if (!accountId) {
-    throw new Error("Account id is required");
+    handleHttpError(HttpErrors.MissingParameter("Account ID"), res, gatewayResponse);
+    return;
   }
 
   logger.info({ msg: `Creating workspace ${name} for ${accountId}` });
@@ -29,7 +31,8 @@ export const createWorkspace = asyncHandler(async (req: Request, res: Response):
   const [account] = await db.select().from(accounts).where(eq(accounts.uuid, accountId)).execute();
 
   if (!account) {
-    throw new Error("DB User not found");
+    handleHttpError(HttpErrors.AccountNotFound(), res, gatewayResponse);
+    return;
   }
 
   const profile = await createDbProfile({
@@ -56,7 +59,8 @@ export const fetchWorkspace = asyncHandler(async (req: Request, res: Response): 
   logger.info({ msg: `Fetching workspace: ${req.params.id}` });
 
   if (!req.params.id) {
-    throw new Error("Workspace id is required");
+    handleHttpError(HttpErrors.MissingParameter("Workspace ID"), res, gatewayResponse);
+    return;
   }
 
   const equals = eq(workspaces.uuid, req.params.id);
@@ -75,7 +79,8 @@ export const fetchWorkspace = asyncHandler(async (req: Request, res: Response): 
     .limit(1);
 
   if (!workspace.length) {
-    throw new Error("Workspace not found");
+    handleHttpError(HttpErrors.WorkspaceNotFound(), res, gatewayResponse);
+    return;
   }
 
   // Get all members with their roles and account info
@@ -126,7 +131,8 @@ export const fetchWorkspacesByAccountId = asyncHandler(async (req: Request, res:
   const { accountId } = req;
 
   if (!accountId) {
-    throw new Error("Account id is required");
+    handleHttpError(HttpErrors.MissingParameter("Account ID"), res, gatewayResponse);
+    return;
   }
 
   logger.info({ msg: `Fetching workspaces for account: ${accountId}` });
@@ -135,8 +141,7 @@ export const fetchWorkspacesByAccountId = asyncHandler(async (req: Request, res:
   const result = await db.select().from(workspaces).where(equals).execute();
 
   if (result.length === 0) {
-    const response = gatewayResponse().error(400, new Error("No workspaces found"), "Unable to fetch workspaces");
-    res.status(response.code).send(response);
+    handleHttpError(HttpErrors.NotFound("Workspaces"), res, gatewayResponse);
     return;
   }
 
@@ -164,7 +169,8 @@ export const deleteWorkspace = asyncHandler(async (req: Request, res: Response):
   const workspaceId = req.params.id;
 
   if (!workspaceId) {
-    throw new Error("Workspace ID is required");
+    handleHttpError(HttpErrors.MissingParameter("Workspace ID"), res, gatewayResponse);
+    return;
   }
 
   uuidSchema.parse({ uuid: workspaceId });
@@ -175,7 +181,8 @@ export const deleteWorkspace = asyncHandler(async (req: Request, res: Response):
   const [workspace] = await db.select().from(workspaces).where(eq(workspaces.uuid, workspaceId)).limit(1);
 
   if (!workspace) {
-    throw new Error("Workspace not found");
+    handleHttpError(HttpErrors.WorkspaceNotFound(), res, gatewayResponse);
+    return;
   }
 
   // Delete workspace and all related data in transaction

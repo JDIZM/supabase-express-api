@@ -113,3 +113,54 @@ export const UuidParamSchema = z
     id: z.uuid().openapi({ description: "UUID identifier" })
   })
   .openapi("UuidParam");
+
+export const AuditLogSchema = z
+  .object({
+    uuid: z.uuid(),
+    action: z.string(),
+    entityType: z.string(),
+    entityId: z.uuid(),
+    actorId: z.uuid(),
+    actorEmail: z.string(),
+    targetId: z.uuid().nullable(),
+    targetEmail: z.string().nullable(),
+    details: z.record(z.string(), z.unknown()).nullable(),
+    ipAddress: z.string().nullable(),
+    userAgent: z.string().nullable(),
+    workspaceId: z.uuid().nullable(),
+    createdAt: z.string().datetime()
+  })
+  .openapi("AuditLog");
+
+export const AuditLogStatsSchema = z
+  .object({
+    period: z.string(),
+    startDate: z.string().datetime(),
+    endDate: z.string().datetime(),
+    actionStats: z.array(
+      z.object({
+        action: z.string(),
+        count: z.number()
+      })
+    ),
+    entityTypeStats: z.array(
+      z.object({
+        entityType: z.string(),
+        count: z.number()
+      })
+    ),
+    topActors: z.array(
+      z.object({
+        actorId: z.uuid(),
+        actorEmail: z.string(),
+        count: z.number()
+      })
+    ),
+    dailyActivity: z.array(
+      z.object({
+        date: z.string(),
+        count: z.number()
+      })
+    )
+  })
+  .openapi("AuditLogStats");

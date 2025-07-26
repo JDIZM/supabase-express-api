@@ -20,7 +20,9 @@ export const API_ROUTES = {
   adminAccountStatus: "/admin/accounts/:id/status",
   adminWorkspaces: "/admin/workspaces",
   adminWorkspaceById: "/admin/workspaces/:id",
-  adminMemberships: "/admin/memberships"
+  adminMemberships: "/admin/memberships",
+  adminAuditLogs: "/admin/audit-logs",
+  adminAuditLogStats: "/admin/audit-logs/stats"
 } as const;
 
 export type RouteName = keyof typeof API_ROUTES;
@@ -141,6 +143,18 @@ permissions.set(API_ROUTES.adminWorkspaceById, {
 });
 
 permissions.set(API_ROUTES.adminMemberships, {
+  permissions: { GET: "" },
+  authenticated: true,
+  super: true
+});
+
+permissions.set(API_ROUTES.adminAuditLogs, {
+  permissions: { GET: "" },
+  authenticated: true,
+  super: true
+});
+
+permissions.set(API_ROUTES.adminAuditLogStats, {
   permissions: { GET: "" },
   authenticated: true,
   super: true

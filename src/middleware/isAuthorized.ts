@@ -58,8 +58,7 @@ export const isAuthorized = async (req: Request, res: Response, next: NextFuncti
     const resourcePermission = resourcePermissions && resourcePermissions.permissions[routeMethod];
     const requiresAuth = (resourcePermissions && resourcePermissions.authenticated) || false;
 
-    const x = req.cookies;
-    console.log("Cookies:", x);
+    logger.debug({ cookies: req.cookies }, "isAuthorized: cookies");
 
     logger.debug(
       {

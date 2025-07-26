@@ -26,6 +26,7 @@ export async function createDbAccount(account: AccountInsertType): Promise<strin
 
   return result.uuid;
 }
+
 /**
  * Get account by ID.
  * @param accountId - The UUID of the account to retrieve.
