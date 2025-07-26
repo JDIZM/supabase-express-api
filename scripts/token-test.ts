@@ -48,16 +48,19 @@ class TokenTester {
 
       if (options.showPayload) {
         logger.info("✅ Token is valid");
-        logger.info({
-          sub: decoded.sub,
-          email: decoded.email,
-          role: decoded.role,
-          issuer: decoded.iss,
-          audience: decoded.aud,
-          issuedAt: new Date(decoded.iat * 1000).toISOString(),
-          expiresAt: new Date(decoded.exp * 1000).toISOString(),
-          sessionId: decoded.session_id
-        }, "📋 Token payload:");
+        logger.info(
+          {
+            sub: decoded.sub,
+            email: decoded.email,
+            role: decoded.role,
+            issuer: decoded.iss,
+            audience: decoded.aud,
+            issuedAt: new Date(decoded.iat * 1000).toISOString(),
+            expiresAt: new Date(decoded.exp * 1000).toISOString(),
+            sessionId: decoded.session_id
+          },
+          "📋 Token payload:"
+        );
       }
 
       if (options.checkExpiry) {
@@ -104,10 +107,13 @@ class TokenTester {
   decodeWithoutVerification(token: string): any {
     try {
       const decoded = jwt.decode(token, { complete: true });
-      logger.info({
-        header: decoded?.header,
-        payload: decoded?.payload
-      }, "🔍 Token decoded without verification:");
+      logger.info(
+        {
+          header: decoded?.header,
+          payload: decoded?.payload
+        },
+        "🔍 Token decoded without verification:"
+      );
       return decoded;
     } catch (error) {
       logger.error("❌ Failed to decode token:", error);
@@ -145,9 +151,7 @@ class TokenTester {
   ): string {
     // Use SUPABASE_URL to construct the issuer, fallback to test-issuer for development
     const supabaseUrl = process.env.SUPABASE_URL;
-    const issuer = supabaseUrl 
-      ? `${supabaseUrl}/auth/v1`
-      : "test-issuer";
+    const issuer = supabaseUrl ? `${supabaseUrl}/auth/v1` : "test-issuer";
 
     const payload = {
       sub: accountId,

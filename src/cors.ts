@@ -1,7 +1,8 @@
 import { logger } from "./helpers/index.ts";
 
 export const whitelist: RegExp[] = [
-  /^https?:\/\/localhost:3000$/,
+  /^https?:\/\/localhost:3000$/, // Allow requests from the frontend app.
+  /^https?:\/\/localhost:4000$/, // Allow making requests from the swagger browser to the API.
   /^https?:\/\/example\.com$/,
   /^https?:\/\/subdomain\.example\.com$/
   // Add more patterns as needed

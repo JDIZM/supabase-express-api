@@ -17,6 +17,8 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
 
+  logger.debug({ msg: "isAuthenticated middleware called", authHeader, token, route: req.route });
+
   const routeKey = (req.baseUrl + req.route.path) as Route;
 
   const routeMethod = req.method as Method;

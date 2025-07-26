@@ -19,7 +19,62 @@ export const createMembershipHandler = asyncHandler(async (req: Request, res: Re
   res.status(response.code).send(response);
 });
 
-// Removed getWorkspaceMembers - this functionality is now part of /workspaces/:id
+/**
+ * GET /workspaces/:id/members
+ * Get all members of a workspace
+ * Requires: User or Admin role in the workspace
+ */
+export const getWorkspaceMembers = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const workspaceId = req.params.id;
+
+  if (!workspaceId) {
+    throw new Error("Workspace ID is required");
+  }
+
+  uuidSchema.parse({ uuid: workspaceId });
+
+  logger.info({ msg: `Fetching members for workspace: ${workspaceId}` });
+
+  // Get all members with their roles and account info
+  const members = await db
+    .select({
+      membership: {
+        uuid: workspaceMemberships.uuid,
+        role: workspaceMemberships.role
+      },
+      profile: {
+        uuid: profiles.uuid,
+        name: profiles.name,
+        createdAt: profiles.createdAt
+      },
+      account: {
+        uuid: accounts.uuid,
+        fullName: accounts.fullName,
+        email: accounts.email
+      }
+    })
+    .from(workspaceMemberships)
+    .innerJoin(accounts, eq(workspaceMemberships.accountId, accounts.uuid))
+    .innerJoin(
+      profiles,
+      and(
+        eq(workspaceMemberships.accountId, profiles.accountId),
+        eq(workspaceMemberships.workspaceId, profiles.workspaceId)
+      )
+    )
+    .where(eq(workspaceMemberships.workspaceId, workspaceId));
+
+  const response = gatewayResponse().success(
+    200,
+    {
+      members,
+      memberCount: members.length
+    },
+    "Workspace members retrieved successfully"
+  );
+
+  res.status(response.code).send(response);
+});
 
 /**
  * POST /workspaces/:id/members

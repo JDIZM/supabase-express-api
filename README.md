@@ -303,18 +303,52 @@ Owner: Has access to their own resources
 Account level permissions:
 SuperAdmin: Has access to all super only resources.
 
-### Workspace route permission levels
+### Workspace Authorization Pattern
 
-Ensure every request that requires workspace permissions includes a workspace context.
+This API uses a consistent header-based authorization pattern for all workspace-scoped operations.
 
-This can be done by passing the `x-workspace-id` header when making a request.
+#### The `x-workspace-id` Header
 
-This will allow the user to access the workspace resources if they are a member of the workspace with a sufficient role.
+All requests that operate within a workspace context **must** include the `x-workspace-id` header, even if the workspace ID is already present in the URL path.
+
+**Why use headers instead of just URL parameters?**
+
+- **Consistency**: Single authorization pattern across all endpoints
+- **Flexibility**: Supports future endpoints that don't naturally include workspace ID in the URL
+- **Security**: Explicit workspace context prevents accidental cross-workspace access
+- **Scalability**: Easy to add additional context headers in the future (e.g., `x-project-id`)
+
+**Example:**
+
+```bash
+# Even though the workspace ID is in the URL, the header is still required
+curl -X GET http://localhost:4000/workspaces/123e4567-e89b-12d3-a456-426614174000/members \
+  -H "Authorization: Bearer your-jwt-token" \
+  -H "x-workspace-id: 123e4567-e89b-12d3-a456-426614174000"
+```
+
+The authorization middleware will:
+
+1. Verify the user is authenticated (via JWT)
+2. Check the user is a member of the specified workspace (via header)
+3. Validate the user has the required role (User/Admin) for the operation
 
 A role/claim is defined when the account is added to the workspace as a member.
 
 1. User - Can access all resources with user permissions.
 2. Admin - Can access all resources within the workspace.
+
+### API Endpoints
+
+#### Profile Data Access
+
+Profile endpoints (`/profiles` and `/profiles/:id`) have been removed to enforce proper workspace-scoped security. Profile data is now accessible only through workspace context:
+
+- **`GET /me`** - Returns the current user's account and all their profiles across workspaces
+- **`GET /workspaces/:id`** - Returns workspace details including all members with their profiles
+- **`GET /workspaces/:id/members`** - Returns all workspace members with profile information
+
+This ensures profile data is always accessed with proper workspace authorization.
 
 ## Supabase Auth
 

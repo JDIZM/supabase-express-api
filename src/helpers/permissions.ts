@@ -7,13 +7,19 @@ export const API_ROUTES = {
   me: "/me",
   accounts: "/accounts",
   accountById: "/accounts/:id",
-  profiles: "/profiles",
-  profileById: "/profiles/:id",
+  // profiles: "/profiles", // Removed - access through workspace context
+  // profileById: "/profiles/:id", // Removed - access through workspace context
   workspaces: "/workspaces",
   workspaceById: "/workspaces/:id",
   workspaceMembers: "/workspaces/:id/members",
   workspaceMemberRole: "/workspaces/:id/members/:memberId/role",
-  workspaceMemberRemove: "/workspaces/:id/members/:memberId"
+  workspaceMemberRemove: "/workspaces/:id/members/:memberId",
+  // Admin routes
+  adminAccounts: "/admin/accounts",
+  adminAccountRole: "/admin/accounts/:id/role",
+  adminWorkspaces: "/admin/workspaces",
+  adminWorkspaceById: "/admin/workspaces/:id",
+  adminMemberships: "/admin/memberships"
 } as const;
 
 export type RouteName = keyof typeof API_ROUTES;
@@ -75,15 +81,7 @@ permissions.set(API_ROUTES.accountById, {
   authenticated: true
 });
 
-permissions.set(API_ROUTES.profiles, {
-  permissions: { GET: "" },
-  authenticated: true
-});
-
-permissions.set(API_ROUTES.profileById, {
-  permissions: { GET: ROLES.Owner, POST: ROLES.Owner, PATCH: ROLES.Owner },
-  authenticated: true
-});
+// Profile permissions removed - profiles accessed through workspace context
 
 permissions.set(API_ROUTES.workspaces, {
   permissions: { GET: "", POST: "" },
@@ -96,7 +94,7 @@ permissions.set(API_ROUTES.workspaceById, {
 });
 
 permissions.set(API_ROUTES.workspaceMembers, {
-  permissions: { POST: ROLES.Admin },
+  permissions: { GET: ROLES.User, POST: ROLES.Admin },
   authenticated: true
 });
 
@@ -108,6 +106,37 @@ permissions.set(API_ROUTES.workspaceMemberRole, {
 permissions.set(API_ROUTES.workspaceMemberRemove, {
   permissions: { DELETE: ROLES.Admin },
   authenticated: true
+});
+
+// Admin routes - all require SuperAdmin
+permissions.set(API_ROUTES.adminAccounts, {
+  permissions: { GET: "", POST: "" },
+  authenticated: true,
+  super: true
+});
+
+permissions.set(API_ROUTES.adminAccountRole, {
+  permissions: { PUT: "" },
+  authenticated: true,
+  super: true
+});
+
+permissions.set(API_ROUTES.adminWorkspaces, {
+  permissions: { GET: "", POST: "" },
+  authenticated: true,
+  super: true
+});
+
+permissions.set(API_ROUTES.adminWorkspaceById, {
+  permissions: { DELETE: "" },
+  authenticated: true,
+  super: true
+});
+
+permissions.set(API_ROUTES.adminMemberships, {
+  permissions: { GET: "" },
+  authenticated: true,
+  super: true
 });
 
 logger.info(permissions, "route permissions set");
