@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
+import { z } from "zod";
 
 // Extend Zod with OpenAPI functionality
 extendZodWithOpenApi(z);
@@ -72,22 +72,20 @@ export const MemberCreateSchema = z
   })
   .openapi("MemberCreate");
 
-// Response schemas
+// Response schemas - matches actual gatewayResponse helper output
 export const SuccessResponseSchema = z
   .object({
-    success: z.literal(true),
-    code: z.number(),
-    message: z.string(),
-    data: z.unknown()
+    code: z.number().describe("HTTP status code"),
+    message: z.string().describe("Success message"),
+    data: z.unknown().describe("Response data")
   })
   .openapi("SuccessResponse");
 
 export const ErrorResponseSchema = z
   .object({
-    success: z.literal(false),
-    code: z.number(),
-    message: z.string(),
-    error: z.string().optional()
+    code: z.number().describe("HTTP status code"),
+    message: z.string().describe("Error message"),
+    error: z.string().describe("Error details")
   })
   .openapi("ErrorResponse");
 
