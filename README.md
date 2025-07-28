@@ -135,6 +135,106 @@ Multi-tenant workspace system with:
 
 Uses [Vitest](https://vitest.dev/) for unit testing. Install the [Vitest VS Code extension](https://marketplace.visualstudio.com/items?itemName=ZixuanChen.vitest-explorer) for the best experience.
 
+### Debugging
+
+This project includes VS Code debugging configurations for TypeScript development.
+
+#### Quick Start Debugging
+
+1. **Set breakpoints** in your TypeScript files
+2. **Open Debug panel** (Cmd+Shift+D)
+3. **Select "Debug API with tsx"** from the dropdown
+4. **Press F5** to start debugging
+
+#### Debugging Methods
+
+##### Method 1: Direct TypeScript Debugging (Recommended)
+
+Uses tsx to run TypeScript directly without building:
+
+```bash
+# VS Code will run this automatically when you press F5
+pnpm tsx src/server.ts
+```
+
+##### Method 2: Attach to Running Process
+
+For debugging an already running server:
+
+```bash
+# Terminal 1: Start server with inspect flag
+pnpm tsx --inspect src/server.ts
+
+# Terminal 2: Or use the provided task
+# Cmd+Shift+P -> "Tasks: Run Task" -> "pnpm: dev with debugging"
+```
+
+Then in VS Code:
+
+1. Select **"Attach to Running Server"** from debug dropdown
+2. Press F5 to attach
+3. Debugger connects to port 9229
+
+##### Method 3: Command Line Debugging
+
+For debugging without VS Code:
+
+```bash
+# Start with Node.js inspector
+node --inspect-brk ./node_modules/.bin/tsx src/server.ts
+
+# Chrome DevTools debugging
+# 1. Open chrome://inspect
+# 2. Click "Open dedicated DevTools for Node"
+# 3. Server will pause at first line
+```
+
+#### Debugging Features
+
+- **Breakpoints**: Click left of line numbers in VS Code
+- **Conditional Breakpoints**: Right-click breakpoint -> "Edit Breakpoint"
+- **Logpoints**: Right-click line -> "Add Logpoint" (logs without stopping)
+- **Debug Console**: Evaluate expressions while paused
+- **Call Stack**: See function call hierarchy
+- **Variables**: Inspect local and closure variables
+
+#### Debugging Tips
+
+1. **Profile Name Issue**: Set breakpoints at:
+
+   - `workspaces.handlers.ts:17` - Check if profileName is extracted
+   - `workspaces.handlers.ts:39` - See profile creation
+
+2. **Request Debugging**:
+
+   ```typescript
+   // Add logpoint or breakpoint here
+   console.log("Request body:", req.body);
+   console.log("Headers:", req.headers);
+   ```
+
+3. **Database Queries**:
+
+   ```typescript
+   // Enable query logging
+   const result = await db.select().from(accounts);
+   console.log("SQL:", result.toSQL()); // If using query builder
+   ```
+
+4. **Hot Reload**: Keep debugger attached while making changes - tsx will restart automatically
+
+#### VS Code Debug Configurations
+
+Located in `.vscode/launch.json`:
+
+- **Debug API with tsx**: Direct TypeScript debugging
+- **Attach to Running Server**: Attach to existing process on port 9229
+
+Tasks in `.vscode/tasks.json`:
+
+- **pnpm: dev with debugging**: Start server with inspect flag
+- **pnpm: build/test/lint**: Other development tasks
+
 ## Database Setup
 
 ### Database Management
