@@ -11,10 +11,7 @@
     "source.fixAll.eslint": "explicit",
     "source.organizeImports": "explicit"
   },
-  "eslint.validate": [
-    "typescript",
-    "javascript"
-  ],
+  "eslint.validate": ["typescript", "javascript"],
   "files.exclude": {
     "**/node_modules": true,
     "**/dist": true,

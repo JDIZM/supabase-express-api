@@ -24,10 +24,7 @@ export const createWorkspace = asyncHandler(async (req: Request, res: Response):
 
   logger.info({ msg: `Creating workspace ${name} for ${accountId}` });
 
-  const workspace = await createDbWorkspace({ name, accountId, description });
-
-  const membership = await createMembership(workspace.uuid, accountId, "admin");
-
+  // Get account info first (outside transaction)
   const [account] = await db.select().from(accounts).where(eq(accounts.uuid, accountId)).execute();
 
   if (!account) {
@@ -35,18 +32,28 @@ export const createWorkspace = asyncHandler(async (req: Request, res: Response):
     return;
   }
 
-  const profile = await createDbProfile({
-    name: account.fullName,
-    accountId,
-    workspaceId: workspace.uuid
+  // Create workspace, membership, and profile in a transaction
+  const result = await db.transaction(async (tx) => {
+    const workspace = await createDbWorkspace({ name, accountId, description }, tx);
+    const membership = await createMembership(workspace.uuid, accountId, "admin", tx);
+    const profile = await createDbProfile(
+      {
+        name: account.fullName,
+        accountId,
+        workspaceId: workspace.uuid
+      },
+      tx
+    );
+
+    return { workspace, membership, profile };
   });
 
   const response = gatewayResponse().success(
     200,
     {
-      workspace,
-      profile,
-      membership
+      workspace: result.workspace,
+      profile: result.profile,
+      membership: result.membership
     },
     "Created workspace"
   );
@@ -54,7 +61,15 @@ export const createWorkspace = asyncHandler(async (req: Request, res: Response):
 });
 
 export const fetchWorkspace = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  uuidSchema.parse({ uuid: req.params.id });
+  const validationResult = uuidSchema.safeParse({ uuid: req.params.id });
+  if (!validationResult.success) {
+    handleHttpError(
+      HttpErrors.ValidationFailed(`Invalid workspace ID: ${validationResult.error.message}`),
+      res,
+      gatewayResponse
+    );
+    return;
+  }
 
   logger.info({ msg: `Fetching workspace: ${req.params.id}` });
 
@@ -173,7 +188,15 @@ export const deleteWorkspace = asyncHandler(async (req: Request, res: Response):
     return;
   }
 
-  uuidSchema.parse({ uuid: workspaceId });
+  const validationResult = uuidSchema.safeParse({ uuid: workspaceId });
+  if (!validationResult.success) {
+    handleHttpError(
+      HttpErrors.ValidationFailed(`Invalid workspace ID: ${validationResult.error.message}`),
+      res,
+      gatewayResponse
+    );
+    return;
+  }
 
   logger.info({ msg: `Deleting workspace: ${workspaceId}` });
 

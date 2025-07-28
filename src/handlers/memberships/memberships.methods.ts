@@ -3,15 +3,18 @@ import type { Role } from "@/helpers/permissions.ts";
 import { workspaceMemberships, type WorkspaceMembershipInsertType } from "@/schema.ts";
 import { db } from "@/services/db/drizzle.ts";
 import { and, eq } from "drizzle-orm";
+import { type DbTransaction } from "@/types/database.ts";
 
 // Type guard function
 export function isValidRole(role: string): role is "admin" | "user" {
   return ["admin", "user"].includes(role);
 }
+
 export async function createMembership(
   workspaceId: string,
   accountId: string,
-  role: Role
+  role: Role,
+  tx?: DbTransaction
 ): Promise<WorkspaceMembershipInsertType> {
   if (!isValidRole(role)) {
     logger.warn({ msg: `Invalid role provided: ${role}` });
@@ -20,7 +23,8 @@ export async function createMembership(
 
   logger.info(`Creating membership for account: ${accountId} in workspace: ${workspaceId} as role: ${role}`);
 
-  const [membership] = await db
+  const database = tx || db;
+  const [membership] = await database
     .insert(workspaceMemberships)
     .values({
       role,

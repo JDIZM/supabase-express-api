@@ -33,7 +33,15 @@ export const getWorkspaceMembers = asyncHandler(async (req: Request, res: Respon
     return;
   }
 
-  uuidSchema.parse({ uuid: workspaceId });
+  const workspaceValidation = uuidSchema.safeParse({ uuid: workspaceId });
+  if (!workspaceValidation.success) {
+    handleHttpError(
+      HttpErrors.ValidationFailed(`Invalid workspace ID: ${workspaceValidation.error.message}`),
+      res,
+      gatewayResponse
+    );
+    return;
+  }
 
   logger.info({ msg: `Fetching members for workspace: ${workspaceId}` });
 
@@ -93,7 +101,15 @@ export const addWorkspaceMember = asyncHandler(async (req: Request, res: Respons
     return;
   }
 
-  uuidSchema.parse({ uuid: workspaceId });
+  const workspaceValidation = uuidSchema.safeParse({ uuid: workspaceId });
+  if (!workspaceValidation.success) {
+    handleHttpError(
+      HttpErrors.ValidationFailed(`Invalid workspace ID: ${workspaceValidation.error.message}`),
+      res,
+      gatewayResponse
+    );
+    return;
+  }
 
   if (!email || !role) {
     handleHttpError(HttpErrors.ValidationFailed("Email and role are required"), res, gatewayResponse);
@@ -107,7 +123,6 @@ export const addWorkspaceMember = asyncHandler(async (req: Request, res: Respons
 
   logger.info({ msg: `Adding member ${email} to workspace: ${workspaceId} with role: ${role}` });
 
-  // Find the account by email
   const [account] = await db.select().from(accounts).where(eq(accounts.email, email)).limit(1);
 
   if (!account) {
@@ -115,28 +130,37 @@ export const addWorkspaceMember = asyncHandler(async (req: Request, res: Respons
     return;
   }
 
-  // Check if user is already a member
   const [isMember] = await checkMembership(account.uuid, workspaceId);
+
   if (isMember) {
     handleHttpError(HttpErrors.Conflict("User is already a member of this workspace"), res, gatewayResponse);
     return;
   }
+  logger.info({
+    msg: `User ${account.uuid} is not a member of workspace ${workspaceId}, 
+    proceeding to create membership and add profile`
+  });
 
-  // Create membership
-  const membership = await createMembership(workspaceId, account.uuid, role);
+  // Create membership and profile in a transaction
+  const result = await db.transaction(async (tx) => {
+    const membership = await createMembership(workspaceId, account.uuid, role, tx);
+    const profile = await createDbProfile(
+      {
+        name: profileName || account.fullName || "New Member",
+        accountId: account.uuid,
+        workspaceId: workspaceId
+      },
+      tx
+    );
 
-  // Create profile for the user in this workspace
-  const profile = await createDbProfile({
-    name: profileName || account.fullName || "New Member",
-    accountId: account.uuid,
-    workspaceId: workspaceId
+    return { membership, profile };
   });
 
   const response = gatewayResponse().success(
     201,
     {
-      membership,
-      profile,
+      membership: result.membership,
+      profile: result.profile,
       account: {
         uuid: account.uuid,
         fullName: account.fullName,
@@ -165,8 +189,25 @@ export const updateMemberRole = asyncHandler(async (req: Request, res: Response)
     return;
   }
 
-  uuidSchema.parse({ uuid: workspaceId });
-  uuidSchema.parse({ uuid: memberId });
+  const workspaceValidation = uuidSchema.safeParse({ uuid: workspaceId });
+  if (!workspaceValidation.success) {
+    handleHttpError(
+      HttpErrors.ValidationFailed(`Invalid workspace ID: ${workspaceValidation.error.message}`),
+      res,
+      gatewayResponse
+    );
+    return;
+  }
+
+  const memberValidation = uuidSchema.safeParse({ uuid: memberId });
+  if (!memberValidation.success) {
+    handleHttpError(
+      HttpErrors.ValidationFailed(`Invalid member ID: ${memberValidation.error.message}`),
+      res,
+      gatewayResponse
+    );
+    return;
+  }
 
   if (!role || !isValidRole(role)) {
     handleHttpError(HttpErrors.ValidationFailed("Invalid role. Must be 'admin' or 'user'"), res, gatewayResponse);
@@ -230,8 +271,25 @@ export const removeMember = asyncHandler(async (req: Request, res: Response): Pr
     return;
   }
 
-  uuidSchema.parse({ uuid: workspaceId });
-  uuidSchema.parse({ uuid: memberId });
+  const workspaceValidation = uuidSchema.safeParse({ uuid: workspaceId });
+  if (!workspaceValidation.success) {
+    handleHttpError(
+      HttpErrors.ValidationFailed(`Invalid workspace ID: ${workspaceValidation.error.message}`),
+      res,
+      gatewayResponse
+    );
+    return;
+  }
+
+  const memberValidation = uuidSchema.safeParse({ uuid: memberId });
+  if (!memberValidation.success) {
+    handleHttpError(
+      HttpErrors.ValidationFailed(`Invalid member ID: ${memberValidation.error.message}`),
+      res,
+      gatewayResponse
+    );
+    return;
+  }
 
   logger.info({ msg: `Removing member ${memberId} from workspace: ${workspaceId}` });
 

@@ -81,39 +81,49 @@ export const createAccountForUser = asyncHandler(async (req: Request, res: Respo
     return;
   }
 
-  // Create account
-  const [newAccount] = await db
-    .insert(accounts)
-    .values({
-      email,
-      fullName,
-      phone,
-      isSuperAdmin: isSuperAdmin || false
-    })
-    .returning();
+  // Create account and audit log in transaction
+  const newAccount = await db.transaction(async (tx) => {
+    const [account] = await tx
+      .insert(accounts)
+      .values({
+        email,
+        fullName,
+        phone,
+        isSuperAdmin: isSuperAdmin || false
+      })
+      .returning();
+
+    if (!account) {
+      throw new Error("Failed to create account");
+    }
+
+    // Audit log the account creation
+    await createAuditLog(
+      {
+        action: AUDIT_ACTIONS.ACCOUNT_CREATED,
+        entityType: ENTITY_TYPES.ACCOUNT,
+        entityId: account.uuid,
+        actorId: accountId,
+        targetId: account.uuid,
+        details: {
+          email: account.email,
+          fullName: account.fullName,
+          isSuperAdmin: account.isSuperAdmin,
+          createdBy: "admin"
+        }
+      },
+      req,
+      undefined,
+      tx
+    );
+
+    return account;
+  });
 
   if (!newAccount) {
     handleHttpError(HttpErrors.DatabaseError("Failed to create account"), res, gatewayResponse);
     return;
   }
-
-  // Audit log the account creation
-  await createAuditLog(
-    {
-      action: AUDIT_ACTIONS.ACCOUNT_CREATED,
-      entityType: ENTITY_TYPES.ACCOUNT,
-      entityId: newAccount.uuid,
-      actorId: accountId,
-      targetId: newAccount.uuid,
-      details: {
-        email: newAccount.email,
-        fullName: newAccount.fullName,
-        isSuperAdmin: newAccount.isSuperAdmin,
-        createdBy: "admin"
-      }
-    },
-    req
-  );
 
   const response = gatewayResponse().success(201, { account: newAccount }, "Account created successfully");
 
@@ -147,7 +157,7 @@ export const updateAccountRole = asyncHandler(async (req: Request, res: Response
 
   logger.info({ msg: `SuperAdmin updating account ${targetAccountId} role to isSuperAdmin: ${isSuperAdmin}` });
 
-  // Get current account to track the change
+  // Get current account to track the change (outside transaction)
   const [currentAccount] = await db
     .select({ isSuperAdmin: accounts.isSuperAdmin })
     .from(accounts)
@@ -159,20 +169,35 @@ export const updateAccountRole = asyncHandler(async (req: Request, res: Response
     return;
   }
 
-  // Update account
-  const [updatedAccount] = await db
-    .update(accounts)
-    .set({ isSuperAdmin })
-    .where(eq(accounts.uuid, targetAccountId))
-    .returning();
+  // Update account and audit log in transaction
+  const updatedAccount = await db.transaction(async (tx) => {
+    const [account] = await tx
+      .update(accounts)
+      .set({ isSuperAdmin })
+      .where(eq(accounts.uuid, targetAccountId))
+      .returning();
+
+    if (!account) {
+      throw new Error("Account not found");
+    }
+
+    // Audit log the role change
+    await auditHelpers.roleChanged(
+      accountId,
+      targetAccountId,
+      currentAccount.isSuperAdmin || false,
+      isSuperAdmin,
+      req,
+      tx
+    );
+
+    return account;
+  });
 
   if (!updatedAccount) {
     handleHttpError(HttpErrors.AccountNotFound(), res, gatewayResponse);
     return;
   }
-
-  // Audit log the role change
-  await auditHelpers.roleChanged(accountId, targetAccountId, currentAccount.isSuperAdmin || false, isSuperAdmin, req);
 
   const response = gatewayResponse().success(
     200,
@@ -215,7 +240,7 @@ export const updateAccountStatus = asyncHandler(async (req: Request, res: Respon
 
   logger.info({ msg: `SuperAdmin updating account ${targetAccountId} status to: ${status}` });
 
-  // Get current account to track the change
+  // Get current account to track the change (outside transaction)
   const [currentAccount] = await db
     .select({ status: accounts.status })
     .from(accounts)
@@ -227,20 +252,24 @@ export const updateAccountStatus = asyncHandler(async (req: Request, res: Respon
     return;
   }
 
-  // Update account status
-  const [updatedAccount] = await db
-    .update(accounts)
-    .set({ status })
-    .where(eq(accounts.uuid, targetAccountId))
-    .returning();
+  // Update account status and audit log in transaction
+  const updatedAccount = await db.transaction(async (tx) => {
+    const [account] = await tx.update(accounts).set({ status }).where(eq(accounts.uuid, targetAccountId)).returning();
+
+    if (!account) {
+      throw new Error("Account not found");
+    }
+
+    // Audit log the status change
+    await auditHelpers.accountStatusChanged(accountId, targetAccountId, currentAccount.status, status, req, tx);
+
+    return account;
+  });
 
   if (!updatedAccount) {
     handleHttpError(HttpErrors.AccountNotFound(), res, gatewayResponse);
     return;
   }
-
-  // Audit log the status change
-  await auditHelpers.accountStatusChanged(accountId, targetAccountId, currentAccount.status, status, req);
 
   const response = gatewayResponse().success(200, { account: updatedAccount }, `Account status updated to: ${status}`);
 

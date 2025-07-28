@@ -4,6 +4,7 @@ import { logger } from "@/helpers/index.ts";
 import { getIpFromRequest } from "@/helpers/request.ts";
 import { eq } from "drizzle-orm";
 import type { Request } from "express";
+import { type DbTransaction } from "@/types/database.ts";
 
 export interface AuditLogData {
   action: string;
@@ -28,7 +29,8 @@ export interface AuditContext {
 export async function createAuditLog(
   data: AuditLogData,
   req?: Request,
-  context?: Partial<AuditContext>
+  context?: Partial<AuditContext>,
+  tx?: DbTransaction
 ): Promise<void> {
   try {
     // Extract context from request if provided
@@ -58,7 +60,8 @@ export async function createAuditLog(
     }
 
     // Create audit log entry
-    await db.insert(auditLogs).values({
+    const database = tx || db;
+    await database.insert(auditLogs).values({
       action: data.action,
       entityType: data.entityType,
       entityId: data.entityId,
@@ -144,7 +147,8 @@ export const auditHelpers = {
     targetId: string,
     oldStatus: string,
     newStatus: string,
-    req?: Request
+    req?: Request,
+    tx?: DbTransaction
   ): Promise<void> => {
     await createAuditLog(
       {
@@ -155,7 +159,9 @@ export const auditHelpers = {
         targetId,
         details: { oldStatus, newStatus }
       },
-      req
+      req,
+      undefined,
+      tx
     );
   },
 
@@ -167,7 +173,8 @@ export const auditHelpers = {
     targetId: string,
     oldRole: boolean,
     newRole: boolean,
-    req?: Request
+    req?: Request,
+    tx?: DbTransaction
   ): Promise<void> => {
     await createAuditLog(
       {
@@ -181,7 +188,9 @@ export const auditHelpers = {
           newRole: newRole ? "SuperAdmin" : "User"
         }
       },
-      req
+      req,
+      undefined,
+      tx
     );
   },
 

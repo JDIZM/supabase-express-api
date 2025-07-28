@@ -79,7 +79,10 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
       throw new Error("Profile id is required");
     }
 
-    profileInsertSchema.parse(req.body);
+    const validationResult = profileInsertSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      throw new Error(`Validation failed: ${validationResult.error.message}`);
+    }
 
     const equals = eq(profiles.uuid, req.params.id);
 

@@ -15,10 +15,21 @@ export async function getAccounts(_req: Request, res: Response): Promise<void> {
 }
 
 export async function getAccount(req: Request, res: Response): Promise<void> {
-  uuidSchema.parse({ uuid: req.params.id });
+  const validationResult = uuidSchema.safeParse({ uuid: req.params.id });
+  if (!validationResult.success) {
+    const response = gatewayResponse().error(
+      400,
+      new Error(`Invalid account ID: ${validationResult.error.message}`),
+      "Validation failed"
+    );
+    res.status(response.code).send(response);
+    return;
+  }
 
   if (!req.params.id) {
-    throw new Error("UUID is required");
+    const response = gatewayResponse().error(400, new Error("UUID is required"), "Missing parameter");
+    res.status(response.code).send(response);
+    return;
   }
 
   const result = await getAccountWithRelations(req.params.id);
