@@ -993,10 +993,11 @@ This API uses a consistent header-based authorization for workspace operations:
 - Extensible for additional context headers
 
 ### Profile Data Access
-Profile endpoints have been removed. Access profiles through:
+Individual profile endpoints have been removed. Access profiles through workspace context:
 - GET /me - Your profiles across all workspaces
 - GET /workspaces/{id} - Workspace with all member profiles
-- GET /workspaces/{id}/members - Dedicated member listing`,
+- GET /workspaces/{id}/members - Dedicated member listing
+- PATCH /workspaces/{id}/profile - Update your own profile in workspace`,
       contact: {
         name: "API Support",
         email: "support@example.com"

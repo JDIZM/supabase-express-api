@@ -40,37 +40,5 @@ export async function getProfileById(profileId: string): Promise<ProfileSelectTy
   return result;
 }
 
-export async function getProfilesByAccountId(accountId: string): Promise<ProfileSelectType[]> {
-  const validationResult = uuidSchema.safeParse({ uuid: accountId });
-  if (!validationResult.success) {
-    throw new Error(`Invalid account ID: ${validationResult.error.message}`);
-  }
-
-  const equals = eq(profiles.accountId, accountId);
-
-  const relations = await db.query.profiles.findMany({
-    where: equals,
-    with: {
-      account: true,
-      workspace: true
-    }
-  });
-
-  return relations;
-}
-
-export const hasExistingProfile = async ({
-  accountId,
-  workspaceId
-}: {
-  accountId: string;
-  workspaceId: string;
-}): Promise<boolean> => {
-  const profiles = await getProfilesByAccountId(accountId);
-
-  const result = profiles.find((profile) => profile.workspaceId === workspaceId);
-
-  logger.debug({ msg: `Profile exists for workspace: ${!!result}`, result });
-
-  return !!result;
-};
+// getProfilesByAccountId and hasExistingProfile removed - no longer used
+// Profile access is now done through workspace context in /me and workspace endpoints
