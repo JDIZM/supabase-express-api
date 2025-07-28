@@ -1,13 +1,13 @@
-import { workspaces, uuidSchema, accounts, profiles, workspaceMemberships } from "@/schema.ts";
-import type { Request, Response } from "express";
+import { HttpErrors, handleHttpError } from "@/helpers/HttpError.ts";
+import { gatewayResponse, logger } from "@/helpers/index.ts";
+import { asyncHandler } from "@/helpers/request.ts";
+import { accounts, profileInsertSchema, profiles, uuidSchema, workspaceMemberships, workspaces } from "@/schema.ts";
 import { db } from "@/services/db/drizzle.ts";
-import { logger, gatewayResponse } from "@/helpers/index.ts";
-import { eq, and } from "drizzle-orm";
-import { createDbWorkspace } from "./workspaces.methods.ts";
+import { and, eq } from "drizzle-orm";
+import type { Request, Response } from "express";
 import { createMembership } from "../memberships/memberships.methods.ts";
 import { createDbProfile } from "../profiles/profiles.methods.ts";
-import { asyncHandler } from "@/helpers/request.ts";
-import { HttpErrors, handleHttpError } from "@/helpers/HttpError.ts";
+import { createDbWorkspace } from "./workspaces.methods.ts";
 
 /**
  * Creates a new workspace for the current account and
@@ -168,6 +168,93 @@ export const fetchWorkspacesByAccountId = asyncHandler(async (req: Request, res:
 export async function updateWorkspace(_req: Request, res: Response): Promise<void> {
   res.status(200).send("updateWorkspace");
 }
+
+/**
+ * PATCH /workspaces/:id/profile
+ * Update current user's profile in the workspace
+ * Requires: User role in the workspace (can only update own profile)
+ * Security: Users can ONLY update their own profile, verified by accountId match
+ */
+export const updateWorkspaceProfile = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const workspaceId = req.params.id;
+  const { accountId } = req;
+  const { name } = req.body;
+
+  if (!workspaceId) {
+    handleHttpError(HttpErrors.MissingParameter("Workspace ID"), res, gatewayResponse);
+    return;
+  }
+
+  // Validate accountId exists and is a valid UUID
+  if (!accountId) {
+    handleHttpError(HttpErrors.Unauthorized("Account ID is required"), res, gatewayResponse);
+    return;
+  }
+
+  const accountValidation = uuidSchema.safeParse({ uuid: accountId });
+  if (!accountValidation.success) {
+    handleHttpError(
+      HttpErrors.ValidationFailed(`Invalid account ID: ${accountValidation.error.message}`),
+      res,
+      gatewayResponse
+    );
+    return;
+  }
+
+  const workspaceValidation = uuidSchema.safeParse({ uuid: workspaceId });
+  if (!workspaceValidation.success) {
+    handleHttpError(
+      HttpErrors.ValidationFailed(`Invalid workspace ID: ${workspaceValidation.error.message}`),
+      res,
+      gatewayResponse
+    );
+    return;
+  }
+
+  // Validate the entire request body with Zod schema
+  const bodyValidation = profileInsertSchema.pick({ name: true }).safeParse({ name });
+  if (!bodyValidation.success) {
+    handleHttpError(
+      HttpErrors.ValidationFailed(`Profile name validation failed: ${bodyValidation.error.message}`),
+      res,
+      gatewayResponse
+    );
+    return;
+  }
+
+  const validatedName = bodyValidation.data.name.trim();
+
+  logger.info({ msg: `Updating profile for account ${accountId} in workspace: ${workspaceId}` });
+
+  // Security check: Find the user's OWN profile in this workspace
+  // This ensures users can only update their own profile, not others
+  const [existingProfile] = await db
+    .select()
+    .from(profiles)
+    .where(and(eq(profiles.accountId, accountId), eq(profiles.workspaceId, workspaceId)))
+    .limit(1);
+
+  if (!existingProfile) {
+    handleHttpError(HttpErrors.NotFound("Your profile was not found in this workspace"), res, gatewayResponse);
+    return;
+  }
+
+  // Update the profile - only the user's own profile can be updated
+  const [updatedProfile] = await db
+    .update(profiles)
+    .set({ name: validatedName })
+    .where(and(eq(profiles.uuid, existingProfile.uuid), eq(profiles.accountId, accountId)))
+    .returning();
+
+  if (!updatedProfile) {
+    handleHttpError(HttpErrors.DatabaseError("Failed to update profile"), res, gatewayResponse);
+    return;
+  }
+
+  const response = gatewayResponse().success(200, { profile: updatedProfile }, "Profile updated successfully");
+
+  res.status(response.code).send(response);
+});
 
 export async function inviteMembers(_req: Request, res: Response): Promise<void> {
   // TODO have to be existing users; it's just adding a user with a role.

@@ -72,6 +72,12 @@ export const MemberCreateSchema = z
   })
   .openapi("MemberCreate");
 
+export const ProfileUpdateSchema = z
+  .object({
+    name: z.string().min(1).describe("New profile name for the workspace")
+  })
+  .openapi("ProfileUpdate");
+
 // Response schemas - matches actual gatewayResponse helper output
 export const SuccessResponseSchema = z
   .object({

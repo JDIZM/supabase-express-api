@@ -7,6 +7,7 @@ import {
   WorkspaceSchema,
   WorkspaceCreateSchema,
   ProfileSchema,
+  ProfileUpdateSchema,
   MembershipSchema,
   MemberCreateSchema,
   SuccessResponseSchema,
@@ -28,6 +29,7 @@ registry.register("UuidParam", UuidParamSchema);
 registry.register("Workspace", WorkspaceSchema);
 registry.register("WorkspaceCreate", WorkspaceCreateSchema);
 registry.register("Profile", ProfileSchema);
+registry.register("ProfileUpdate", ProfileUpdateSchema);
 registry.register("Membership", MembershipSchema);
 registry.register("MemberCreate", MemberCreateSchema);
 registry.register("SuccessResponse", SuccessResponseSchema);
@@ -338,6 +340,68 @@ registry.registerPath({
               message: z.string()
             })
           })
+        }
+      }
+    }
+  }
+});
+
+registry.registerPath({
+  method: "patch",
+  path: "/workspaces/{id}/profile",
+  summary: "Update workspace profile",
+  description: "Update the current user's profile name within a workspace. Users can only update their own profile.",
+  security: [{ bearerAuth: [] }],
+  tags: ["Workspaces"],
+  request: {
+    params: z.object({
+      id: z.uuid().describe("Workspace ID")
+    }),
+    headers: z.object({
+      "x-workspace-id": z.uuid().describe("Workspace ID for context")
+    }),
+    body: {
+      content: {
+        "application/json": {
+          schema: ProfileUpdateSchema
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: "Profile updated successfully",
+      content: {
+        "application/json": {
+          schema: SuccessResponseSchema.extend({
+            data: z.object({
+              profile: ProfileSchema
+            })
+          })
+        }
+      }
+    },
+    400: {
+      description: "Validation failed",
+      content: {
+        "application/json": {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    401: {
+      description: "Unauthorized",
+      content: {
+        "application/json": {
+          schema: ErrorResponseSchema
+        }
+      }
+    },
+    404: {
+      description: "Profile not found in workspace",
+      content: {
+        "application/json": {
+          schema: ErrorResponseSchema
         }
       }
     }

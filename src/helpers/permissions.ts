@@ -11,6 +11,7 @@ export const API_ROUTES = {
   // profileById: "/profiles/:id", // Removed - access through workspace context
   workspaces: "/workspaces",
   workspaceById: "/workspaces/:id",
+  workspaceProfile: "/workspaces/:id/profile",
   workspaceMembers: "/workspaces/:id/members",
   workspaceMemberRole: "/workspaces/:id/members/:memberId/role",
   workspaceMemberRemove: "/workspaces/:id/members/:memberId",
@@ -93,6 +94,11 @@ permissions.set(API_ROUTES.workspaces, {
 
 permissions.set(API_ROUTES.workspaceById, {
   permissions: { GET: ROLES.User, DELETE: ROLES.Admin },
+  authenticated: true
+});
+
+permissions.set(API_ROUTES.workspaceProfile, {
+  permissions: { PATCH: ROLES.User },
   authenticated: true
 });
 

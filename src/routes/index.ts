@@ -10,6 +10,7 @@ import {
   fetchWorkspace,
   fetchWorkspacesByAccountId,
   updateWorkspace,
+  updateWorkspaceProfile,
   deleteWorkspace
 } from "@/handlers/workspaces/workspaces.handlers.ts";
 import {
@@ -50,6 +51,7 @@ export function routes(app: Application): void {
 
   app.get(API_ROUTES.workspaceById, isAuthenticated, checkAccountStatus, isAuthorized, fetchWorkspace);
   app.patch(API_ROUTES.workspaceById, isAuthenticated, checkAccountStatus, isAuthorized, updateWorkspace);
+  app.patch(API_ROUTES.workspaceProfile, isAuthenticated, checkAccountStatus, isAuthorized, updateWorkspaceProfile);
   app.delete(API_ROUTES.workspaceById, isAuthenticated, checkAccountStatus, isAuthorized, deleteWorkspace);
 
   // Member management routes - all require active account status
