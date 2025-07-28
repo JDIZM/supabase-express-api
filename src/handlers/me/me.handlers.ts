@@ -4,6 +4,7 @@ import { logger, gatewayResponse } from "@/helpers/index.ts";
 import { eq, and } from "drizzle-orm";
 import { accounts, workspaces, profiles, workspaceMemberships } from "@/schema.ts";
 import { asyncHandler } from "@/helpers/request.ts";
+import { HttpErrors, handleHttpError } from "@/helpers/HttpError.ts";
 
 /**
  * GET /me - Returns everything the frontend needs after login:
@@ -18,7 +19,8 @@ export const getCurrentUser = asyncHandler(async (req: Request, res: Response): 
   const { accountId } = req;
 
   if (!accountId) {
-    throw new Error("Account ID is required");
+    handleHttpError(HttpErrors.MissingParameter("Account ID"), res, gatewayResponse);
+    return;
   }
 
   logger.info({ msg: `Fetching complete user profile: ${accountId}` });
@@ -39,7 +41,8 @@ export const getCurrentUser = asyncHandler(async (req: Request, res: Response): 
     .limit(1);
 
   if (!account) {
-    throw new Error("Account not found");
+    handleHttpError(HttpErrors.AccountNotFound(), res, gatewayResponse);
+    return;
   }
 
   // Get all workspaces where user is a member with complete info
