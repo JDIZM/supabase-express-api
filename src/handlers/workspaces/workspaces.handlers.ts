@@ -14,7 +14,7 @@ import { HttpErrors, handleHttpError } from "@/helpers/HttpError.ts";
  * creates a workspace membership for the account with an admin role.
  */
 export const createWorkspace = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const { name, description } = req.body;
+  const { name, description, profileName } = req.body;
   const { accountId } = req;
 
   if (!accountId) {
@@ -38,7 +38,7 @@ export const createWorkspace = asyncHandler(async (req: Request, res: Response):
     const membership = await createMembership(workspace.uuid, accountId, "admin", tx);
     const profile = await createDbProfile(
       {
-        name: account.fullName,
+        name: profileName || account.fullName || "Workspace Owner",
         accountId,
         workspaceId: workspace.uuid
       },
