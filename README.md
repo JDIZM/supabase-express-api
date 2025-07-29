@@ -275,46 +275,91 @@ docker run --network mynetwork --name postgres \
 
 ### Migrations
 
-When running the migrations for the first time on a new database run:
+#### Initial Setup
+
+When running migrations for the first time on a new database:
 
 ```bash
 pnpm run migrate
 ```
 
-When the schema/model is changed make sure to create a new migration and run it against the db.
+#### Schema Changes
 
-### 1. Create a new migration
+When you modify the schema/models in `src/schema.ts`:
+
+**1. Generate a new migration:**
 
 ```bash
 pnpm run migrate:create
-
 ```
 
-### 2. Run the migrations
+**2. Apply the migration:**
 
 ```bash
-# first run the migrations
-pnpm run migrate:up
-
-# then run
-pnpm migrate:push
+pnpm run migrate
 ```
+
+#### Development Workflow
+
+For rapid development, you can push schema changes directly (skips migration files):
+
+```bash
+pnpm run migrate:push
+```
+
+**⚠️ Warning:** `migrate:push` is for development only - it can cause data loss in production.
 
 ### Seeds
 
-You can run the seeds to populate the database with initial data.
+The seed script creates a comprehensive multi-tenant test environment with realistic business scenarios.
 
-Before seeding the db make sure to run the migrations. If you want to populate the seeds with specific user email, password or id's related to the users created in Supabase. You can update the seeds in `./src/seeds/` with the required data.
-
-You will need to add these users to supabase auth and confirm the email addresses.
-
-<!-- and make sure to pass the `--supabase=true` flag to the seed command and it will create the users in Supabase and associate the id's with the db records.
-
-Note: If you are creating users with Supabase you will need to confirm the email addresses.-->
+#### Seed Options
 
 ```bash
+# Create local accounts only (recommended for development)
 pnpm run seed
+
+# Create both local accounts AND Supabase auth users
+pnpm run seed --supabase=true
 ```
+
+#### Test Data Created
+
+**8 Test Accounts:**
+
+- `admin@example.com` - Super Admin (can access admin endpoints)
+- `alice@acmecorp.com` - ACME Corp owner with 2 workspaces
+- `bob@techstartup.com` - TechStartup owner with 2 workspaces
+- `carol@designstudio.com` - Design Studio owner
+- `david@acmecorp.com` - ACME employee (user role)
+- `emma@techstartup.com` - TechStartup employee (admin/user roles)
+- `frank@suspended.com` - Suspended account (testing)
+- `grace@inactive.com` - Inactive account (testing)
+
+**5 Realistic Workspaces:**
+
+- "ACME Corp - Main" - Primary business workspace
+- "ACME Corp - R&D" - Research & development
+- "TechStartup - Development" - Software development
+- "TechStartup - Marketing" - Marketing campaigns
+- "Design Studio Pro" - Creative workspace
+
+**Multi-tenant Scenarios:**
+
+- Cross-workspace memberships (Alice, Bob, Emma in multiple workspaces)
+- Different roles within organizations (admin/user)
+- Cross-company collaboration (Emma consulting for ACME)
+- Account status variations (active/suspended/inactive)
+
+#### Supabase Integration
+
+For **database/API testing**: Use default `pnpm run seed` (local accounts only)
+
+For **authentication testing**: Use `pnpm run seed --supabase=true` and either:
+
+- Disable email confirmation in Supabase Auth settings, OR
+- Manually confirm users in Supabase dashboard after seeding
+- Replace test emails with working emails in `src/services/db/seeds/accounts.ts`
 
 #### Development Workspace Setup
 
@@ -322,13 +367,13 @@ After seeding the database, you can create development workspaces for testing:
 
 ```bash
 # Create a single workspace
-pnpm dev:workspace --email=user@example.com --name="Test Workspace"
+pnpm dev:workspace --email=alice@acmecorp.com --name="Test Workspace"
 
 # Create a workspace with specific profile name and role
-pnpm dev:workspace --email=user@example.com --name="Client Project" --profile="John" --role=user
+pnpm dev:workspace --email=david@acmecorp.com --name="Client Project" --profile="David Chen" --role=user
 
 # Create multiple test workspaces
-pnpm dev:workspaces --email=user@example.com
+pnpm dev:workspaces --email=bob@techstartup.com
 ```
 
 **Note**: The account email must exist in the database (created during seeding) before creating workspaces.
@@ -338,8 +383,8 @@ pnpm dev:workspaces --email=user@example.com
 Test and generate JWT tokens for API development and debugging:
 
 ```bash
-# Generate a test token for development
-pnpm token-test --generate --account-id=965df6bf-ab16-4fc0-a6b1-3da31d48f832 --email=user1@example.com
+# Generate a test token for development (use actual account ID from seeded data)
+pnpm token-test --generate --account-id=<account-uuid> --email=alice@acmecorp.com
 
 # Verify a token with full payload information
 pnpm token-test --token=<jwt-token> --show-payload --check-expiry
