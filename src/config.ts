@@ -25,6 +25,7 @@ if (STAGE !== "production") {
 export const config = {
   env: STAGE,
   port: process.env.PORT || 4000,
+  appUrl: process.env.APP_URL || `http://localhost:${process.env.PORT || 4000}`,
   db_host: process.env.POSTGRES_HOST || "localhost",
   db_port: Number(process.env.POSTGRES_PORT) || 5432,
   db_user: process.env.POSTGRES_USER || "postgres",

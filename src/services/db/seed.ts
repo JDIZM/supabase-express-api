@@ -19,9 +19,12 @@ async function main(): Promise<void> {
       return acc;
     }, {});
 
-  // Note if you are using supabase you will need to confirm the email addresses.
-  // Unless you add them manually and check auto confirm;
-  // Seed users created on the local db will be auto confirmed.
+  // Supabase Integration Notes:
+  // - For database structure testing only: Run without --supabase=true
+  // - For full authentication testing: Use --supabase=true (requires email confirmation)
+  // - Email confirmation: Set "Enable email confirmations" to OFF in Supabase Auth settings
+  //   OR manually confirm users in Supabase dashboard after seeding
+  // - Local-only accounts work for API testing but cannot login through auth endpoints
   if (options?.supabase === "true") {
     logger.info("Seeding accounts with Supabase user creation...");
     await seedAccounts(true, signUpWithSupabase);

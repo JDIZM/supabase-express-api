@@ -58,6 +58,8 @@ export const isAuthorized = async (req: Request, res: Response, next: NextFuncti
     const resourcePermission = resourcePermissions && resourcePermissions.permissions[routeMethod];
     const requiresAuth = (resourcePermissions && resourcePermissions.authenticated) || false;
 
+    logger.debug({ cookies: req.cookies }, "isAuthorized: cookies");
+
     logger.debug(
       {
         routeKey,
@@ -138,7 +140,8 @@ export const isAuthorized = async (req: Request, res: Response, next: NextFuncti
       }
     }
 
-    res.status(403).json({ message: "Forbidden" });
+    const response = gatewayResponse().error(403, new Error("Forbidden"), "Not Authorized");
+    res.status(response.code).json(response);
     return;
   } catch (err) {
     const response = gatewayResponse().error(403, err as Error, "Not Authorized");

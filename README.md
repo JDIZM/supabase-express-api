@@ -135,6 +135,106 @@ Multi-tenant workspace system with:
 
 Uses [Vitest](https://vitest.dev/) for unit testing. Install the [Vitest VS Code extension](https://marketplace.visualstudio.com/items?itemName=ZixuanChen.vitest-explorer) for the best experience.
 
+### Debugging
+
+This project includes VS Code debugging configurations for TypeScript development.
+
+#### Quick Start Debugging
+
+1. **Set breakpoints** in your TypeScript files
+2. **Open Debug panel** (Cmd+Shift+D)
+3. **Select "Debug API with tsx"** from the dropdown
+4. **Press F5** to start debugging
+
+#### Debugging Methods
+
+##### Method 1: Direct TypeScript Debugging (Recommended)
+
+Uses tsx to run TypeScript directly without building:
+
+```bash
+# VS Code will run this automatically when you press F5
+pnpm tsx src/server.ts
+```
+
+##### Method 2: Attach to Running Process
+
+For debugging an already running server:
+
+```bash
+# Terminal 1: Start server with inspect flag
+pnpm tsx --inspect src/server.ts
+
+# Terminal 2: Or use the provided task
+# Cmd+Shift+P -> "Tasks: Run Task" -> "pnpm: dev with debugging"
+```
+
+Then in VS Code:
+
+1. Select **"Attach to Running Server"** from debug dropdown
+2. Press F5 to attach
+3. Debugger connects to port 9229
+
+##### Method 3: Command Line Debugging
+
+For debugging without VS Code:
+
+```bash
+# Start with Node.js inspector
+node --inspect-brk ./node_modules/.bin/tsx src/server.ts
+
+# Chrome DevTools debugging
+# 1. Open chrome://inspect
+# 2. Click "Open dedicated DevTools for Node"
+# 3. Server will pause at first line
+```
+
+#### Debugging Features
+
+- **Breakpoints**: Click left of line numbers in VS Code
+- **Conditional Breakpoints**: Right-click breakpoint -> "Edit Breakpoint"
+- **Logpoints**: Right-click line -> "Add Logpoint" (logs without stopping)
+- **Debug Console**: Evaluate expressions while paused
+- **Call Stack**: See function call hierarchy
+- **Variables**: Inspect local and closure variables
+
+#### Debugging Tips
+
+1. **Profile Name Issue**: Set breakpoints at:
+
+   - `workspaces.handlers.ts:17` - Check if profileName is extracted
+   - `workspaces.handlers.ts:39` - See profile creation
+
+2. **Request Debugging**:
+
+   ```typescript
+   // Add logpoint or breakpoint here
+   console.log("Request body:", req.body);
+   console.log("Headers:", req.headers);
+   ```
+
+3. **Database Queries**:
+
+   ```typescript
+   // Enable query logging
+   const result = await db.select().from(accounts);
+   console.log("SQL:", result.toSQL()); // If using query builder
+   ```
+
+4. **Hot Reload**: Keep debugger attached while making changes - tsx will restart automatically
+
+#### VS Code Debug Configurations
+
+Located in `.vscode/launch.json`:
+
+- **Debug API with tsx**: Direct TypeScript debugging
+- **Attach to Running Server**: Attach to existing process on port 9229
+
+Tasks in `.vscode/tasks.json`:
+
+- **pnpm: dev with debugging**: Start server with inspect flag
+- **pnpm: build/test/lint**: Other development tasks
+
 ## Database Setup
 
 ### Database Management
@@ -175,49 +275,91 @@ docker run --network mynetwork --name postgres \
 
 ### Migrations
 
-When running the migrations for the first time on a new database run:
+#### Initial Setup
+
+When running migrations for the first time on a new database:
 
 ```bash
 pnpm run migrate
 ```
 
-When the schema/model is changed make sure to create a new migration and run it against the db.
+#### Schema Changes
 
-### 1. Create a new migration
+When you modify the schema/models in `src/schema.ts`:
+
+**1. Generate a new migration:**
 
 ```bash
 pnpm run migrate:create
-
 ```
 
-### 2. Run the migrations
+**2. Apply the migration:**
 
 ```bash
-# Apply the migration files to the database
 pnpm run migrate
 ```
 
-Alternatively, if you want to push the schema directly without migration files:
+#### Development Workflow
+
+For rapid development, you can push schema changes directly (skips migration files):
 
 ```bash
 pnpm run migrate:push
 ```
 
+**⚠️ Warning:** `migrate:push` is for development only - it can cause data loss in production.
+
 ### Seeds
 
-You can run the seeds to populate the database with initial data.
+The seed script creates a comprehensive multi-tenant test environment with realistic business scenarios.
 
-Before seeding the db make sure to run the migrations. If you want to populate the seeds with specific user email, password or id's related to the users created in Supabase. You can update the seeds in `./src/seeds/` with the required data.
-
-You will need to add these users to supabase auth and confirm the email addresses.
-
-<!-- and make sure to pass the `--supabase=true` flag to the seed command and it will create the users in Supabase and associate the id's with the db records.
-
-Note: If you are creating users with Supabase you will need to confirm the email addresses.-->
+#### Seed Options
 
 ```bash
+# Create local accounts only (recommended for development)
 pnpm run seed
+
+# Create both local accounts AND Supabase auth users
+pnpm run seed --supabase=true
 ```
+
+#### Test Data Created
+
+**8 Test Accounts:**
+
+- `admin@example.com` - Super Admin (can access admin endpoints)
+- `alice@acmecorp.com` - ACME Corp owner with 2 workspaces
+- `bob@techstartup.com` - TechStartup owner with 2 workspaces
+- `carol@designstudio.com` - Design Studio owner
+- `david@acmecorp.com` - ACME employee (user role)
+- `emma@techstartup.com` - TechStartup employee (admin/user roles)
+- `frank@suspended.com` - Suspended account (testing)
+- `grace@inactive.com` - Inactive account (testing)
+
+**5 Realistic Workspaces:**
+
+- "ACME Corp - Main" - Primary business workspace
+- "ACME Corp - R&D" - Research & development
+- "TechStartup - Development" - Software development
+- "TechStartup - Marketing" - Marketing campaigns
+- "Design Studio Pro" - Creative workspace
+
+**Multi-tenant Scenarios:**
+
+- Cross-workspace memberships (Alice, Bob, Emma in multiple workspaces)
+- Different roles within organizations (admin/user)
+- Cross-company collaboration (Emma consulting for ACME)
+- Account status variations (active/suspended/inactive)
+
+#### Supabase Integration
+
+For **database/API testing**: Use default `pnpm run seed` (local accounts only)
+
+For **authentication testing**: Use `pnpm run seed --supabase=true` and either:
+
+- Disable email confirmation in Supabase Auth settings, OR
+- Manually confirm users in Supabase dashboard after seeding
+- Replace test emails with working emails in `src/services/db/seeds/accounts.ts`
 
 #### Development Workspace Setup
 
@@ -225,16 +367,36 @@ After seeding the database, you can create development workspaces for testing:
 
 ```bash
 # Create a single workspace
-pnpm dev:workspace --email=user1@example.com --name="Test Workspace"
+pnpm dev:workspace --email=alice@acmecorp.com --name="Test Workspace"
 
 # Create a workspace with specific profile name and role
-pnpm dev:workspace --email=user1@example.com --name="Client Project" --profile="John" --role=user
+pnpm dev:workspace --email=david@acmecorp.com --name="Client Project" --profile="David Chen" --role=user
 
 # Create multiple test workspaces
-pnpm dev:workspaces --email=user1@example.com
+pnpm dev:workspaces --email=bob@techstartup.com
 ```
 
 **Note**: The account email must exist in the database (created during seeding) before creating workspaces.
+
+#### JWT Token Testing
+
+Test and generate JWT tokens for API development and debugging:
+
+```bash
+# Generate a test token for development (use actual account ID from seeded data)
+pnpm token-test --generate --account-id=<account-uuid> --email=alice@acmecorp.com
+
+# Verify a token with full payload information
+pnpm token-test --token=<jwt-token> --show-payload --check-expiry
+
+# Test if your JWT secret works with a token
+pnpm token-test --token=<jwt-token> --test-secret
+
+# Decode token without verification (debugging)
+pnpm token-test --token=<jwt-token> --decode-only
+```
+
+**Note**: Use actual account IDs from your seeded database when generating tokens.
 
 Be sure to update the seeds as new migrations are added.
 
@@ -286,18 +448,52 @@ Owner: Has access to their own resources
 Account level permissions:
 SuperAdmin: Has access to all super only resources.
 
-### Workspace route permission levels
+### Workspace Authorization Pattern
 
-Ensure every request that requires workspace permissions includes a workspace context.
+This API uses a consistent header-based authorization pattern for all workspace-scoped operations.
 
-This can be done by passing the `x-workspace-id` header when making a request.
+#### The `x-workspace-id` Header
 
-This will allow the user to access the workspace resources if they are a member of the workspace with a sufficient role.
+All requests that operate within a workspace context **must** include the `x-workspace-id` header, even if the workspace ID is already present in the URL path.
+
+**Why use headers instead of just URL parameters?**
+
+- **Consistency**: Single authorization pattern across all endpoints
+- **Flexibility**: Supports future endpoints that don't naturally include workspace ID in the URL
+- **Security**: Explicit workspace context prevents accidental cross-workspace access
+- **Scalability**: Easy to add additional context headers in the future (e.g., `x-project-id`)
+
+**Example:**
+
+```bash
+# Even though the workspace ID is in the URL, the header is still required
+curl -X GET http://localhost:4000/workspaces/123e4567-e89b-12d3-a456-426614174000/members \
+  -H "Authorization: Bearer your-jwt-token" \
+  -H "x-workspace-id: 123e4567-e89b-12d3-a456-426614174000"
+```
+
+The authorization middleware will:
+
+1. Verify the user is authenticated (via JWT)
+2. Check the user is a member of the specified workspace (via header)
+3. Validate the user has the required role (User/Admin) for the operation
 
 A role/claim is defined when the account is added to the workspace as a member.
 
 1. User - Can access all resources with user permissions.
 2. Admin - Can access all resources within the workspace.
+
+### API Endpoints
+
+#### Profile Data Access
+
+Profile endpoints (`/profiles` and `/profiles/:id`) have been removed to enforce proper workspace-scoped security. Profile data is now accessible only through workspace context:
+
+- **`GET /me`** - Returns the current user's account and all their profiles across workspaces
+- **`GET /workspaces/:id`** - Returns workspace details including all members with their profiles
+- **`GET /workspaces/:id/members`** - Returns all workspace members with profile information
+
+This ensures profile data is always accessed with proper workspace authorization.
 
 ## Supabase Auth
 

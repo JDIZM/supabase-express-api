@@ -1,3 +1,17 @@
+/**
+ * Development Setup Script
+ *
+ * Creates additional workspaces for existing accounts in the database.
+ * This is meant to be used AFTER running the seed script.
+ *
+ * Differences from seed.ts:
+ * - seed.ts: Creates initial accounts, workspaces, and memberships (run once)
+ * - dev-setup.ts: Creates additional workspaces for existing accounts (run anytime)
+ *
+ * Usage:
+ * - Run seed first: `pnpm seed`
+ * - Then add workspaces: `pnpm dev:workspace --email=alice@acmecorp.com --name="New Project"`
+ */
 import { db } from "@/services/db/drizzle.ts";
 import {
   profiles,
@@ -147,11 +161,13 @@ async function main(): Promise<void> {
   if (args.length === 0) {
     logger.info("Usage examples:");
     logger.info("  # Create single workspace");
-    logger.info("  pnpm dev:workspace --email=user@example.com --name='Test Workspace'");
+    logger.info("  pnpm dev:workspace --email=alice@acmecorp.com --name='Test Workspace'");
     logger.info("  # Create multiple workspaces");
-    logger.info("  pnpm dev:workspaces --email=user@example.com");
+    logger.info("  pnpm dev:workspaces --email=bob@techstartup.com");
     logger.info("  # Create workspace with specific profile name and role");
-    logger.info("  pnpm dev:workspace --email=user@example.com --name='Client Project' --profile='John' --role=user");
+    logger.info(
+      "  pnpm dev:workspace --email=david@acmecorp.com --name='Client Project' --profile='David Chen' --role=user"
+    );
     return;
   }
 

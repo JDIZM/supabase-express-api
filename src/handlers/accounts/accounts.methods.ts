@@ -10,11 +10,16 @@ import {
 } from "@/schema.ts";
 import { db } from "@/services/db/drizzle.ts";
 import { eq } from "drizzle-orm";
+import { type DbTransaction } from "@/types/database.ts";
 
-export async function createDbAccount(account: AccountInsertType): Promise<string> {
-  accountInsertSchema.parse(account);
+export async function createDbAccount(account: AccountInsertType, tx?: DbTransaction): Promise<string> {
+  const validationResult = accountInsertSchema.safeParse(account);
+  if (!validationResult.success) {
+    throw new Error(`Account validation failed: ${validationResult.error.message}`);
+  }
 
-  const response = await db.insert(accounts).values(account).returning();
+  const database = tx || db;
+  const response = await database.insert(accounts).values(account).returning();
 
   const result = response[0];
 
@@ -26,18 +31,25 @@ export async function createDbAccount(account: AccountInsertType): Promise<strin
 
   return result.uuid;
 }
+
 /**
  * Get account by ID.
  * @param accountId - The UUID of the account to retrieve.
  * @returns The account object.
  */
 export async function getAccountById(accountId: string): Promise<AccountSelectType[]> {
-  uuidSchema.parse({ uuid: accountId });
+  const validationResult = uuidSchema.safeParse({ uuid: accountId });
+  if (!validationResult.success) {
+    throw new Error(`Invalid account ID: ${validationResult.error.message}`);
+  }
 
   const equals = eq(accounts.uuid, accountId);
   const result = await db.select().from(accounts).where(equals).execute();
 
-  accountSelectSchema.parse(result);
+  const resultValidation = accountSelectSchema.safeParse(result);
+  if (!resultValidation.success) {
+    throw new Error(`Account data validation failed: ${resultValidation.error.message}`);
+  }
   logger.info(`Retrieved account with UUID: ${accountId}`);
 
   if (result.length === 0) {
@@ -52,7 +64,10 @@ export async function getAccountById(accountId: string): Promise<AccountSelectTy
 }
 
 export async function getAccountWithRelations(accountId: string): Promise<AccountWithRelations> {
-  uuidSchema.parse({ uuid: accountId });
+  const validationResult = uuidSchema.safeParse({ uuid: accountId });
+  if (!validationResult.success) {
+    throw new Error(`Invalid account ID: ${validationResult.error.message}`);
+  }
 
   const equals = eq(accounts.uuid, accountId);
 

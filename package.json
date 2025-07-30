@@ -20,11 +20,11 @@
     "test": "vitest --run --coverage",
     "migrate:create": "npx drizzle-kit generate",
     "migrate": "npx drizzle-kit migrate",
-    "migrate:up": "npx drizzle-kit up",
     "migrate:push": "npx drizzle-kit push",
     "seed": "tsx ./src/services/db/seed.ts --supabase=$npm_config_supabase",
     "dev:workspace": "tsx ./scripts/dev-setup.ts --email=$npm_config_email --name=$npm_config_name",
     "dev:workspaces": "tsx ./scripts/dev-setup.ts --email=$npm_config_email",
+    "token-test": "tsx ./scripts/token-test.ts",
     "studio": "npx drizzle-kit studio"
   },
   "keywords": [],
@@ -32,6 +32,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.6",
+    "@types/swagger-ui-express": "^4.1.8",
     "@typescript-eslint/eslint-plugin": "^8.29.0",
     "@typescript-eslint/parser": "^8.29.0",
     "@vitest/coverage-v8": "^2.0.0",
@@ -48,7 +49,7 @@
     "tsx": "^4.19.3",
     "typescript": "^5.8.3",
     "vitest": "^2.0.0",
-    "zod": "^3.24.2"
+    "zod": "^4.0.10"
   },
   "files": [
     "dist"
@@ -57,6 +58,7 @@
     "node": "22.16.0"
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^8.0.0",
     "@sentry/node": "^9.11.0",
     "@sentry/profiling-node": "^9.11.0",
     "@supabase/supabase-js": "^2.43.4",
@@ -72,10 +74,12 @@
     "drizzle-orm": "^0.44.0",
     "drizzle-zod": "^0.8.0",
     "express": "^4.19.2",
+    "express-rate-limit": "^8.0.1",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.14.1",
     "pino": "^9.6.0",
-    "pino-http": "^10.4.0"
+    "pino-http": "^10.4.0",
+    "swagger-ui-express": "^5.0.1"
   }
 }

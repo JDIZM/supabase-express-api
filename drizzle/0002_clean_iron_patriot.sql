@@ -1,0 +1,2 @@
+ALTER TABLE "profiles" ADD CONSTRAINT "unique_account_workspace" UNIQUE("account_id","workspace_id");--> statement-breakpoint
+ALTER TABLE "workspace_memberships" ADD CONSTRAINT "unique_membership_per_workspace" UNIQUE("account_id","workspace_id");

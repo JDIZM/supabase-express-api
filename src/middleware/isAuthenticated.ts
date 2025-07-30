@@ -3,19 +3,13 @@ import type { Route } from "@/helpers/index.ts";
 import type { NextFunction, Request, Response } from "express";
 import type { Method } from "@/helpers/permissions.ts";
 import { verifyToken } from "@/handlers/auth/auth.methods.ts";
-
-const getIpFromRequest = (req: Request): string | undefined => {
-  const ips =
-    req.headers["cf-connecting-ip"] ?? req.headers["x-real-ip"] ?? req.headers["x-forwarded-for"] ?? req.ip ?? "";
-
-  const res = ips instanceof Array ? ips : ips.split(",");
-  const result = res[0]?.trim();
-  return result;
-};
+import { getIpFromRequest } from "@/helpers/request.ts";
 
 export const isAuthenticated = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
+
+  logger.debug({ msg: "isAuthenticated middleware called", authHeader, token, route: req.route });
 
   const routeKey = (req.baseUrl + req.route.path) as Route;
 
@@ -50,7 +44,7 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
 
   try {
     const verifiedToken = await verifyToken(token);
-    console.log("verifiedToken", verifiedToken);
+    logger.debug(verifiedToken, "verifiedToken");
 
     if (!verifiedToken) {
       throw new Error("Invalid token");
