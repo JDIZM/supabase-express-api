@@ -4,8 +4,11 @@ import { z } from "zod";
 import { relations } from "drizzle-orm/relations";
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
 
-// Validate UUID
-export const uuidSchema = z.object({ uuid: z.uuid() });
+// Validate UUID - direct validator for UUID strings
+export const uuidSchema = z.uuid();
+
+// Validate UUID in object form (for backward compatibility)
+export const uuidObjectSchema = z.object({ uuid: uuidSchema });
 
 export const accounts = pgTable("accounts", {
   uuid: uuid("uuid").defaultRandom().primaryKey(),
@@ -52,7 +55,8 @@ export const workspaceRelations = relations(workspaces, ({ one, many }) => ({
     fields: [workspaces.accountId],
     references: [accounts.uuid]
   }),
-  profiles: many(profiles)
+  profiles: many(profiles),
+  memberships: many(workspaceMemberships)
 }));
 
 export const workspaceInsertSchema = createInsertSchema(workspaces);

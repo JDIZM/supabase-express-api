@@ -61,7 +61,7 @@ export const createWorkspace = asyncHandler(async (req: Request, res: Response):
 });
 
 export const fetchWorkspace = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const validationResult = uuidSchema.safeParse({ uuid: req.params.id });
+  const validationResult = uuidSchema.safeParse(req.params.id);
   if (!validationResult.success) {
     handleHttpError(
       HttpErrors.ValidationFailed(`Invalid workspace ID: ${validationResult.error.message}`),
@@ -80,54 +80,67 @@ export const fetchWorkspace = asyncHandler(async (req: Request, res: Response): 
 
   const equals = eq(workspaces.uuid, req.params.id);
 
-  // Get workspace with complete member information
-  const workspace = await db
-    .select({
-      uuid: workspaces.uuid,
-      name: workspaces.name,
-      description: workspaces.description,
-      createdAt: workspaces.createdAt,
-      accountId: workspaces.accountId
-    })
-    .from(workspaces)
-    .where(equals)
-    .limit(1);
+  // Get workspace with members using efficient relational query
+  const relations = await db.query.workspaces.findFirst({
+    where: equals,
+    with: {
+      memberships: {
+        with: {
+          account: {
+            columns: {
+              uuid: true,
+              fullName: true,
+              email: true
+            }
+          }
+        }
+      },
+      profiles: {
+        columns: {
+          uuid: true,
+          name: true,
+          createdAt: true,
+          accountId: true
+        }
+      }
+    }
+  });
 
-  if (!workspace.length) {
+  if (!relations) {
     handleHttpError(HttpErrors.WorkspaceNotFound(), res, gatewayResponse);
     return;
   }
 
-  // Get all members with their roles and account info
-  const members = await db
-    .select({
+  // Combine membership and profile data for complete member information
+  const members = relations.memberships.map((membership) => {
+    const profile = relations.profiles.find((p) => p.accountId === membership.accountId);
+    return {
       membership: {
-        uuid: workspaceMemberships.uuid,
-        role: workspaceMemberships.role
+        uuid: membership.uuid,
+        role: membership.role
       },
-      profile: {
-        uuid: profiles.uuid,
-        name: profiles.name,
-        createdAt: profiles.createdAt
-      },
-      account: {
-        uuid: accounts.uuid,
-        fullName: accounts.fullName,
-        email: accounts.email
-      }
-    })
-    .from(workspaceMemberships)
-    .innerJoin(accounts, eq(workspaceMemberships.accountId, accounts.uuid))
-    .innerJoin(profiles, and(eq(profiles.workspaceId, req.params.id), eq(profiles.accountId, accounts.uuid)))
-    .where(eq(workspaceMemberships.workspaceId, req.params.id));
+      profile: profile
+        ? {
+            uuid: profile.uuid,
+            name: profile.name,
+            createdAt: profile.createdAt
+          }
+        : null,
+      account: membership.account
+    };
+  });
 
-  const relations = {
-    ...workspace[0],
+  const workspaceWithMembers = {
+    uuid: relations.uuid,
+    name: relations.name,
+    description: relations.description,
+    createdAt: relations.createdAt,
+    accountId: relations.accountId,
     members,
     memberCount: members.length
   };
 
-  const response = gatewayResponse().success(200, relations, "Fetched workspace");
+  const response = gatewayResponse().success(200, workspaceWithMembers, "Fetched workspace");
 
   res.status(response.code).send(response);
 });
