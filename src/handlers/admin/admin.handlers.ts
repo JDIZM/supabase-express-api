@@ -390,12 +390,13 @@ export const listAllMemberships = asyncHandler(async (req: Request, res: Respons
   const membershipsList = await query.limit(limit).offset(offset);
 
   // Get total count for pagination (using same filter conditions)
-  const countQuery = conditions.length > 0
-    ? db
-        .select({ count: sql<number>`count(*)` })
-        .from(workspaceMemberships)
-        .where(conditions.length === 1 ? conditions[0] : and(...conditions))
-    : db.select({ count: sql<number>`count(*)` }).from(workspaceMemberships);
+  const countQuery =
+    conditions.length > 0
+      ? db
+          .select({ count: sql<number>`count(*)` })
+          .from(workspaceMemberships)
+          .where(conditions.length === 1 ? conditions[0] : and(...conditions))
+      : db.select({ count: sql<number>`count(*)` }).from(workspaceMemberships);
 
   const [countResult] = await countQuery;
   const count = countResult?.count || 0;
