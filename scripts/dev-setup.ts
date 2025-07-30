@@ -127,6 +127,34 @@ async function createMultipleWorkspaces(
   logger.info(`✓ Successfully created all workspaces for ${accountEmail}`);
 }
 
+function parseArguments(args: string[]): Record<string, string> {
+  const options: Record<string, string> = {};
+
+  for (const arg of args) {
+    // Skip if not a flag
+    if (!arg.startsWith("--")) continue;
+
+    // Remove leading dashes
+    const cleanArg = arg.replace(/^-+/, "");
+
+    // Split by first equals sign to handle values with equals signs
+    const equalIndex = cleanArg.indexOf("=");
+    if (equalIndex === -1) continue;
+
+    const key = cleanArg.substring(0, equalIndex);
+    const value = cleanArg.substring(equalIndex + 1);
+
+    // Remove surrounding quotes if present
+    const trimmedValue = value.replace(/^['"]|['"]$/g, "");
+
+    if (key && trimmedValue) {
+      options[key] = trimmedValue;
+    }
+  }
+
+  return options;
+}
+
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
 
@@ -143,18 +171,19 @@ async function main(): Promise<void> {
     return;
   }
 
-  const options = args
-    .map((str) => str.replace(/^-+/, "").split("="))
-    .reduce<{ [key: string]: string }>((acc, curr) => {
-      const [key, value] = curr;
-      if (!key || !value) return acc;
-      acc[key] = value;
-      return acc;
-    }, {});
+  const options = parseArguments(args);
 
+  // Validate email
   const email = options.email;
   if (!email) {
     logger.error("Email is required. Use --email=your@email.com");
+    process.exit(1);
+  }
+
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    logger.error(`Invalid email format: ${email}`);
     process.exit(1);
   }
 
@@ -165,12 +194,29 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  // Validate role if provided
+  if (options.role && !["admin", "user"].includes(options.role)) {
+    logger.error(`Invalid role: ${options.role}. Must be 'admin' or 'user'.`);
+    process.exit(1);
+  }
+
   // Single workspace creation (requires --name parameter)
   if (options.name) {
+    // Validate workspace name
+    if (options.name.trim().length === 0) {
+      logger.error("Workspace name cannot be empty.");
+      process.exit(1);
+    }
+
+    if (options.name.length > 100) {
+      logger.error("Workspace name must be 100 characters or less.");
+      process.exit(1);
+    }
+
     await createWorkspaceForAccount({
       accountEmail: email,
-      workspaceName: options.name,
-      profileName: options.profile,
+      workspaceName: options.name.trim(),
+      profileName: options.profile?.trim(),
       role: options.role as "admin" | "user" | undefined
     });
     return;

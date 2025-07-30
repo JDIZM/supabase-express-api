@@ -249,7 +249,7 @@ Tasks in `.vscode/tasks.json`:
 
 ```bash
 # Install Supabase CLI
-npm install supabase --save-dev
+pnpm add -D supabase
 
 # Start local Supabase
 supabase start
@@ -404,7 +404,7 @@ Be sure to update the seeds as new migrations are added.
 
 ```bash
 # build the app
-npm run build
+pnpm build
 
 # build with docker
 docker build . --tag node-express
