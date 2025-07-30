@@ -35,5 +35,3 @@ export const config = {
   supabaseKey: process.env.SUPABASE_PK || "example-key",
   jwtSecret: process.env.SUPABASE_AUTH_JWT_SECRET || "super-secret-key-that-should-be-replaced"
 };
-
-console.log("config: ", config);

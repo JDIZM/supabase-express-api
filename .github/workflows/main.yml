@@ -16,7 +16,7 @@ jobs:
       - uses: volta-cli/action@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - run: corepack enable pnpm
+      - run: volta install pnpm
       - run: pnpm install
       - run: pnpm run lint
       - run: pnpm run format:check
