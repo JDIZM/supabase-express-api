@@ -16,12 +16,13 @@ jobs:
       - uses: volta-cli/action@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm i
-      - run: npm run lint
-      - run: npm run format:check
-      - run: npm run tsc:check
-      - run: npm run build
-      - run: npm run test
+      - run: corepack enable pnpm
+      - run: pnpm install
+      - run: pnpm run lint
+      - run: pnpm run format:check
+      - run: pnpm run tsc:check
+      - run: pnpm run build
+      - run: pnpm run test
   # TODO uncomment the deployment step when you have configured the secrets.
   # deploy-prod:
   #   needs: test-and-build
