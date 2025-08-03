@@ -4,6 +4,8 @@ import { logger, gatewayResponse } from "@/helpers/index.ts";
 import { createDbAccount } from "@/handlers/accounts/accounts.methods.ts";
 import type { User } from "@supabase/supabase-js";
 import { asyncHandler } from "@/helpers/request.ts";
+import { LoginRequestSchema, SignupRequestSchema } from "@/docs/openapi-schemas.ts";
+import { HttpErrors, handleHttpError } from "@/helpers/HttpError.ts";
 
 export const signUpWithSupabase = async (email: string, password: string): Promise<User | Error> => {
   const { data, error } = await supabase.auth.signUp({
@@ -22,7 +24,17 @@ export const signUpWithSupabase = async (email: string, password: string): Promi
 };
 
 export const signUp = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const { email, password, fullName, phone } = req.body;
+  const validation = SignupRequestSchema.safeParse(req.body);
+  if (!validation.success) {
+    handleHttpError(
+      HttpErrors.ValidationFailed(`Invalid request data: ${validation.error.message}`),
+      res,
+      gatewayResponse
+    );
+    return;
+  }
+
+  const { email, password, fullName, phone } = validation.data;
 
   const user = await signUpWithSupabase(email, password);
 
@@ -48,7 +60,17 @@ export const signUp = asyncHandler(async (req: Request, res: Response): Promise<
 export const signInWithPassword = asyncHandler(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { email, password } = req.body;
+      const validation = LoginRequestSchema.safeParse(req.body);
+      if (!validation.success) {
+        handleHttpError(
+          HttpErrors.ValidationFailed(`Invalid request data: ${validation.error.message}`),
+          res,
+          gatewayResponse
+        );
+        return;
+      }
+
+      const { email, password } = validation.data;
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email,

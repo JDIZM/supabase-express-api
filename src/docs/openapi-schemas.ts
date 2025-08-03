@@ -1,82 +1,51 @@
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 import { z } from "zod";
+import {
+  accountSelectSchema,
+  accountInsertSchema,
+  workspaceSelectSchema,
+  workspaceInsertSchema,
+  profileSelectSchema,
+  profileInsertSchema,
+  workspaceMembershipSelectSchema,
+  workspaceMembershipInsertSchema,
+  auditLogSelectSchema
+} from "@/schema.ts";
 
 // Extend Zod with OpenAPI functionality
 extendZodWithOpenApi(z);
 
-// Create OpenAPI-compatible versions of our database schemas
-// These mirror the structure of our drizzle schemas but work with OpenAPI
+// Reuse drizzle-zod schemas as the foundation for OpenAPI schemas
+// This eliminates duplication and ensures consistency with database schema
 
-export const AccountSchema = z
-  .object({
-    uuid: z.uuid(),
-    fullName: z.string(),
-    email: z.email(),
-    phone: z.string().nullable(),
-    isSuperAdmin: z.boolean(),
-    status: z.enum(["active", "inactive", "suspended"]),
-    createdAt: z.iso.datetime()
-  })
-  .openapi("Account");
+export const AccountSchema = accountSelectSchema.openapi("Account");
 
-// Account creation (no isSuperAdmin field - security controlled server-side)
-export const AccountCreateSchema = z
-  .object({
-    fullName: z.string().min(1),
-    email: z.email(),
-    phone: z.string().optional()
-  })
+// Account creation (omit server-controlled fields)
+export const AccountCreateSchema = accountInsertSchema
+  .omit({ uuid: true, createdAt: true, isSuperAdmin: true })
   .openapi("AccountCreate");
 
-export const WorkspaceSchema = z
-  .object({
-    uuid: z.uuid(),
-    name: z.string(),
-    description: z.string().nullable(),
-    createdAt: z.iso.datetime(),
-    accountId: z.uuid()
-  })
-  .openapi("Workspace");
+export const WorkspaceSchema = workspaceSelectSchema.openapi("Workspace");
 
-export const WorkspaceCreateSchema = z
-  .object({
-    name: z.string().min(1).describe("Workspace name"),
-    description: z.string().optional().describe("Optional workspace description")
-  })
+export const WorkspaceCreateSchema = workspaceInsertSchema
+  .omit({ uuid: true, createdAt: true, accountId: true })
   .openapi("WorkspaceCreate");
 
-export const ProfileSchema = z
-  .object({
-    uuid: z.uuid(),
-    name: z.string(),
-    createdAt: z.iso.datetime(),
-    workspaceId: z.uuid(),
-    accountId: z.uuid()
-  })
-  .openapi("Profile");
+export const ProfileSchema = profileSelectSchema.openapi("Profile");
 
-export const MembershipSchema = z
-  .object({
-    uuid: z.uuid(),
-    workspaceId: z.uuid(),
-    accountId: z.uuid(),
-    role: z.enum(["admin", "user"])
-  })
-  .openapi("Membership");
+export const MembershipSchema = workspaceMembershipSelectSchema.openapi("Membership");
 
+// Custom schemas for API operations (not direct DB operations)
+// Use drizzle-zod as foundation but customize for API needs
 export const MemberCreateSchema = z
   .object({
     email: z.email().describe("Email of existing account to add"),
-    role: z.enum(["admin", "user"]).describe("Role in the workspace"),
+    role: workspaceMembershipInsertSchema.shape.role.describe("Role in the workspace"),
     profileName: z.string().optional().describe("Profile name for the workspace")
   })
   .openapi("MemberCreate");
 
-export const ProfileUpdateSchema = z
-  .object({
-    name: z.string().min(1).describe("New profile name for the workspace")
-  })
-  .openapi("ProfileUpdate");
+export const ProfileUpdateSchema = profileInsertSchema.pick({ name: true }).openapi("ProfileUpdate");
 
 // Response schemas - matches actual gatewayResponse helper output
 export const SuccessResponseSchema = z
@@ -104,6 +73,8 @@ export const PaginationSchema = z
   })
   .openapi("Pagination");
 
+export const AuditLogSchema = auditLogSelectSchema.openapi("AuditLog");
+
 // Parameter schemas
 export const PaginationQuerySchema = z
   .object({
@@ -117,24 +88,6 @@ export const UuidParamSchema = z
     id: z.uuid().openapi({ description: "UUID identifier" })
   })
   .openapi("UuidParam");
-
-export const AuditLogSchema = z
-  .object({
-    uuid: z.uuid(),
-    action: z.string(),
-    entityType: z.string(),
-    entityId: z.uuid(),
-    actorId: z.uuid(),
-    actorEmail: z.string(),
-    targetId: z.uuid().nullable(),
-    targetEmail: z.string().nullable(),
-    details: z.record(z.string(), z.unknown()).nullable(),
-    ipAddress: z.string().nullable(),
-    userAgent: z.string().nullable(),
-    workspaceId: z.uuid().nullable(),
-    createdAt: z.iso.datetime()
-  })
-  .openapi("AuditLog");
 
 export const AuditLogStatsSchema = z
   .object({
