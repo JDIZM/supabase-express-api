@@ -17,35 +17,38 @@ extendZodWithOpenApi(z);
 
 // Reuse drizzle-zod schemas as the foundation for OpenAPI schemas
 // This eliminates duplication and ensures consistency with database schema
+// We need to wrap them with z.object() to get the .openapi() method
 
-export const AccountSchema = accountSelectSchema.openapi("Account");
+export const AccountSchema = z.object(accountSelectSchema.shape).openapi("Account");
 
 // Account creation (omit server-controlled fields)
-export const AccountCreateSchema = accountInsertSchema
+export const AccountCreateSchema = z
+  .object(accountInsertSchema.shape)
   .omit({ uuid: true, createdAt: true, isSuperAdmin: true })
   .openapi("AccountCreate");
 
-export const WorkspaceSchema = workspaceSelectSchema.openapi("Workspace");
+export const WorkspaceSchema = z.object(workspaceSelectSchema.shape).openapi("Workspace");
 
-export const WorkspaceCreateSchema = workspaceInsertSchema
+export const WorkspaceCreateSchema = z
+  .object(workspaceInsertSchema.shape)
   .omit({ uuid: true, createdAt: true, accountId: true })
   .openapi("WorkspaceCreate");
 
-export const ProfileSchema = profileSelectSchema.openapi("Profile");
+export const ProfileSchema = z.object(profileSelectSchema.shape).openapi("Profile");
 
-export const MembershipSchema = workspaceMembershipSelectSchema.openapi("Membership");
+export const MembershipSchema = z.object(workspaceMembershipSelectSchema.shape).openapi("Membership");
 
 // Custom schemas for API operations (not direct DB operations)
 // Use drizzle-zod as foundation but customize for API needs
 export const MemberCreateSchema = z
   .object({
     email: z.email().describe("Email of existing account to add"),
-    role: workspaceMembershipInsertSchema.shape.role.describe("Role in the workspace"),
+    role: z.object(workspaceMembershipInsertSchema.shape).shape.role.describe("Role in the workspace"),
     profileName: z.string().optional().describe("Profile name for the workspace")
   })
   .openapi("MemberCreate");
 
-export const ProfileUpdateSchema = profileInsertSchema.pick({ name: true }).openapi("ProfileUpdate");
+export const ProfileUpdateSchema = z.object(profileInsertSchema.shape).pick({ name: true }).openapi("ProfileUpdate");
 
 // Response schemas - matches actual gatewayResponse helper output
 export const SuccessResponseSchema = z
@@ -73,7 +76,7 @@ export const PaginationSchema = z
   })
   .openapi("Pagination");
 
-export const AuditLogSchema = auditLogSelectSchema.openapi("AuditLog");
+export const AuditLogSchema = z.object(auditLogSelectSchema.shape).openapi("AuditLog");
 
 // Parameter schemas
 export const PaginationQuerySchema = z
