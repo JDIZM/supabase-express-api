@@ -22,14 +22,51 @@ This template provides a robust foundation for building scalable APIs with:
 - 🛡️ **Role-based Permissions** - SuperAdmin, Admin, User, and Owner roles
 - 📊 **Database Management** - Migrations, seeding, and Drizzle ORM
 - ⚡ **Real-time Development** - Hot reload with tsx and pkgroll
+- 📚 **API Documentation** - Interactive Swagger UI with OpenAPI 3.0 specification
 
 ### API Endpoints
 
-- `/auth` - Authentication (login, signup)
-- `/accounts` - User account management
-- `/workspaces` - Workspace CRUD operations
-- `/profiles` - User profiles within workspaces
-- `/memberships` - Workspace membership management
+#### Authentication
+
+- `POST /login` - User authentication
+- `POST /signup` - User registration
+
+#### User Profile
+
+- `GET /me` - Current user profile and workspaces
+
+#### Account Management (SuperAdmin only)
+
+- `GET /accounts` - List all accounts
+- `POST /accounts` - Create new account
+- `GET /accounts/:id` - Get account details
+- `PATCH /accounts/:id` - Update account
+
+#### Workspace Management
+
+- `GET /workspaces` - List user workspaces
+- `POST /workspaces` - Create new workspace
+- `GET /workspaces/:id` - Get workspace details with members
+- `PATCH /workspaces/:id` - Update workspace (Admin only)
+- `PATCH /workspaces/:id/profile` - Update your profile in workspace
+- `DELETE /workspaces/:id` - Delete workspace (Admin only)
+
+#### Workspace Members
+
+- `GET /workspaces/:id/members` - List workspace members
+- `POST /workspaces/:id/members` - Add member (Admin only)
+- `PUT /workspaces/:id/members/:memberId/role` - Update member role (Admin only)
+- `DELETE /workspaces/:id/members/:memberId` - Remove member (Admin only)
+
+#### Admin Routes (SuperAdmin only)
+
+- `GET /admin/accounts` - List all accounts with pagination
+- `PUT /admin/accounts/:id/role` - Update SuperAdmin status
+- `PUT /admin/accounts/:id/status` - Update account status
+- `GET /admin/workspaces` - List all workspaces with pagination  
+- `GET /admin/memberships` - List all memberships with filtering
+- `GET /admin/audit-logs` - List audit logs with filtering
+- `GET /admin/audit-logs/stats` - Get audit log statistics
 
 ### Tech Stack
 
@@ -97,9 +134,18 @@ This template provides a robust foundation for building scalable APIs with:
    ```
 
 6. **Start development server**:
+
    ```bash
    pnpm dev
    ```
+
+7. **View API Documentation**:
+
+   Once the server is running, visit:
+   - **Swagger UI**: <http://localhost:4000/docs>
+   - **OpenAPI JSON**: <http://localhost:4000/openapi.json>
+
+   The interactive documentation allows you to explore and test all API endpoints.
 
 ## Architecture
 
