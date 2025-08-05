@@ -9,12 +9,16 @@ export default {
   dialect: "postgresql",
   schema: "./src/schema.ts",
   out: "./drizzle",
-  dbCredentials: {
-    host: config.db_host,
-    user: config.db_user,
-    port: config.db_port,
-    password: config.db_password,
-    database: config.db_name,
-    ssl: config.env !== "development"
-  }
+  dbCredentials: process.env.DATABASE_URL
+    ? {
+        url: process.env.DATABASE_URL
+      }
+    : {
+        host: config.db_host,
+        user: config.db_user,
+        port: config.db_port,
+        password: config.db_password,
+        database: config.db_name,
+        ssl: config.env !== "development"
+      }
 } satisfies Config;

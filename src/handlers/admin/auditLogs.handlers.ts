@@ -1,9 +1,9 @@
-import type { Request, Response } from "express";
-import { db } from "@/services/db/drizzle.ts";
-import { logger, gatewayResponse } from "@/helpers/index.ts";
-import { eq, sql, and, desc, gte, lte } from "drizzle-orm";
-import { auditLogs, accounts } from "@/schema.ts";
+import { gatewayResponse, logger } from "@/helpers/index.ts";
 import { asyncHandler } from "@/helpers/request.ts";
+import { accounts, auditLogs } from "@/schema.ts";
+import { db } from "@/services/db/drizzle.ts";
+import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
+import type { Request, Response } from "express";
 
 /**
  * GET /admin/audit-logs
@@ -27,6 +27,8 @@ export const getAuditLogs = asyncHandler(async (req: Request, res: Response): Pr
     msg: `SuperAdmin listing audit logs - page: ${page}, limit: ${limit}`,
     filters: { action, entityType, actorId, entityId, workspaceId, startDate, endDate }
   });
+
+  // TODO add zod validation for actions etc.
 
   // Build conditions for filtering
   const conditions = [];

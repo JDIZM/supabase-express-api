@@ -63,7 +63,7 @@ This template provides a robust foundation for building scalable APIs with:
 - `GET /admin/accounts` - List all accounts with pagination
 - `PUT /admin/accounts/:id/role` - Update SuperAdmin status
 - `PUT /admin/accounts/:id/status` - Update account status
-- `GET /admin/workspaces` - List all workspaces with pagination  
+- `GET /admin/workspaces` - List all workspaces with pagination
 - `GET /admin/memberships` - List all memberships with filtering
 - `GET /admin/audit-logs` - List audit logs with filtering
 - `GET /admin/audit-logs/stats` - Get audit log statistics
@@ -115,7 +115,10 @@ This template provides a robust foundation for building scalable APIs with:
 4. **Configure environment** (edit `.env`):
 
    ```bash
-   # Database
+   # Database - Option 1: Use DATABASE_URL (recommended for production)
+   DATABASE_URL=postgresql://postgres:your-password@localhost:5432/your-database
+
+   # Database - Option 2: Use individual parameters
    POSTGRES_HOST=localhost
    POSTGRES_USER=postgres
    POSTGRES_PASSWORD=your-password
@@ -142,6 +145,7 @@ This template provides a robust foundation for building scalable APIs with:
 7. **View API Documentation**:
 
    Once the server is running, visit:
+
    - **Swagger UI**: <http://localhost:4000/docs>
    - **OpenAPI JSON**: <http://localhost:4000/openapi.json>
 
@@ -474,7 +478,7 @@ Aliases can be configured in the import map, defined in package.json#imports.
 
 see: https://github.com/privatenumber/pkgroll#aliases
 
-## Authentication
+## Authentication & Authorization
 
 This project uses JWT bearer token for authentication. The claims, id and sub must be set on the token and the token can be verified and decoded using the configured auth provider.
 
@@ -529,9 +533,7 @@ A role/claim is defined when the account is added to the workspace as a member.
 1. User - Can access all resources with user permissions.
 2. Admin - Can access all resources within the workspace.
 
-### API Endpoints
-
-#### Profile Data Access
+### Profile Data Access
 
 Profile endpoints (`/profiles` and `/profiles/:id`) have been removed to enforce proper workspace-scoped security. Profile data is now accessible only through workspace context:
 
@@ -544,6 +546,37 @@ This ensures profile data is always accessed with proper workspace authorization
 ## Supabase Auth
 
 see the [documentation for more information](https://supabase.com/docs/reference/javascript/auth-api) on how to use Supabase Auth with this project.
+
+## CI/CD Database Migrations
+
+The project includes automated database migrations that run on:
+
+- **Development**: When merging to `main` branch
+- **Production**: When creating a GitHub release
+
+### Setup GitHub Secrets
+
+1. Go to your repository's Settings > Secrets and variables > Actions
+2. Add the following secrets:
+
+   - `DEV_DATABASE_URL`: Development database connection string
+   - `PROD_DATABASE_URL`: Production database connection string
+
+   Format: `postgresql://user:password@host:5432/database?sslmode=require`
+
+### How It Works
+
+1. **On merge to main**: The `migrate-dev` job automatically runs pending migrations against your development database
+2. **On release**: The `migrate-prod` job runs migrations against production
+3. Migrations must succeed before any deployment steps run
+
+### Using Supabase Branching (Recommended)
+
+For better schema management, use [Supabase branching](https://supabase.com/docs/guides/platform/branching):
+
+- Each branch gets its own DATABASE_URL
+- Test migrations safely on preview branches
+- Production database remains isolated
 
 ## Deployment with DigitalOcean
 
@@ -563,9 +596,13 @@ For information on confguring the app level environment variables see [How to us
 
 - `NODE_ENV`: `production`
 - `APP_URL`: `https://api.example.com`
+- `DATABASE_URL`: `postgresql://postgres.<supabase-id>:password@<region>.pooler.supabase.com:5432/postgres`
+- `SUPABASE_URL`: `https://<supabase-id>.supabase.co`
+- `SUPABASE_PK`: `abcdefghijklm`
+
+Alternatively, you can use individual database parameters:
+
 - `POSTGRES_HOST`: `<region>.pooler.supabase.com`
 - `POSTGRES_USER`: `postgres.<supabase-id>`
 - `POSTGRES_PASSWORD`: `example`
 - `POSTGRES_DB`: `postgres`
-- `SUPABASE_URL`: `https://<supabase-id>.supabase.co`
-- `SUPABASE_PK`: `abcdefghijklm`
