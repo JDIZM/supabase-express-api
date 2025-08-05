@@ -16,7 +16,47 @@ import {
   PaginationQuerySchema,
   UuidParamSchema,
   AuditLogSchema,
-  AuditLogStatsSchema
+  AuditLogStatsSchema,
+  // Parameter schemas
+  UuidParamOnlySchema,
+  WorkspaceHeaderSchema,
+  UuidParamsWithMemberSchema,
+  // Request schemas
+  LoginRequestSchema,
+  SignupRequestSchema,
+  MemberRoleUpdateSchema,
+  AdminRoleUpdateSchema,
+  AccountStatusUpdateSchema,
+  // Response data schemas
+  MessageResponseDataSchema,
+  AccountResponseDataSchema,
+  WorkspaceResponseDataSchema,
+  ProfileResponseDataSchema,
+  MembershipResponseDataSchema,
+  AuthTokenDataSchema,
+  // Complex composite schemas
+  WorkspaceMemberSchema,
+  UserWorkspaceInfoSchema,
+  WorkspaceWithMembersDataSchema,
+  WorkspaceMembersDataSchema,
+  CreateWorkspaceDataSchema,
+  UserProfileDataSchema,
+  // Query schemas
+  AdminPaginationQuerySchema,
+  AdminMembershipQuerySchema,
+  AuditLogQuerySchema,
+  AuditLogStatsQuerySchema,
+  // Simple reference schemas
+  SimpleAccountSchema,
+  SimpleWorkspaceSchema,
+  // Standardized response patterns
+  AccountsWithPaginationDataSchema,
+  WorkspacesWithPaginationDataSchema,
+  WorkspacesListDataSchema,
+  AuditLogWithDetailsSchema,
+  AuditLogsWithPaginationDataSchema,
+  MembershipWithDetailsSchema,
+  MembershipsWithPaginationDataSchema
 } from "./openapi-schemas.ts";
 
 const registry = new OpenAPIRegistry();
@@ -38,6 +78,53 @@ registry.register("Pagination", PaginationSchema);
 registry.register("AuditLog", AuditLogSchema);
 registry.register("AuditLogStats", AuditLogStatsSchema);
 
+// Register parameter schemas
+registry.register("UuidParamOnly", UuidParamOnlySchema);
+registry.register("WorkspaceHeader", WorkspaceHeaderSchema);
+registry.register("UuidParamsWithMember", UuidParamsWithMemberSchema);
+
+// Register request schemas
+registry.register("LoginRequest", LoginRequestSchema);
+registry.register("SignupRequest", SignupRequestSchema);
+registry.register("MemberRoleUpdate", MemberRoleUpdateSchema);
+registry.register("AdminRoleUpdate", AdminRoleUpdateSchema);
+registry.register("AccountStatusUpdate", AccountStatusUpdateSchema);
+
+// Register response data schemas
+registry.register("MessageResponseData", MessageResponseDataSchema);
+registry.register("AccountResponseData", AccountResponseDataSchema);
+registry.register("WorkspaceResponseData", WorkspaceResponseDataSchema);
+registry.register("ProfileResponseData", ProfileResponseDataSchema);
+registry.register("MembershipResponseData", MembershipResponseDataSchema);
+registry.register("AuthTokenData", AuthTokenDataSchema);
+
+// Register complex composite schemas
+registry.register("WorkspaceMember", WorkspaceMemberSchema);
+registry.register("UserWorkspaceInfo", UserWorkspaceInfoSchema);
+registry.register("WorkspaceWithMembersData", WorkspaceWithMembersDataSchema);
+registry.register("WorkspaceMembersData", WorkspaceMembersDataSchema);
+registry.register("CreateWorkspaceData", CreateWorkspaceDataSchema);
+registry.register("UserProfileData", UserProfileDataSchema);
+
+// Register query schemas
+registry.register("AdminPaginationQuery", AdminPaginationQuerySchema);
+registry.register("AdminMembershipQuery", AdminMembershipQuerySchema);
+registry.register("AuditLogQuery", AuditLogQuerySchema);
+registry.register("AuditLogStatsQuery", AuditLogStatsQuerySchema);
+
+// Register simple reference schemas
+registry.register("SimpleAccount", SimpleAccountSchema);
+registry.register("SimpleWorkspace", SimpleWorkspaceSchema);
+
+// Register standardized response patterns
+registry.register("AccountsWithPaginationData", AccountsWithPaginationDataSchema);
+registry.register("WorkspacesWithPaginationData", WorkspacesWithPaginationDataSchema);
+registry.register("WorkspacesListData", WorkspacesListDataSchema);
+registry.register("AuditLogWithDetails", AuditLogWithDetailsSchema);
+registry.register("AuditLogsWithPaginationData", AuditLogsWithPaginationDataSchema);
+registry.register("MembershipWithDetails", MembershipWithDetailsSchema);
+registry.register("MembershipsWithPaginationData", MembershipsWithPaginationDataSchema);
+
 // Security scheme for JWT Bearer token
 registry.registerComponent("securitySchemes", "bearerAuth", {
   type: "http",
@@ -56,10 +143,7 @@ registry.registerPath({
     body: {
       content: {
         "application/json": {
-          schema: z.object({
-            email: z.string().email().describe("User email address"),
-            password: z.string().min(6).describe("User password")
-          })
+          schema: LoginRequestSchema
         }
       }
     }
@@ -70,10 +154,7 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: SuccessResponseSchema.extend({
-            data: z.object({
-              token: z.string().describe("JWT access token"),
-              account: AccountSchema
-            })
+            data: AuthTokenDataSchema
           })
         }
       }
@@ -99,12 +180,7 @@ registry.registerPath({
     body: {
       content: {
         "application/json": {
-          schema: z.object({
-            email: z.string().email().describe("User email address"),
-            password: z.string().min(6).describe("User password"),
-            fullName: z.string().min(1).describe("User full name"),
-            phone: z.string().optional().describe("User phone number")
-          })
+          schema: SignupRequestSchema
         }
       }
     }
@@ -115,10 +191,7 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: SuccessResponseSchema.extend({
-            data: z.object({
-              token: z.string().describe("JWT access token"),
-              account: AccountSchema
-            })
+            data: AuthTokenDataSchema
           })
         }
       }
@@ -148,17 +221,7 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: SuccessResponseSchema.extend({
-            data: z.object({
-              account: AccountSchema,
-              workspaces: z.array(
-                z.object({
-                  workspace: WorkspaceSchema,
-                  profile: ProfileSchema,
-                  membership: MembershipSchema
-                })
-              ),
-              workspaceCount: z.number()
-            })
+            data: UserProfileDataSchema
           })
         }
       }
@@ -217,11 +280,7 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: SuccessResponseSchema.extend({
-            data: z.object({
-              workspace: WorkspaceSchema,
-              profile: ProfileSchema,
-              membership: MembershipSchema
-            })
+            data: CreateWorkspaceDataSchema
           })
         }
       }
@@ -238,12 +297,8 @@ registry.registerPath({
   security: [{ bearerAuth: [] }],
   tags: ["Workspaces"],
   request: {
-    params: z.object({
-      id: z.uuid()
-    }),
-    headers: z.object({
-      "x-workspace-id": z.uuid()
-    })
+    params: UuidParamOnlySchema,
+    headers: WorkspaceHeaderSchema
   },
   responses: {
     200: {
@@ -251,17 +306,7 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: SuccessResponseSchema.extend({
-            data: z.object({
-              workspace: WorkspaceSchema,
-              members: z.array(
-                z.object({
-                  account: AccountSchema,
-                  profile: ProfileSchema,
-                  membership: MembershipSchema
-                })
-              ),
-              memberCount: z.number()
-            })
+            data: WorkspaceWithMembersDataSchema
           })
         }
       }
@@ -416,13 +461,8 @@ registry.registerPath({
   security: [{ bearerAuth: [] }],
   tags: ["Members"],
   request: {
-    params: z.object({
-      id: z.uuid(),
-      memberId: z.uuid()
-    }),
-    headers: z.object({
-      "x-workspace-id": z.uuid()
-    }),
+    params: UuidParamsWithMemberSchema,
+    headers: WorkspaceHeaderSchema,
     body: {
       content: {
         "application/json": {
@@ -457,13 +497,8 @@ registry.registerPath({
   security: [{ bearerAuth: [] }],
   tags: ["Members"],
   request: {
-    params: z.object({
-      id: z.uuid(),
-      memberId: z.uuid()
-    }),
-    headers: z.object({
-      "x-workspace-id": z.uuid()
-    })
+    params: UuidParamsWithMemberSchema,
+    headers: WorkspaceHeaderSchema
   },
   responses: {
     200: {
@@ -490,10 +525,7 @@ registry.registerPath({
   security: [{ bearerAuth: [] }],
   tags: ["Admin"],
   request: {
-    query: z.object({
-      page: z.number().int().positive().default(1).describe("Page number for pagination"),
-      limit: z.number().int().min(1).max(100).default(20).describe("Number of items per page")
-    })
+    query: AdminPaginationQuerySchema
   },
   responses: {
     200: {
@@ -501,10 +533,7 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: SuccessResponseSchema.extend({
-            data: z.object({
-              accounts: z.array(AccountSchema),
-              pagination: PaginationSchema
-            })
+            data: AccountsWithPaginationDataSchema
           })
         }
       }
@@ -568,10 +597,7 @@ registry.registerPath({
   security: [{ bearerAuth: [] }],
   tags: ["Admin"],
   request: {
-    query: z.object({
-      page: z.number().int().positive().default(1).describe("Page number for pagination"),
-      limit: z.number().int().min(1).max(100).default(20).describe("Number of items per page")
-    })
+    query: AdminPaginationQuerySchema
   },
   responses: {
     200: {
@@ -579,14 +605,7 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: SuccessResponseSchema.extend({
-            data: z.object({
-              workspaces: z.array(
-                WorkspaceSchema.extend({
-                  memberCount: z.number()
-                })
-              ),
-              pagination: PaginationSchema
-            })
+            data: WorkspacesWithPaginationDataSchema
           })
         }
       }
@@ -812,12 +831,7 @@ registry.registerPath({
   security: [{ bearerAuth: [] }],
   tags: ["Admin"],
   request: {
-    query: z.object({
-      page: z.number().int().positive().default(1).describe("Page number for pagination"),
-      limit: z.number().int().min(1).max(100).default(20).describe("Number of items per page"),
-      workspaceId: z.uuid().optional(),
-      accountId: z.uuid().optional()
-    })
+    query: AdminMembershipQuerySchema
   },
   responses: {
     200: {
@@ -825,23 +839,7 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: SuccessResponseSchema.extend({
-            data: z.object({
-              memberships: z.array(
-                z.object({
-                  membership: MembershipSchema,
-                  workspace: z.object({
-                    uuid: z.uuid(),
-                    name: z.string()
-                  }),
-                  account: z.object({
-                    uuid: z.uuid(),
-                    fullName: z.string(),
-                    email: z.string().email()
-                  })
-                })
-              ),
-              pagination: PaginationSchema
-            })
+            data: MembershipsWithPaginationDataSchema
           })
         }
       }
@@ -865,17 +863,7 @@ registry.registerPath({
   security: [{ bearerAuth: [] }],
   tags: ["Admin"],
   request: {
-    query: z.object({
-      page: z.number().int().positive().default(1).describe("Page number for pagination"),
-      limit: z.number().int().min(1).max(100).default(50).describe("Number of items per page"),
-      action: z.string().optional().describe("Filter by action type"),
-      entityType: z.string().optional().describe("Filter by entity type"),
-      actorId: z.uuid().optional().describe("Filter by actor ID"),
-      entityId: z.uuid().optional().describe("Filter by entity ID"),
-      workspaceId: z.uuid().optional().describe("Filter by workspace ID"),
-      startDate: z.string().optional().describe("Filter by start date (ISO 8601)"),
-      endDate: z.string().optional().describe("Filter by end date (ISO 8601)")
-    })
+    query: AuditLogQuerySchema
   },
   responses: {
     200: {
@@ -883,43 +871,7 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: SuccessResponseSchema.extend({
-            data: z.object({
-              auditLogs: z.array(
-                z.object({
-                  auditLog: AuditLogSchema,
-                  actor: z
-                    .object({
-                      uuid: z.uuid(),
-                      email: z.string(),
-                      fullName: z.string()
-                    })
-                    .nullable(),
-                  target: z
-                    .object({
-                      uuid: z.uuid(),
-                      email: z.string(),
-                      fullName: z.string()
-                    })
-                    .nullable(),
-                  workspace: z
-                    .object({
-                      uuid: z.uuid(),
-                      name: z.string()
-                    })
-                    .nullable()
-                })
-              ),
-              pagination: PaginationSchema,
-              filters: z.object({
-                action: z.string().nullable(),
-                entityType: z.string().nullable(),
-                actorId: z.uuid().nullable(),
-                entityId: z.uuid().nullable(),
-                workspaceId: z.uuid().nullable(),
-                startDate: z.string().nullable(),
-                endDate: z.string().nullable()
-              })
-            })
+            data: AuditLogsWithPaginationDataSchema
           })
         }
       }
@@ -943,9 +895,7 @@ registry.registerPath({
   security: [{ bearerAuth: [] }],
   tags: ["Admin"],
   request: {
-    query: z.object({
-      days: z.number().int().min(1).max(365).default(30).describe("Number of days to analyze")
-    })
+    query: AuditLogStatsQuerySchema
   },
   responses: {
     200: {

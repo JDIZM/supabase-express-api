@@ -2,8 +2,16 @@ import swaggerUi from "swagger-ui-express";
 import type { Application } from "express";
 import { generateOpenAPIDocument } from "./openapi.ts";
 import { logger } from "@/helpers/logger.ts";
+import { config } from "@/config.ts";
 
 export const setupSwagger = (app: Application): void => {
+  // Only enable Swagger/OpenAPI documentation in development and test environments
+  // Production exposure is a security risk as it reveals API structure
+  if (config.env === "production") {
+    logger.info("Swagger UI disabled in production for security");
+    return;
+  }
+
   try {
     const document = generateOpenAPIDocument();
 
@@ -26,7 +34,7 @@ export const setupSwagger = (app: Application): void => {
       res.send(document);
     });
 
-    logger.info("Swagger UI setup complete - available at /docs");
+    logger.info(`Swagger UI setup complete - available at /docs (${config.env} only)`);
   } catch (error) {
     logger.error("Failed to setup Swagger UI:", error);
   }

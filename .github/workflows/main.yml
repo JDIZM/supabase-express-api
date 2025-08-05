@@ -23,9 +23,26 @@ jobs:
       - run: pnpm run tsc:check
       - run: pnpm run build
       - run: pnpm run test
+
+  # Run database migrations for development environment
+  migrate-dev:
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: volta-cli/action@v4
+        with:
+          node-version: 22
+      - run: volta install pnpm
+      - run: pnpm install
+
+      - name: Run database migrations
+        env:
+          DATABASE_URL: ${{ secrets.DEV_DATABASE_URL }}
+        run: pnpm migrate
   # TODO uncomment the deployment step when you have configured the secrets.
   # deploy-dev:
-  #   needs: test-and-build
+  #   needs: [test-and-build, migrate-dev]
   #   runs-on: ubuntu-latest
   #   steps:
   #     - uses: actions/checkout@v4

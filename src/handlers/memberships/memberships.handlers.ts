@@ -7,6 +7,7 @@ import { eq, and } from "drizzle-orm";
 import { accounts, profiles, workspaceMemberships, uuidSchema } from "@/schema.ts";
 import { createDbProfile } from "@/handlers/profiles/profiles.methods.ts";
 import { HttpErrors, handleHttpError } from "@/helpers/HttpError.ts";
+import { MemberCreateSchema, MemberRoleUpdateSchema } from "@/docs/openapi-schemas.ts";
 
 export const createMembershipHandler = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { workspaceId, accountId, role } = req.body;
@@ -94,7 +95,18 @@ export const getWorkspaceMembers = asyncHandler(async (req: Request, res: Respon
  */
 export const addWorkspaceMember = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const workspaceId = req.params.id;
-  const { email, role, profileName } = req.body;
+
+  const validation = MemberCreateSchema.safeParse(req.body);
+  if (!validation.success) {
+    handleHttpError(
+      HttpErrors.ValidationFailed(`Invalid request data: ${validation.error.message}`),
+      res,
+      gatewayResponse
+    );
+    return;
+  }
+
+  const { email, role, profileName } = validation.data;
 
   if (!workspaceId) {
     handleHttpError(HttpErrors.MissingParameter("Workspace ID"), res, gatewayResponse);
@@ -182,7 +194,18 @@ export const addWorkspaceMember = asyncHandler(async (req: Request, res: Respons
 export const updateMemberRole = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const workspaceId = req.params.id;
   const memberId = req.params.memberId;
-  const { role } = req.body;
+
+  const validation = MemberRoleUpdateSchema.safeParse(req.body);
+  if (!validation.success) {
+    handleHttpError(
+      HttpErrors.ValidationFailed(`Invalid request data: ${validation.error.message}`),
+      res,
+      gatewayResponse
+    );
+    return;
+  }
+
+  const { role } = validation.data;
 
   if (!workspaceId || !memberId) {
     handleHttpError(HttpErrors.ValidationFailed("Workspace ID and Member ID are required"), res, gatewayResponse);
