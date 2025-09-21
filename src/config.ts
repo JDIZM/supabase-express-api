@@ -1,5 +1,5 @@
-import dotenv from "dotenv";
 import { logger } from "@/helpers/index.ts";
+import dotenv from "dotenv";
 
 export const stages = ["development", "production", "test"] as const;
 

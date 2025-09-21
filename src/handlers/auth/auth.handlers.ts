@@ -1,11 +1,11 @@
-import { supabase } from "@/services/supabase.ts";
-import type { NextFunction, Request, Response } from "express";
-import { logger, gatewayResponse } from "@/helpers/index.ts";
-import { createDbAccount } from "@/handlers/accounts/accounts.methods.ts";
-import type { User } from "@supabase/supabase-js";
-import { asyncHandler } from "@/helpers/request.ts";
 import { LoginRequestSchema, SignupRequestSchema } from "@/docs/openapi-schemas.ts";
+import { createDbAccount } from "@/handlers/accounts/accounts.methods.ts";
 import { HttpErrors, handleHttpError } from "@/helpers/HttpError.ts";
+import { gatewayResponse, logger } from "@/helpers/index.ts";
+import { asyncHandler } from "@/helpers/request.ts";
+import { supabase } from "@/services/supabase.ts";
+import type { User } from "@supabase/supabase-js";
+import type { NextFunction, Request, Response } from "express";
 
 export const signUpWithSupabase = async (email: string, password: string): Promise<User | Error> => {
   const { data, error } = await supabase.auth.signUp({
@@ -25,6 +25,7 @@ export const signUpWithSupabase = async (email: string, password: string): Promi
 
 export const signUp = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const validation = SignupRequestSchema.safeParse(req.body);
+  logger.info({ msg: "User signup attempt", body: req.body });
   if (!validation.success) {
     handleHttpError(
       HttpErrors.ValidationFailed(`Invalid request data: ${validation.error.message}`),

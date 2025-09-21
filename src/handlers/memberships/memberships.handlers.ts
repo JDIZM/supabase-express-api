@@ -1,13 +1,13 @@
-import type { Request, Response } from "express";
-import { gatewayResponse, logger } from "@/helpers/index.ts";
-import { createMembership, checkMembership, isValidRole } from "./memberships.methods.ts";
-import { asyncHandler } from "@/helpers/request.ts";
-import { db } from "@/services/db/drizzle.ts";
-import { eq, and } from "drizzle-orm";
-import { accounts, profiles, workspaceMemberships, uuidSchema } from "@/schema.ts";
+import { MemberCreateSchema, MemberRoleUpdateSchema } from "@/docs/openapi-schemas.ts";
 import { createDbProfile } from "@/handlers/profiles/profiles.methods.ts";
 import { HttpErrors, handleHttpError } from "@/helpers/HttpError.ts";
-import { MemberCreateSchema, MemberRoleUpdateSchema } from "@/docs/openapi-schemas.ts";
+import { gatewayResponse, logger } from "@/helpers/index.ts";
+import { asyncHandler } from "@/helpers/request.ts";
+import { accounts, profiles, uuidSchema, workspaceMemberships } from "@/schema.ts";
+import { db } from "@/services/db/drizzle.ts";
+import { and, eq } from "drizzle-orm";
+import type { Request, Response } from "express";
+import { checkMembership, createMembership, isValidRole } from "./memberships.methods.ts";
 
 export const createMembershipHandler = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { workspaceId, accountId, role } = req.body;

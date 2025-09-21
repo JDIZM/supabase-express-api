@@ -1,10 +1,10 @@
-import type { Request, Response } from "express";
-import { db } from "@/services/db/drizzle.ts";
-import { logger, gatewayResponse } from "@/helpers/index.ts";
-import { eq, and } from "drizzle-orm";
-import { accounts, workspaces, profiles, workspaceMemberships } from "@/schema.ts";
-import { asyncHandler } from "@/helpers/request.ts";
 import { HttpErrors, handleHttpError } from "@/helpers/HttpError.ts";
+import { gatewayResponse, logger } from "@/helpers/index.ts";
+import { asyncHandler } from "@/helpers/request.ts";
+import { accounts, profiles, workspaceMemberships, workspaces } from "@/schema.ts";
+import { db } from "@/services/db/drizzle.ts";
+import { and, eq } from "drizzle-orm";
+import type { Request, Response } from "express";
 
 /**
  * GET /me - Returns everything the frontend needs after login:

@@ -1,62 +1,62 @@
+import { config } from "@/config.ts";
 import { OpenAPIRegistry, OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
 import { z } from "zod";
-import { config } from "@/config.ts";
 import {
-  AccountSchema,
   AccountCreateSchema,
-  WorkspaceSchema,
-  WorkspaceCreateSchema,
-  ProfileSchema,
-  ProfileUpdateSchema,
-  MembershipSchema,
-  MemberCreateSchema,
-  SuccessResponseSchema,
-  ErrorResponseSchema,
-  PaginationSchema,
-  PaginationQuerySchema,
-  UuidParamSchema,
-  AuditLogSchema,
-  AuditLogStatsSchema,
-  // Parameter schemas
-  UuidParamOnlySchema,
-  WorkspaceHeaderSchema,
-  UuidParamsWithMemberSchema,
-  // Request schemas
-  LoginRequestSchema,
-  SignupRequestSchema,
-  MemberRoleUpdateSchema,
-  AdminRoleUpdateSchema,
-  AccountStatusUpdateSchema,
-  // Response data schemas
-  MessageResponseDataSchema,
   AccountResponseDataSchema,
-  WorkspaceResponseDataSchema,
-  ProfileResponseDataSchema,
-  MembershipResponseDataSchema,
-  AuthTokenDataSchema,
-  // Complex composite schemas
-  WorkspaceMemberSchema,
-  UserWorkspaceInfoSchema,
-  WorkspaceWithMembersDataSchema,
-  WorkspaceMembersDataSchema,
-  CreateWorkspaceDataSchema,
-  UserProfileDataSchema,
+  AccountSchema,
+  AccountStatusUpdateSchema,
+  // Standardized response patterns
+  AccountsWithPaginationDataSchema,
+  AdminMembershipQuerySchema,
   // Query schemas
   AdminPaginationQuerySchema,
-  AdminMembershipQuerySchema,
+  AdminRoleUpdateSchema,
   AuditLogQuerySchema,
+  AuditLogSchema,
   AuditLogStatsQuerySchema,
+  AuditLogStatsSchema,
+  AuditLogWithDetailsSchema,
+  AuditLogsWithPaginationDataSchema,
+  AuthTokenDataSchema,
+  CreateWorkspaceDataSchema,
+  ErrorResponseSchema,
+  // Request schemas
+  LoginRequestSchema,
+  MemberCreateSchema,
+  MemberRoleUpdateSchema,
+  MembershipResponseDataSchema,
+  MembershipSchema,
+  MembershipWithDetailsSchema,
+  MembershipsWithPaginationDataSchema,
+  // Response data schemas
+  MessageResponseDataSchema,
+  PaginationQuerySchema,
+  PaginationSchema,
+  ProfileResponseDataSchema,
+  ProfileSchema,
+  ProfileUpdateSchema,
+  SignupRequestSchema,
   // Simple reference schemas
   SimpleAccountSchema,
   SimpleWorkspaceSchema,
-  // Standardized response patterns
-  AccountsWithPaginationDataSchema,
-  WorkspacesWithPaginationDataSchema,
+  SuccessResponseSchema,
+  UserProfileDataSchema,
+  UserWorkspaceInfoSchema,
+  // Parameter schemas
+  UuidParamOnlySchema,
+  UuidParamSchema,
+  UuidParamsWithMemberSchema,
+  WorkspaceCreateSchema,
+  WorkspaceHeaderSchema,
+  // Complex composite schemas
+  WorkspaceMemberSchema,
+  WorkspaceMembersDataSchema,
+  WorkspaceResponseDataSchema,
+  WorkspaceSchema,
+  WorkspaceWithMembersDataSchema,
   WorkspacesListDataSchema,
-  AuditLogWithDetailsSchema,
-  AuditLogsWithPaginationDataSchema,
-  MembershipWithDetailsSchema,
-  MembershipsWithPaginationDataSchema
+  WorkspacesWithPaginationDataSchema
 } from "./openapi-schemas.ts";
 
 const registry = new OpenAPIRegistry();

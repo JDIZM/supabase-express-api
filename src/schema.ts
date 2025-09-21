@@ -1,8 +1,8 @@
-import { pgTable, uuid, text, timestamp, varchar, boolean, unique, index, jsonb } from "drizzle-orm/pg-core";
+import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
+import { boolean, index, jsonb, pgTable, text, timestamp, unique, uuid, varchar } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm/relations";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
 import { z } from "zod";
-import { relations } from "drizzle-orm/relations";
-import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
 
 // Validate UUID - direct validator for UUID strings
 export const uuidSchema = z.uuid();

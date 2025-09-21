@@ -1,6 +1,6 @@
+import { logger } from "@/helpers/index.ts";
 import jwt from "jsonwebtoken";
 import { config } from "../../config.ts";
-import { logger } from "@/helpers/index.ts";
 
 export const verifyToken = async (
   token: string

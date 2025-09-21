@@ -2,8 +2,8 @@ import { logger } from "@/helpers/index.ts";
 import type { Role } from "@/helpers/permissions.ts";
 import { workspaceMemberships, type WorkspaceMembershipInsertType } from "@/schema.ts";
 import { db } from "@/services/db/drizzle.ts";
-import { and, eq } from "drizzle-orm";
 import { type DbTransaction } from "@/types/database.ts";
+import { and, eq } from "drizzle-orm";
 
 // Type guard function
 export function isValidRole(role: string): role is "admin" | "user" {

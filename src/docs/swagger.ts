@@ -1,8 +1,8 @@
-import swaggerUi from "swagger-ui-express";
-import type { Application } from "express";
-import { generateOpenAPIDocument } from "./openapi.ts";
-import { logger } from "@/helpers/logger.ts";
 import { config } from "@/config.ts";
+import { logger } from "@/helpers/logger.ts";
+import type { Application } from "express";
+import swaggerUi from "swagger-ui-express";
+import { generateOpenAPIDocument } from "./openapi.ts";
 
 export const setupSwagger = (app: Application): void => {
   // Only enable Swagger/OpenAPI documentation in development and test environments

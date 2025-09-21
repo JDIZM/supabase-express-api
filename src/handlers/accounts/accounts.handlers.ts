@@ -1,10 +1,10 @@
-import type { Request, Response } from "express";
-import { db } from "@/services/db/drizzle.ts";
-import { logger, gatewayResponse } from "@/helpers/index.ts";
-import { accounts, uuidSchema, type AccountSelectType, type AccountWithRelations } from "@/schema.ts";
-import { createDbAccount, getAccountWithRelations } from "./accounts.methods.ts";
 import { HttpErrors, handleHttpError } from "@/helpers/HttpError.ts";
+import { gatewayResponse, logger } from "@/helpers/index.ts";
 import { asyncHandler } from "@/helpers/request.ts";
+import { accounts, uuidSchema, type AccountSelectType, type AccountWithRelations } from "@/schema.ts";
+import { db } from "@/services/db/drizzle.ts";
+import type { Request, Response } from "express";
+import { createDbAccount, getAccountWithRelations } from "./accounts.methods.ts";
 
 export const getAccounts = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
   const result = await db.select().from(accounts).execute();

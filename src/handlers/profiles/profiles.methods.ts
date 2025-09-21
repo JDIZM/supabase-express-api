@@ -1,8 +1,8 @@
 import { logger } from "@/helpers/index.ts";
 import { profileInsertSchema, profiles, uuidSchema, type ProfileInsertType, type ProfileSelectType } from "@/schema.ts";
 import { db } from "@/services/db/drizzle.ts";
-import { eq, type InferInsertModel } from "drizzle-orm";
 import { type DbTransaction } from "@/types/database.ts";
+import { eq, type InferInsertModel } from "drizzle-orm";
 
 export async function createDbProfile(
   profile: InferInsertModel<typeof profiles>,

@@ -1,17 +1,17 @@
-import express from "express";
-import cors from "cors";
-import helmet from "helmet";
 import cookieParser from "cookie-parser";
-import { config } from "./config.ts";
-import { pinoHttp } from "pino-http";
-import { routes } from "./routes/index.ts";
-import { adminRoutes } from "./routes/admin.ts";
-import { logger } from "./helpers/index.ts";
-import { corsOptions } from "./cors.ts";
-import { errorHandler } from "./middleware/errorHandler.ts";
+import cors from "cors";
+import express from "express";
+import helmet from "helmet";
 import { randomUUID } from "node:crypto";
+import { pinoHttp } from "pino-http";
+import { config } from "./config.ts";
+import { corsOptions } from "./cors.ts";
 import { setupSwagger } from "./docs/swagger.ts";
+import { logger } from "./helpers/index.ts";
+import { errorHandler } from "./middleware/errorHandler.ts";
 import { standardRateLimit } from "./middleware/rateLimiter.ts";
+import { adminRoutes } from "./routes/admin.ts";
+import { routes } from "./routes/index.ts";
 
 import "./helpers/permissions.ts";
 import "./services/sentry.ts"; // Initialize Sentry if enabled.

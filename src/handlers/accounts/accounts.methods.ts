@@ -9,8 +9,8 @@ import {
   type AccountWithRelations
 } from "@/schema.ts";
 import { db } from "@/services/db/drizzle.ts";
-import { eq } from "drizzle-orm";
 import { type DbTransaction } from "@/types/database.ts";
+import { eq } from "drizzle-orm";
 
 export async function createDbAccount(account: AccountInsertType, tx?: DbTransaction): Promise<string> {
   const validationResult = accountInsertSchema.safeParse(account);
