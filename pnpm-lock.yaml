@@ -94,8 +94,8 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(vitest@2.1.9(@types/node@20.19.1))
       dotenv:
-        specifier: ^16.4.5
-        version: 16.5.0
+        specifier: ^17.0.0
+        version: 17.2.2
       drizzle-kit:
         specifier: ^0.31.0
         version: 0.31.4
@@ -1819,8 +1819,8 @@ packages:
     resolution: {integrity: sha512-yS+Q5i3hBf7GBkd4KG8a7eBNNWNGLTaEwwYWUijIYM7zrlYDM0BFXHjjPWlWZ1Rg7UaddZeIDmi9jF3HmqiQ2w==}
     engines: {node: '>=6.0.0'}
 
-  dotenv@16.5.0:
-    resolution: {integrity: sha512-m/C+AwOAr9/W1UOIZUo232ejMNnJAJtYQjUbHoNTBNTJSvqzzDh7vnrei3o3r3m9blf6ZoDkvcw0VmozNRFJxg==}
+  dotenv@17.2.2:
+    resolution: {integrity: sha512-Sf2LSQP+bOlhKWWyhFsn0UsfdK/kCWRv1iuA2gXAwt3dyNabr6QSj00I2V10pidqz69soatm9ZwZvpQMTIOd5Q==}
     engines: {node: '>=12'}
 
   drizzle-kit@0.31.4:
@@ -4905,7 +4905,7 @@ snapshots:
     dependencies:
       esutils: 2.0.3
 
-  dotenv@16.5.0: {}
+  dotenv@17.2.2: {}
 
   drizzle-kit@0.31.4:
     dependencies:
