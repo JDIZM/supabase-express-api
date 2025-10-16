@@ -1,5 +1,5 @@
-import { HttpErrors, handleHttpError } from "@/helpers/HttpError.ts";
-import { gatewayResponse, logger } from "@/helpers/index.ts";
+import { HttpErrors, HttpStatusCode } from "@/helpers/Http.ts";
+import { apiResponse } from "@/helpers/response.ts";
 import { asyncHandler } from "@/helpers/request.ts";
 import { accounts, workspaceMemberships, workspaces } from "@/schema.ts";
 import { AUDIT_ACTIONS, ENTITY_TYPES, auditHelpers, createAuditLog } from "@/services/auditLog.ts";
@@ -16,8 +16,6 @@ export const listAllAccounts = asyncHandler(async (req: Request, res: Response):
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 20;
   const offset = (page - 1) * limit;
-
-  logger.info({ msg: `SuperAdmin listing all accounts - page: ${page}, limit: ${limit}` });
 
   // Get paginated accounts with total count in single query
   const accountsWithCount = await db
@@ -40,8 +38,8 @@ export const listAllAccounts = asyncHandler(async (req: Request, res: Response):
   // Clean data by removing totalCount from individual records
   const accountsList = accountsWithCount.map(({ totalCount: _, ...account }) => account);
 
-  const response = gatewayResponse().success(
-    200,
+  const response = apiResponse.success(
+    HttpStatusCode.OK,
     {
       accounts: accountsList,
       pagination: {
@@ -66,18 +64,17 @@ export const createAccountForUser = asyncHandler(async (req: Request, res: Respo
   const { accountId } = req;
 
   if (!accountId) {
-    handleHttpError(HttpErrors.Unauthorized(), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.Unauthorized());
+    res.status(response.code).send(response);
     return;
   }
-
-  logger.info({ msg: `SuperAdmin creating account for ${email}` });
 
   // Check if account already exists
   const [existingAccount] = await db.select().from(accounts).where(eq(accounts.email, email)).limit(1);
 
   if (existingAccount) {
-    logger.error({ email }, `Account with email ${email} already exists`);
-    handleHttpError(HttpErrors.BadRequest("Unable to create account with provided information"), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.BadRequest("Unable to create account with provided information"));
+    res.status(response.code).send(response);
     return;
   }
 
@@ -121,11 +118,12 @@ export const createAccountForUser = asyncHandler(async (req: Request, res: Respo
   });
 
   if (!newAccount) {
-    handleHttpError(HttpErrors.DatabaseError("Failed to create account"), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.DatabaseError("Failed to create account"));
+    res.status(response.code).send(response);
     return;
   }
 
-  const response = gatewayResponse().success(201, { account: newAccount }, "Account created successfully");
+  const response = apiResponse.success(HttpStatusCode.CREATED, { account: newAccount }, "Account created successfully");
 
   res.status(response.code).send(response);
 });
@@ -139,23 +137,24 @@ export const updateAccountRole = asyncHandler(async (req: Request, res: Response
   const { accountId } = req;
 
   if (!targetAccountId) {
-    handleHttpError(HttpErrors.MissingParameter("Account ID"), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.MissingParameter("Account ID"));
+    res.status(response.code).send(response);
     return;
   }
 
   if (!accountId) {
-    handleHttpError(HttpErrors.Unauthorized(), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.Unauthorized());
+    res.status(response.code).send(response);
     return;
   }
 
   const { isSuperAdmin } = req.body;
 
   if (typeof isSuperAdmin !== "boolean") {
-    handleHttpError(HttpErrors.ValidationFailed("isSuperAdmin must be a boolean value"), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.ValidationFailed("isSuperAdmin must be a boolean value"));
+    res.status(response.code).send(response);
     return;
   }
-
-  logger.info({ msg: `SuperAdmin updating account ${targetAccountId} role to isSuperAdmin: ${isSuperAdmin}` });
 
   // Get current account to track the change (outside transaction)
   const [currentAccount] = await db
@@ -165,7 +164,8 @@ export const updateAccountRole = asyncHandler(async (req: Request, res: Response
     .limit(1);
 
   if (!currentAccount) {
-    handleHttpError(HttpErrors.AccountNotFound(), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.NotFound("Account"));
+    res.status(response.code).send(response);
     return;
   }
 
@@ -195,12 +195,13 @@ export const updateAccountRole = asyncHandler(async (req: Request, res: Response
   });
 
   if (!updatedAccount) {
-    handleHttpError(HttpErrors.AccountNotFound(), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.NotFound("Account"));
+    res.status(response.code).send(response);
     return;
   }
 
-  const response = gatewayResponse().success(
-    200,
+  const response = apiResponse.success(
+    HttpStatusCode.OK,
     { account: updatedAccount },
     `Account role updated to SuperAdmin: ${isSuperAdmin}`
   );
@@ -217,12 +218,14 @@ export const updateAccountStatus = asyncHandler(async (req: Request, res: Respon
   const { accountId } = req;
 
   if (!targetAccountId) {
-    handleHttpError(HttpErrors.MissingParameter("Account ID"), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.MissingParameter("Account ID"));
+    res.status(response.code).send(response);
     return;
   }
 
   if (!accountId) {
-    handleHttpError(HttpErrors.Unauthorized(), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.Unauthorized());
+    res.status(response.code).send(response);
     return;
   }
 
@@ -230,15 +233,12 @@ export const updateAccountStatus = asyncHandler(async (req: Request, res: Respon
   const validStatuses = ["active", "inactive", "suspended"];
 
   if (!status || !validStatuses.includes(status)) {
-    handleHttpError(
-      HttpErrors.ValidationFailed(`Status must be one of: ${validStatuses.join(", ")}`),
-      res,
-      gatewayResponse
+    const response = apiResponse.error(
+      HttpErrors.ValidationFailed(`Status must be one of: ${validStatuses.join(", ")}`)
     );
+    res.status(response.code).send(response);
     return;
   }
-
-  logger.info({ msg: `SuperAdmin updating account ${targetAccountId} status to: ${status}` });
 
   // Get current account to track the change (outside transaction)
   const [currentAccount] = await db
@@ -248,7 +248,8 @@ export const updateAccountStatus = asyncHandler(async (req: Request, res: Respon
     .limit(1);
 
   if (!currentAccount) {
-    handleHttpError(HttpErrors.AccountNotFound(), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.NotFound("Account"));
+    res.status(response.code).send(response);
     return;
   }
 
@@ -267,11 +268,16 @@ export const updateAccountStatus = asyncHandler(async (req: Request, res: Respon
   });
 
   if (!updatedAccount) {
-    handleHttpError(HttpErrors.AccountNotFound(), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.NotFound("Account"));
+    res.status(response.code).send(response);
     return;
   }
 
-  const response = gatewayResponse().success(200, { account: updatedAccount }, `Account status updated to: ${status}`);
+  const response = apiResponse.success(
+    HttpStatusCode.OK,
+    { account: updatedAccount },
+    `Account status updated to: ${status}`
+  );
 
   res.status(response.code).send(response);
 });
@@ -284,8 +290,6 @@ export const listAllWorkspaces = asyncHandler(async (req: Request, res: Response
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 20;
   const offset = (page - 1) * limit;
-
-  logger.info({ msg: `SuperAdmin listing all workspaces - page: ${page}, limit: ${limit}` });
 
   // Get paginated workspaces with owner info, member counts, and total count in single query
   const workspacesWithCount = await db
@@ -303,8 +307,8 @@ export const listAllWorkspaces = asyncHandler(async (req: Request, res: Response
         email: accounts.email
       },
       memberCount: sql<number>`(
-        SELECT COUNT(*) 
-        FROM workspace_memberships 
+        SELECT COUNT(*)
+        FROM workspace_memberships
         WHERE workspace_memberships.workspace_id = ${workspaces.uuid}
       )`,
       totalCount: sql<number>`count(*) over()`
@@ -319,8 +323,8 @@ export const listAllWorkspaces = asyncHandler(async (req: Request, res: Response
   // Clean data by removing totalCount from individual records
   const workspacesList = workspacesWithCount.map(({ totalCount: _, ...workspace }) => workspace);
 
-  const response = gatewayResponse().success(
-    200,
+  const response = apiResponse.success(
+    HttpStatusCode.OK,
     {
       workspaces: workspacesList,
       pagination: {
@@ -348,8 +352,6 @@ export const listAllMemberships = asyncHandler(async (req: Request, res: Respons
   const offset = (page - 1) * limit;
   const workspaceId = req.query.workspaceId as string;
   const accountId = req.query.accountId as string;
-
-  logger.info({ msg: `SuperAdmin listing memberships - filters: workspace=${workspaceId}, account=${accountId}` });
 
   // Build conditions for filtering
   const conditions = [];
@@ -401,8 +403,8 @@ export const listAllMemberships = asyncHandler(async (req: Request, res: Respons
   const [countResult] = await countQuery;
   const count = countResult?.count || 0;
 
-  const response = gatewayResponse().success(
-    200,
+  const response = apiResponse.success(
+    HttpStatusCode.OK,
     {
       memberships: membershipsList,
       pagination: {

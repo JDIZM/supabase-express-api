@@ -1,8 +1,10 @@
-import { logger, gatewayResponse } from "@/helpers/index.ts";
-import type { NextFunction, Request, Response } from "express";
-import { db } from "@/services/db/drizzle.ts";
+import { logger } from "@/helpers/index.ts";
 import { accounts } from "@/schema.ts";
+import { db } from "@/services/db/drizzle.ts";
 import { eq } from "drizzle-orm";
+import type { NextFunction, Request, Response } from "express";
+import { HttpErrors } from "../helpers/Http.ts";
+import { apiResponse } from "../helpers/response.ts";
 
 /**
  * Middleware to check account status - only use on critical operations
@@ -12,7 +14,7 @@ export const checkAccountStatus = async (req: Request, res: Response, next: Next
   const { accountId } = req;
 
   if (!accountId) {
-    const response = gatewayResponse().error(401, new Error("Authentication required"), "Authentication required");
+    const response = apiResponse.error(HttpErrors.Unauthorized("Authentication required"));
     res.status(response.code).send(response);
     return;
   }
@@ -27,18 +29,14 @@ export const checkAccountStatus = async (req: Request, res: Response, next: Next
 
     if (!account) {
       logger.error({ msg: `Account not found for accountId: ${accountId}` });
-      const response = gatewayResponse().error(401, new Error("Account not found"), "Account not found");
+      const response = apiResponse.error(HttpErrors.Unauthorized("Account not found"));
       res.status(response.code).send(response);
       return;
     }
-
+    // TODO enum for account status
     if (account.status !== "active") {
       logger.warn({ msg: `Access denied for ${account.status} account: ${accountId}` });
-      const response = gatewayResponse().error(
-        403,
-        new Error(`Account is ${account.status}`),
-        `Account is ${account.status}`
-      );
+      const response = apiResponse.error(HttpErrors.Forbidden(`Account is ${account.status}`));
       res.status(response.code).send(response);
       return;
     }
@@ -46,7 +44,7 @@ export const checkAccountStatus = async (req: Request, res: Response, next: Next
     return next();
   } catch (err) {
     logger.error({ msg: "Error checking account status", err, accountId });
-    const response = gatewayResponse().error(500, err as Error, "Error checking account status");
+    const response = apiResponse.error(HttpErrors.InternalError("Error checking account status"));
     res.status(response.code).send(response);
     return;
   }

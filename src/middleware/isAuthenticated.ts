@@ -1,9 +1,11 @@
-import { logger, gatewayResponse, permissions } from "@/helpers/index.ts";
-import type { Route } from "@/helpers/index.ts";
-import type { NextFunction, Request, Response } from "express";
-import type { Method } from "@/helpers/permissions.ts";
 import { verifyToken } from "@/handlers/auth/auth.methods.ts";
+import { HttpStatusCode } from "@/helpers/Http.ts";
+import type { Route } from "@/helpers/index.ts";
+import { logger, permissions } from "@/helpers/index.ts";
+import type { Method } from "@/helpers/permissions.ts";
 import { getIpFromRequest } from "@/helpers/request.ts";
+import { apiResponse } from "@/helpers/response.ts";
+import type { NextFunction, Request, Response } from "express";
 
 export const isAuthenticated = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const authHeader = req.headers["authorization"];
@@ -60,7 +62,7 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
 
     return next();
   } catch (err) {
-    const response = gatewayResponse().error(401, err as Error, "Not Authorized");
+    const response = apiResponse.error(err as Error, HttpStatusCode.UNAUTHORIZED);
 
     res.status(response.code).send(response);
     return;

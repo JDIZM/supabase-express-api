@@ -67,6 +67,7 @@ export const ErrorResponseSchema = z
   })
   .openapi("ErrorResponse");
 
+// TODO I think we need a filter model schema... maybe align with ag-grid? or create an adapter for ag-Grid.
 export const PaginationSchema = z
   .object({
     page: z.number().int().positive(),

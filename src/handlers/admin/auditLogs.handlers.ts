@@ -1,4 +1,5 @@
-import { gatewayResponse, logger } from "@/helpers/index.ts";
+import { HttpStatusCode } from "@/helpers/Http.ts";
+import { apiResponse } from "@/helpers/response.ts";
 import { asyncHandler } from "@/helpers/request.ts";
 import { accounts, auditLogs } from "@/schema.ts";
 import { db } from "@/services/db/drizzle.ts";
@@ -22,13 +23,6 @@ export const getAuditLogs = asyncHandler(async (req: Request, res: Response): Pr
   const workspaceId = req.query.workspaceId as string;
   const startDate = req.query.startDate as string;
   const endDate = req.query.endDate as string;
-
-  logger.info({
-    msg: `SuperAdmin listing audit logs - page: ${page}, limit: ${limit}`,
-    filters: { action, entityType, actorId, entityId, workspaceId, startDate, endDate }
-  });
-
-  // TODO add zod validation for actions etc.
 
   // Build conditions for filtering
   const conditions = [];
@@ -105,8 +99,8 @@ export const getAuditLogs = asyncHandler(async (req: Request, res: Response): Pr
 
   const auditLogsList = await query.orderBy(desc(auditLogs.createdAt)).limit(limit).offset(offset);
 
-  const response = gatewayResponse().success(
-    200,
+  const response = apiResponse.success(
+    HttpStatusCode.OK,
     {
       auditLogs: auditLogsList,
       pagination: {
@@ -139,8 +133,6 @@ export const getAuditLogStats = asyncHandler(async (req: Request, res: Response)
   const days = parseInt(req.query.days as string) || 30;
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
-
-  logger.info({ msg: `SuperAdmin requesting audit log stats for last ${days} days` });
 
   // Get action counts
   const actionStats = await db
@@ -188,8 +180,8 @@ export const getAuditLogStats = asyncHandler(async (req: Request, res: Response)
     .groupBy(sql`DATE(${auditLogs.createdAt})`)
     .orderBy(sql`DATE(${auditLogs.createdAt}) DESC`);
 
-  const response = gatewayResponse().success(
-    200,
+  const response = apiResponse.success(
+    HttpStatusCode.OK,
     {
       period: `${days} days`,
       startDate: startDate.toISOString(),

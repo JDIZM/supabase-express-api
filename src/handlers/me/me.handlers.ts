@@ -1,5 +1,5 @@
-import { HttpErrors, handleHttpError } from "@/helpers/HttpError.ts";
-import { gatewayResponse, logger } from "@/helpers/index.ts";
+import { HttpErrors, HttpStatusCode } from "@/helpers/Http.ts";
+import { apiResponse } from "@/helpers/response.ts";
 import { asyncHandler } from "@/helpers/request.ts";
 import { accounts, profiles, workspaceMemberships, workspaces } from "@/schema.ts";
 import { db } from "@/services/db/drizzle.ts";
@@ -19,11 +19,10 @@ export const getCurrentUser = asyncHandler(async (req: Request, res: Response): 
   const { accountId } = req;
 
   if (!accountId) {
-    handleHttpError(HttpErrors.MissingParameter("Account ID"), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.MissingParameter("Account ID"));
+    res.status(response.code).send(response);
     return;
   }
-
-  logger.info({ msg: `Fetching complete user profile: ${accountId}` });
 
   // Get account details
   const [account] = await db
@@ -41,7 +40,8 @@ export const getCurrentUser = asyncHandler(async (req: Request, res: Response): 
     .limit(1);
 
   if (!account) {
-    handleHttpError(HttpErrors.AccountNotFound(), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.NotFound("Account"));
+    res.status(response.code).send(response);
     return;
   }
 
@@ -70,8 +70,8 @@ export const getCurrentUser = asyncHandler(async (req: Request, res: Response): 
     .innerJoin(profiles, and(eq(profiles.workspaceId, workspaces.uuid), eq(profiles.accountId, accountId)))
     .where(eq(workspaceMemberships.accountId, accountId));
 
-  const response = gatewayResponse().success(
-    200,
+  const response = apiResponse.success(
+    HttpStatusCode.OK,
     {
       account,
       workspaces: userWorkspaces,

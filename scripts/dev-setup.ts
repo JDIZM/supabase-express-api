@@ -12,18 +12,18 @@
  * - Run seed first: `pnpm seed`
  * - Then add workspaces: `pnpm dev:workspace --email=alice@acmecorp.com --name="New Project"`
  */
-import { db } from "@/services/db/drizzle.ts";
-import {
-  profiles,
-  workspaces,
-  workspaceMemberships,
-  accounts,
-  type AccountSelectType,
-  type WorkspaceSelectType,
-  type ProfileSelectType,
-  type WorkspaceMembershipInsertType
-} from "@/schema.ts";
 import { logger } from "@/helpers/index.ts";
+import {
+  accounts,
+  profiles,
+  workspaceMemberships,
+  workspaces,
+  type AccountSelectType,
+  type ProfileSelectType,
+  type WorkspaceMembershipInsertType,
+  type WorkspaceSelectType
+} from "@/schema.ts";
+import { db } from "@/services/db/drizzle.ts";
 import { eq } from "drizzle-orm";
 
 interface CreateWorkspaceOptions {
