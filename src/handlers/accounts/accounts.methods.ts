@@ -63,7 +63,7 @@ export async function getAccountById(accountId: string): Promise<AccountSelectTy
   return result;
 }
 
-export async function getAccountWithRelations(accountId: string): Promise<AccountWithRelations> {
+export async function getAccountWithRelations(accountId: string): Promise<AccountWithRelations | null> {
   const validationResult = uuidSchema.safeParse({ uuid: accountId });
   if (!validationResult.success) {
     throw new Error(`Invalid account ID: ${validationResult.error.message}`);
@@ -85,9 +85,5 @@ export async function getAccountWithRelations(accountId: string): Promise<Accoun
     }
   });
 
-  if (!result) {
-    throw new Error("Account not found");
-  }
-
-  return result;
+  return result || null;
 }

@@ -1,5 +1,5 @@
 import { logger } from "@/helpers/index.ts";
-import { accounts } from "@/schema.ts";
+import { AccountStatus, accounts } from "@/schema.ts";
 import { db } from "@/services/db/drizzle.ts";
 import { eq } from "drizzle-orm";
 import type { NextFunction, Request, Response } from "express";
@@ -33,8 +33,8 @@ export const checkAccountStatus = async (req: Request, res: Response, next: Next
       res.status(response.code).send(response);
       return;
     }
-    // TODO enum for account status
-    if (account.status !== "active") {
+
+    if (account.status !== AccountStatus.ACTIVE) {
       logger.warn({ msg: `Access denied for ${account.status} account: ${accountId}` });
       const response = apiResponse.error(HttpErrors.Forbidden(`Account is ${account.status}`));
       res.status(response.code).send(response);

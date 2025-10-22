@@ -10,6 +10,15 @@ export const uuidSchema = z.uuid();
 // Validate UUID in object form (for backward compatibility)
 export const uuidObjectSchema = z.object({ uuid: uuidSchema });
 
+// Account status enum
+export const AccountStatus = {
+  ACTIVE: "active",
+  INACTIVE: "inactive",
+  SUSPENDED: "suspended"
+} as const;
+
+export type AccountStatusType = (typeof AccountStatus)[keyof typeof AccountStatus];
+
 export const accounts = pgTable("accounts", {
   uuid: uuid("uuid").defaultRandom().primaryKey(),
   fullName: text("full_name").notNull(),

@@ -38,7 +38,7 @@ export const getAccount = asyncHandler(async (req: Request, res: Response): Prom
   const result = await getAccountWithRelations(req.params.id);
 
   if (!result) {
-    const response = apiResponse.error(HttpErrors.ValidationFailed("Account not found"));
+    const response = apiResponse.error(HttpErrors.NotFound("Account"));
     res.status(response.code).send(response);
     return;
   }
