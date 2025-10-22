@@ -1,5 +1,5 @@
-import { HttpErrors, handleHttpError } from "@/helpers/HttpError.ts";
-import { gatewayResponse, logger } from "@/helpers/index.ts";
+import { HttpErrors, HttpStatusCode } from "@/helpers/Http.ts";
+import { apiResponse } from "@/helpers/response.ts";
 import { asyncHandler } from "@/helpers/request.ts";
 import { accounts, profileInsertSchema, profiles, uuidSchema, workspaceMemberships, workspaces } from "@/schema.ts";
 import { db } from "@/services/db/drizzle.ts";
@@ -18,17 +18,17 @@ export const createWorkspace = asyncHandler(async (req: Request, res: Response):
   const { accountId } = req;
 
   if (!accountId) {
-    handleHttpError(HttpErrors.MissingParameter("Account ID"), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.MissingParameter("Account ID"));
+    res.status(response.code).send(response);
     return;
   }
-
-  logger.info({ msg: `Creating workspace ${name} for ${accountId}` });
 
   // Get account info first (outside transaction)
   const [account] = await db.select().from(accounts).where(eq(accounts.uuid, accountId)).execute();
 
   if (!account) {
-    handleHttpError(HttpErrors.AccountNotFound(), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.NotFound("Account"));
+    res.status(response.code).send(response);
     return;
   }
 
@@ -48,8 +48,8 @@ export const createWorkspace = asyncHandler(async (req: Request, res: Response):
     return { workspace, membership, profile };
   });
 
-  const response = gatewayResponse().success(
-    200,
+  const response = apiResponse.success(
+    HttpStatusCode.OK,
     {
       workspace: result.workspace,
       profile: result.profile,
@@ -63,18 +63,16 @@ export const createWorkspace = asyncHandler(async (req: Request, res: Response):
 export const fetchWorkspace = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const validationResult = uuidSchema.safeParse(req.params.id);
   if (!validationResult.success) {
-    handleHttpError(
-      HttpErrors.ValidationFailed(`Invalid workspace ID: ${validationResult.error.message}`),
-      res,
-      gatewayResponse
+    const response = apiResponse.error(
+      HttpErrors.ValidationFailed(`Invalid workspace ID: ${validationResult.error.message}`)
     );
+    res.status(response.code).send(response);
     return;
   }
 
-  logger.info({ msg: `Fetching workspace: ${req.params.id}` });
-
   if (!req.params.id) {
-    handleHttpError(HttpErrors.MissingParameter("Workspace ID"), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.MissingParameter("Workspace ID"));
+    res.status(response.code).send(response);
     return;
   }
 
@@ -107,7 +105,8 @@ export const fetchWorkspace = asyncHandler(async (req: Request, res: Response): 
   });
 
   if (!relations) {
-    handleHttpError(HttpErrors.WorkspaceNotFound(), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.NotFound("Workspace"));
+    res.status(response.code).send(response);
     return;
   }
 
@@ -140,7 +139,7 @@ export const fetchWorkspace = asyncHandler(async (req: Request, res: Response): 
     memberCount: members.length
   };
 
-  const response = gatewayResponse().success(200, workspaceWithMembers, "Fetched workspace");
+  const response = apiResponse.success(HttpStatusCode.OK, workspaceWithMembers, "Fetched workspace");
 
   res.status(response.code).send(response);
 });
@@ -148,9 +147,7 @@ export const fetchWorkspace = asyncHandler(async (req: Request, res: Response): 
 export const fetchWorkspaces = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
   const result = await db.select().from(workspaces).execute();
 
-  logger.info({ msg: `Fetching workspaces: ${result.length}` });
-
-  const response = gatewayResponse().success(200, result, "Fetched workspaces");
+  const response = apiResponse.success(HttpStatusCode.OK, result, "Fetched workspaces");
 
   res.status(response.code).send(response);
 });
@@ -159,21 +156,21 @@ export const fetchWorkspacesByAccountId = asyncHandler(async (req: Request, res:
   const { accountId } = req;
 
   if (!accountId) {
-    handleHttpError(HttpErrors.MissingParameter("Account ID"), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.MissingParameter("Account ID"));
+    res.status(response.code).send(response);
     return;
   }
-
-  logger.info({ msg: `Fetching workspaces for account: ${accountId}` });
 
   const equals = eq(workspaces.accountId, accountId);
   const result = await db.select().from(workspaces).where(equals).execute();
 
   if (result.length === 0) {
-    handleHttpError(HttpErrors.NotFound("Workspaces"), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.NotFound("Workspaces"));
+    res.status(response.code).send(response);
     return;
   }
 
-  const response = gatewayResponse().success(200, result, `Fetched workspaces: ${result.length}`);
+  const response = apiResponse.success(HttpStatusCode.OK, result, `Fetched workspaces: ${result.length}`);
 
   res.status(response.code).send(response);
 });
@@ -194,50 +191,47 @@ export const updateWorkspaceProfile = asyncHandler(async (req: Request, res: Res
   const { name } = req.body;
 
   if (!workspaceId) {
-    handleHttpError(HttpErrors.MissingParameter("Workspace ID"), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.MissingParameter("Workspace ID"));
+    res.status(response.code).send(response);
     return;
   }
 
   // Validate accountId exists and is a valid UUID
   if (!accountId) {
-    handleHttpError(HttpErrors.Unauthorized("Account ID is required"), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.Unauthorized("Account ID is required"));
+    res.status(response.code).send(response);
     return;
   }
 
   const accountValidation = uuidSchema.safeParse({ uuid: accountId });
   if (!accountValidation.success) {
-    handleHttpError(
-      HttpErrors.ValidationFailed(`Invalid account ID: ${accountValidation.error.message}`),
-      res,
-      gatewayResponse
+    const response = apiResponse.error(
+      HttpErrors.ValidationFailed(`Invalid account ID: ${accountValidation.error.message}`)
     );
+    res.status(response.code).send(response);
     return;
   }
 
   const workspaceValidation = uuidSchema.safeParse({ uuid: workspaceId });
   if (!workspaceValidation.success) {
-    handleHttpError(
-      HttpErrors.ValidationFailed(`Invalid workspace ID: ${workspaceValidation.error.message}`),
-      res,
-      gatewayResponse
+    const response = apiResponse.error(
+      HttpErrors.ValidationFailed(`Invalid workspace ID: ${workspaceValidation.error.message}`)
     );
+    res.status(response.code).send(response);
     return;
   }
 
   // Validate the entire request body with Zod schema
   const bodyValidation = profileInsertSchema.pick({ name: true }).safeParse({ name });
   if (!bodyValidation.success) {
-    handleHttpError(
-      HttpErrors.ValidationFailed(`Profile name validation failed: ${bodyValidation.error.message}`),
-      res,
-      gatewayResponse
+    const response = apiResponse.error(
+      HttpErrors.ValidationFailed(`Profile name validation failed: ${bodyValidation.error.message}`)
     );
+    res.status(response.code).send(response);
     return;
   }
 
   const validatedName = bodyValidation.data.name.trim();
-
-  logger.info({ msg: `Updating profile for account ${accountId} in workspace: ${workspaceId}` });
 
   // Security check: Find the user's OWN profile in this workspace
   // This ensures users can only update their own profile, not others
@@ -248,7 +242,8 @@ export const updateWorkspaceProfile = asyncHandler(async (req: Request, res: Res
     .limit(1);
 
   if (!existingProfile) {
-    handleHttpError(HttpErrors.NotFound("Your profile was not found in this workspace"), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.NotFound("Your profile was not found in this workspace"));
+    res.status(response.code).send(response);
     return;
   }
 
@@ -260,11 +255,12 @@ export const updateWorkspaceProfile = asyncHandler(async (req: Request, res: Res
     .returning();
 
   if (!updatedProfile) {
-    handleHttpError(HttpErrors.DatabaseError("Failed to update profile"), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.DatabaseError("Failed to update profile"));
+    res.status(response.code).send(response);
     return;
   }
 
-  const response = gatewayResponse().success(200, { profile: updatedProfile }, "Profile updated successfully");
+  const response = apiResponse.success(HttpStatusCode.OK, { profile: updatedProfile }, "Profile updated successfully");
 
   res.status(response.code).send(response);
 });
@@ -284,27 +280,26 @@ export const deleteWorkspace = asyncHandler(async (req: Request, res: Response):
   const workspaceId = req.params.id;
 
   if (!workspaceId) {
-    handleHttpError(HttpErrors.MissingParameter("Workspace ID"), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.MissingParameter("Workspace ID"));
+    res.status(response.code).send(response);
     return;
   }
 
   const validationResult = uuidSchema.safeParse({ uuid: workspaceId });
   if (!validationResult.success) {
-    handleHttpError(
-      HttpErrors.ValidationFailed(`Invalid workspace ID: ${validationResult.error.message}`),
-      res,
-      gatewayResponse
+    const response = apiResponse.error(
+      HttpErrors.ValidationFailed(`Invalid workspace ID: ${validationResult.error.message}`)
     );
+    res.status(response.code).send(response);
     return;
   }
-
-  logger.info({ msg: `Deleting workspace: ${workspaceId}` });
 
   // Get workspace info
   const [workspace] = await db.select().from(workspaces).where(eq(workspaces.uuid, workspaceId)).limit(1);
 
   if (!workspace) {
-    handleHttpError(HttpErrors.WorkspaceNotFound(), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.NotFound("Workspace"));
+    res.status(response.code).send(response);
     return;
   }
 
@@ -320,8 +315,8 @@ export const deleteWorkspace = asyncHandler(async (req: Request, res: Response):
     await tx.delete(workspaces).where(eq(workspaces.uuid, workspaceId));
   });
 
-  const response = gatewayResponse().success(
-    200,
+  const response = apiResponse.success(
+    HttpStatusCode.OK,
     { deletedWorkspaceId: workspaceId, workspaceName: workspace.name },
     `Workspace "${workspace.name}" deleted successfully`
   );

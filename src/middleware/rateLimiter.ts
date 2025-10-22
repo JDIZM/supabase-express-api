@@ -1,7 +1,8 @@
-import { rateLimit } from "express-rate-limit";
 import { logger } from "@/helpers/logger.ts";
-import { gatewayResponse } from "@/helpers/index.ts";
+import { apiResponse } from "@/helpers/response.ts";
 import type { RateLimitRequestHandler } from "express-rate-limit";
+import { rateLimit } from "express-rate-limit";
+import { HttpErrors } from "../helpers/Http.ts";
 
 export const createRateLimiter = (options: {
   windowMs: number;
@@ -25,7 +26,8 @@ export const createRateLimiter = (options: {
         "Rate limit exceeded"
       );
 
-      const response = gatewayResponse().error(429, new Error("Too Many Requests"), options.message);
+      logger.debug({ options }, "Rate limit request details");
+      const response = apiResponse.error(HttpErrors.TooManyRequests(options.message));
 
       res.status(response.code).json(response);
     }

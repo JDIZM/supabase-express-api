@@ -1,7 +1,8 @@
 import { LoginRequestSchema, SignupRequestSchema } from "@/docs/openapi-schemas.ts";
 import { createDbAccount } from "@/handlers/accounts/accounts.methods.ts";
-import { HttpErrors, handleHttpError } from "@/helpers/HttpError.ts";
-import { gatewayResponse, logger } from "@/helpers/index.ts";
+import { HttpErrors, HttpStatusCode } from "@/helpers/Http.ts";
+import { apiResponse } from "@/helpers/response.ts";
+import { logger } from "@/helpers/logger.ts";
 import { asyncHandler } from "@/helpers/request.ts";
 import { supabase } from "@/services/supabase.ts";
 import type { User } from "@supabase/supabase-js";
@@ -25,13 +26,12 @@ export const signUpWithSupabase = async (email: string, password: string): Promi
 
 export const signUp = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const validation = SignupRequestSchema.safeParse(req.body);
-  logger.info({ msg: "User signup attempt", body: req.body });
+
   if (!validation.success) {
-    handleHttpError(
-      HttpErrors.ValidationFailed(`Invalid request data: ${validation.error.message}`),
-      res,
-      gatewayResponse
+    const response = apiResponse.error(
+      HttpErrors.ValidationFailed(`Invalid request data: ${validation.error.message}`)
     );
+    res.status(response.code).send(response);
     return;
   }
 
@@ -43,17 +43,19 @@ export const signUp = asyncHandler(async (req: Request, res: Response): Promise<
     // Don't expose the original error to the client. This is a security risk.
     // eg "code": "user_already_exists"
     // We also don't want to throw errors in the handler, because they will be caught by the asyncHandler and reported to Sentry.
-    const response = gatewayResponse<string>().error(401, Error("Unable to sign up"), "Unable to sign up");
+    const response = apiResponse.error(HttpErrors.Unauthorized("Unable to sign up"));
     res.status(response.code).send(response);
     return;
   }
 
-  logger.info({ msg: `User signed up with id: ${user.id}` });
-
   // Let Supabase provide us the UUID for the account.
   const dbAccountId = await createDbAccount({ email, fullName, phone, uuid: user.id });
 
-  const response = gatewayResponse<string>().success(200, `Account created in DB with id: ${dbAccountId}`);
+  const response = apiResponse.success<string>(
+    HttpStatusCode.OK,
+    `Account created in DB with id: ${dbAccountId}`,
+    "Signup successful"
+  );
 
   res.status(response.code).send(response);
 });
@@ -63,11 +65,10 @@ export const signInWithPassword = asyncHandler(
     try {
       const validation = LoginRequestSchema.safeParse(req.body);
       if (!validation.success) {
-        handleHttpError(
-          HttpErrors.ValidationFailed(`Invalid request data: ${validation.error.message}`),
-          res,
-          gatewayResponse
+        const response = apiResponse.error(
+          HttpErrors.ValidationFailed(`Invalid request data: ${validation.error.message}`)
         );
+        res.status(response.code).send(response);
         return;
       }
 
@@ -82,13 +83,12 @@ export const signInWithPassword = asyncHandler(
         // Don't expose the original error to the client. This is a security risk.
         // We also don't want to throw errors in the handler, because they will be caught by the asyncHandler and reported to Sentry.
         logger.error({ error }, "Unable to signInWithPassword");
-        const response = gatewayResponse<string>().error(401, Error("Unable to sign in"), "Unable to sign in");
+        const response = apiResponse.error(HttpErrors.Unauthorized("Unable to sign in"));
         res.status(response.code).send(response);
         return;
       }
 
-      logger.info("User signed in", 200, data.user.id);
-      const response = gatewayResponse<typeof data>().success(200, data);
+      const response = apiResponse.success<typeof data>(HttpStatusCode.OK, data, "Sign in successful");
 
       res.status(response.code).send(response);
     } catch (err) {

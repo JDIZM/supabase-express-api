@@ -1,34 +1,43 @@
-import { gatewayResponse, logger } from "@/helpers/index.ts";
+import { HttpErrors, HttpStatusCode } from "@/helpers/Http.ts";
+import { apiResponse } from "@/helpers/response.ts";
 import { asyncHandler } from "@/helpers/request.ts";
 import { accounts, auditLogs } from "@/schema.ts";
 import { db } from "@/services/db/drizzle.ts";
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import type { Request, Response } from "express";
+import { z } from "zod";
+
+// Zod schema for audit logs query parameters
+const auditLogsQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(50),
+  action: z.string().optional(),
+  entityType: z.string().optional(),
+  actorId: z.string().uuid().optional(),
+  entityId: z.string().uuid().optional(),
+  workspaceId: z.string().uuid().optional(),
+  startDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional()
+});
 
 /**
  * GET /admin/audit-logs
  * List audit logs with filtering and pagination (SuperAdmin only)
  */
 export const getAuditLogs = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const page = parseInt(req.query.page as string) || 1;
-  const limit = parseInt(req.query.limit as string) || 50;
+  // Validate query parameters
+  const validationResult = auditLogsQuerySchema.safeParse(req.query);
+
+  if (!validationResult.success) {
+    const response = apiResponse.error(
+      HttpErrors.ValidationFailed(`Invalid query parameters: ${validationResult.error.message}`)
+    );
+    res.status(response.code).send(response);
+    return;
+  }
+
+  const { page, limit, action, entityType, actorId, entityId, workspaceId, startDate, endDate } = validationResult.data;
   const offset = (page - 1) * limit;
-
-  // Filter parameters
-  const action = req.query.action as string;
-  const entityType = req.query.entityType as string;
-  const actorId = req.query.actorId as string;
-  const entityId = req.query.entityId as string;
-  const workspaceId = req.query.workspaceId as string;
-  const startDate = req.query.startDate as string;
-  const endDate = req.query.endDate as string;
-
-  logger.info({
-    msg: `SuperAdmin listing audit logs - page: ${page}, limit: ${limit}`,
-    filters: { action, entityType, actorId, entityId, workspaceId, startDate, endDate }
-  });
-
-  // TODO add zod validation for actions etc.
 
   // Build conditions for filtering
   const conditions = [];
@@ -105,8 +114,8 @@ export const getAuditLogs = asyncHandler(async (req: Request, res: Response): Pr
 
   const auditLogsList = await query.orderBy(desc(auditLogs.createdAt)).limit(limit).offset(offset);
 
-  const response = gatewayResponse().success(
-    200,
+  const response = apiResponse.success(
+    HttpStatusCode.OK,
     {
       auditLogs: auditLogsList,
       pagination: {
@@ -139,8 +148,6 @@ export const getAuditLogStats = asyncHandler(async (req: Request, res: Response)
   const days = parseInt(req.query.days as string) || 30;
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
-
-  logger.info({ msg: `SuperAdmin requesting audit log stats for last ${days} days` });
 
   // Get action counts
   const actionStats = await db
@@ -188,8 +195,8 @@ export const getAuditLogStats = asyncHandler(async (req: Request, res: Response)
     .groupBy(sql`DATE(${auditLogs.createdAt})`)
     .orderBy(sql`DATE(${auditLogs.createdAt}) DESC`);
 
-  const response = gatewayResponse().success(
-    200,
+  const response = apiResponse.success(
+    HttpStatusCode.OK,
     {
       period: `${days} days`,
       startDate: startDate.toISOString(),

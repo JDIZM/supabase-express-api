@@ -1,12 +1,14 @@
-import type { NextFunction, Request, Response } from "express";
-import type { Route } from "@/helpers/index.ts";
-import { ROLES, type Method } from "@/helpers/permissions.ts";
-import { gatewayResponse, logger, permissions } from "@/helpers/index.ts";
 import { checkMembership } from "@/handlers/memberships/memberships.methods.ts";
 import { getProfileById } from "@/handlers/profiles/profiles.methods.ts";
-import { db } from "@/services/db/drizzle.ts";
+import { HttpErrors, HttpStatusCode } from "@/helpers/Http.ts";
+import type { Route } from "@/helpers/index.ts";
+import { logger, permissions } from "@/helpers/index.ts";
+import { ROLES, type Method } from "@/helpers/permissions.ts";
+import { apiResponse } from "@/helpers/response.ts";
 import { accounts } from "@/schema.ts";
+import { db } from "@/services/db/drizzle.ts";
 import { eq } from "drizzle-orm";
+import type { NextFunction, Request, Response } from "express";
 
 const ResourceType = {
   ACCOUNT: "account",
@@ -140,11 +142,11 @@ export const isAuthorized = async (req: Request, res: Response, next: NextFuncti
       }
     }
 
-    const response = gatewayResponse().error(403, new Error("Forbidden"), "Not Authorized");
+    const response = apiResponse.error(HttpErrors.Forbidden());
     res.status(response.code).json(response);
     return;
   } catch (err) {
-    const response = gatewayResponse().error(403, err as Error, "Not Authorized");
+    const response = apiResponse.error(err as Error, HttpStatusCode.FORBIDDEN);
 
     res.status(response.code).json(response);
     return;

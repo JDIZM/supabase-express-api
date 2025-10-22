@@ -1,6 +1,6 @@
-import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
 import { logger } from "@/helpers/index.ts";
+import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
 
 dotenv.config();
 

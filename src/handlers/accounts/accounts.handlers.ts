@@ -1,6 +1,6 @@
-import { HttpErrors, handleHttpError } from "@/helpers/HttpError.ts";
-import { gatewayResponse, logger } from "@/helpers/index.ts";
+import { HttpErrors, HttpStatusCode } from "@/helpers/Http.ts";
 import { asyncHandler } from "@/helpers/request.ts";
+import { apiResponse } from "@/helpers/response.ts";
 import { accounts, uuidSchema, type AccountSelectType, type AccountWithRelations } from "@/schema.ts";
 import { db } from "@/services/db/drizzle.ts";
 import type { Request, Response } from "express";
@@ -9,51 +9,54 @@ import { createDbAccount, getAccountWithRelations } from "./accounts.methods.ts"
 export const getAccounts = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
   const result = await db.select().from(accounts).execute();
 
-  logger.info({ msg: `Fetched accounts: ${result.length}` });
-
-  const response = gatewayResponse<AccountSelectType[]>().success(200, result);
+  const response = apiResponse.success<AccountSelectType[]>(
+    HttpStatusCode.OK,
+    result,
+    `Fetched accounts: ${result.length}`
+  );
 
   res.status(response.code).send(response);
 });
 
 export const getAccount = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const validationResult = uuidSchema.safeParse({ uuid: req.params.id });
+
   if (!validationResult.success) {
-    handleHttpError(
-      HttpErrors.ValidationFailed(`Invalid account ID: ${validationResult.error.message}`),
-      res,
-      gatewayResponse
+    const response = apiResponse.error(
+      HttpErrors.ValidationFailed(`Invalid account ID: ${validationResult.error.message}`)
     );
+    res.status(response.code).send(response);
     return;
   }
 
   if (!req.params.id) {
-    handleHttpError(HttpErrors.MissingParameter("Account ID"), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.MissingParameter("Account ID"));
+    res.status(response.code).send(response);
     return;
   }
 
   const result = await getAccountWithRelations(req.params.id);
 
   if (!result) {
-    handleHttpError(HttpErrors.AccountNotFound(), res, gatewayResponse);
+    const response = apiResponse.error(HttpErrors.NotFound("Account"));
+    res.status(response.code).send(response);
     return;
   }
 
-  logger.info({ msg: `Fetched account with UUID ${req.params.id}` });
-
-  const response = gatewayResponse<AccountWithRelations>().success(200, result);
-
+  const response = apiResponse.success<AccountWithRelations>(
+    HttpStatusCode.OK,
+    result,
+    `Fetched account with UUID ${req.params.id}`
+  );
   res.status(response.code).send(response);
 });
 
 export const createAccount = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { fullName, phone, email } = req.body;
 
-  logger.info({ msg: `Creating account...` });
-
   const accountId = await createDbAccount({ fullName, phone, email });
 
-  const response = gatewayResponse<string>().success(200, accountId);
+  const response = apiResponse.success<string>(HttpStatusCode.OK, accountId, "Account created");
 
   res.status(response.code).send(response);
 });
