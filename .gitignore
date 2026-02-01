@@ -4,3 +4,8 @@ coverage
 .env
 logs
 *.log
+
+# personal settings don't commit.
+.claude
+CLAUDE.md
+local

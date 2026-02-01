@@ -450,6 +450,56 @@ pnpm token-test --token=<jwt-token> --decode-only
 
 Be sure to update the seeds as new migrations are added.
 
+## Security
+
+### Row Level Security (RLS)
+
+This project uses **RLS with deny-all policy** as defense-in-depth:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Data Queries: API → Drizzle ORM → PostgreSQL                │
+│               (Bypasses RLS via DATABASE_URL)               │
+├─────────────────────────────────────────────────────────────┤
+│ Auth: API uses supabase.auth.getClaims() for JWT verify     │
+│       (Works with publishable key, not affected by RLS)     │
+├─────────────────────────────────────────────────────────────┤
+│ Direct Access: Blocked by RLS (no policies = deny all)      │
+│                If publishable key leaks, queries return []  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**How it works:**
+
+- ✅ RLS enabled on all data tables with **no policies** (deny all)
+- ✅ API uses `DATABASE_URL` (Drizzle ORM) which bypasses RLS
+- ✅ Auth endpoints (`/auth/v1/*`) are not affected by RLS
+- ✅ If publishable key leaks, direct data queries return empty results
+
+### Supabase Keys
+
+| Variable | Purpose | Used By |
+|----------|---------|---------|
+| `DATABASE_URL` | Drizzle ORM data queries | API |
+| `SUPABASE_PUBLISHABLE_KEY` | Auth operations (getClaims, signIn) | API |
+| `SUPABASE_SECRET_KEY` | Admin operations (optional) | API |
+
+**Key formats (2025+):**
+
+- `sb_publishable_*` - Publishable/anon key for client operations
+- `sb_secret_*` - Secret/service role key for admin operations
+
+Legacy key names (`SUPABASE_PK`, `SUPABASE_ANON_KEY`) are still supported for backward compatibility.
+
+### Token Verification
+
+This project uses `supabase.auth.getClaims()` for JWT verification:
+
+- **With asymmetric keys**: Verifies locally using Web Crypto API (fast, no network call)
+- **With symmetric keys**: Makes network call to Auth server (slower, but safe)
+
+No `JWT_SECRET` environment variable is needed - getClaims() handles verification automatically.
+
 ## Build with docker
 
 ```bash

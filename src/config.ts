@@ -22,6 +22,16 @@ if (STAGE !== "production") {
   dotenv.config();
 }
 
+/**
+ * Get Supabase publishable key - supports both new (2025+) and legacy formats
+ */
+const getSupabasePublishableKey = (): string => {
+  if (process.env.SUPABASE_PUBLISHABLE_KEY) {
+    return process.env.SUPABASE_PUBLISHABLE_KEY;
+  }
+  return process.env.SUPABASE_PK || process.env.SUPABASE_ANON_KEY || "";
+};
+
 export const config = {
   env: STAGE,
   port: process.env.PORT || 4000,
@@ -32,6 +42,6 @@ export const config = {
   db_password: process.env.POSTGRES_PASSWORD || "postgres",
   db_name: process.env.POSTGRES_DB || "postgres",
   supabaseUrl: process.env.SUPABASE_URL || "https://example.supabase.co",
-  supabaseKey: process.env.SUPABASE_PK || "example-key",
-  jwtSecret: process.env.SUPABASE_AUTH_JWT_SECRET || "super-secret-key-that-should-be-replaced"
+  supabasePublishableKey: getSupabasePublishableKey(),
+  supabaseSecretKey: process.env.SUPABASE_SECRET_KEY
 };
