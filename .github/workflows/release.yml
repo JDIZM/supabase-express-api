@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18, 20, 22]
+        node-version: [22, 24]
     steps:
       - uses: actions/checkout@v4
       - uses: volta-cli/action@v4
@@ -40,29 +40,3 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
         run: pnpm migrate
-  # TODO uncomment the deployment step when you have configured the secrets.
-  # deploy-prod:
-  #   needs: [test-and-build, migrate-prod]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: volta-cli/action@v3
-  #       with:
-  #         node-version: 20
-
-  #     - name: Install doctl
-  #       uses: digitalocean/action-doctl@v2
-  #       with:
-  #         token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-
-  #     - name: Build container image
-  #       run: docker build -t ${{ secrets.REGISTRY_NAME }}/${{secrets.IMAGE_NAME}}-prod:$(echo $GITHUB_SHA | head -c7) .
-
-  #     - name: Log in to DigitalOcean Container Registry with short-lived credentials
-  #       run: doctl registry login --expiry-seconds 1200
-
-  #     - name: tag image with latest tag
-  #       run: docker tag ${{ secrets.REGISTRY_NAME }}/${{secrets.IMAGE_NAME}}-prod:$(echo $GITHUB_SHA | head -c7) ${{ secrets.REGISTRY_NAME }}/${{secrets.IMAGE_NAME}}-prod:latest
-
-  #     - name: Push image to DigitalOcean Container Registry
-  #       run: docker push ${{ secrets.REGISTRY_NAME }}/${{secrets.IMAGE_NAME}}-prod:latest
