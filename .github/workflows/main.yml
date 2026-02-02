@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18, 20, 22]
+        node-version: [22, 24]
     steps:
       - uses: actions/checkout@v4
       - uses: volta-cli/action@v4
@@ -40,15 +40,16 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DEV_DATABASE_URL }}
         run: pnpm migrate
+
   # TODO uncomment the deployment step when you have configured the secrets.
   # deploy-dev:
   #   needs: [test-and-build, migrate-dev]
   #   runs-on: ubuntu-latest
   #   steps:
   #     - uses: actions/checkout@v4
-  #     - uses: volta-cli/action@v3
+  #     - uses: volta-cli/action@v4
   #       with:
-  #         node-version: 20
+  #         node-version: 22
 
   #     - name: Install doctl
   #       uses: digitalocean/action-doctl@v2
