@@ -1,71 +1,85 @@
 import { logger } from "@/helpers/index.ts";
+import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
-import jwt from "jsonwebtoken";
 
 dotenv.config();
 
-interface TokenPayload {
+/**
+ * Token Testing Utility
+ *
+ * Uses Supabase getClaims() for token verification - no JWT_SECRET needed.
+ * Works with both asymmetric (new sb_publishable_*) and symmetric (old eyJhbG...) keys.
+ */
+
+interface TokenClaims {
   sub: string;
-  email: string;
-  iss: string;
-  aud: string;
-  role: string;
-  exp: number;
-  iat: number;
+  email?: string;
+  iss?: string;
+  aud?: string;
+  role?: string;
+  exp?: number;
+  iat?: number;
   session_id?: string;
-  app_metadata?: {
-    provider: string;
-    providers: string[];
-  };
-  user_metadata?: {
-    email_verified: boolean;
-  };
+  app_metadata?: Record<string, unknown>;
+  user_metadata?: Record<string, unknown>;
 }
 
-// interface TokenTestOptions {
-//   token?: string;
-//   secret?: string;
-//   showPayload?: boolean;
-//   checkExpiry?: boolean;
-// }
-
 class TokenTester {
-  private secret: string;
+  private supabase;
 
-  constructor(secret?: string) {
-    this.secret = secret || process.env.SUPABASE_AUTH_JWT_SECRET || "";
-    if (!this.secret) {
-      throw new Error("JWT secret is required. Set SUPABASE_AUTH_JWT_SECRET environment variable.");
+  constructor() {
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_PK;
+
+    if (!url || !key) {
+      throw new Error("SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY (or SUPABASE_ANON_KEY) are required");
     }
+
+    this.supabase = createClient(url, key, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
   }
 
   /**
-   * Verify and decode a JWT token
+   * Verify and decode a JWT token using getClaims()
    */
-  verifyToken(token: string, options: { showPayload?: boolean; checkExpiry?: boolean } = {}): TokenPayload | null {
+  async verifyToken(
+    token: string,
+    options: { showPayload?: boolean; checkExpiry?: boolean } = {}
+  ): Promise<TokenClaims | null> {
     try {
-      const decoded = jwt.verify(token, this.secret) as TokenPayload;
+      const { data, error } = await this.supabase.auth.getClaims(token);
+
+      if (error || !data) {
+        logger.error("❌ Token verification failed:", error?.message || "No data returned");
+        return null;
+      }
+
+      const claims = data.claims as TokenClaims;
 
       if (options.showPayload) {
         logger.info("✅ Token is valid");
         logger.info(
           {
-            sub: decoded.sub,
-            email: decoded.email,
-            role: decoded.role,
-            issuer: decoded.iss,
-            audience: decoded.aud,
-            issuedAt: new Date(decoded.iat * 1000).toISOString(),
-            expiresAt: new Date(decoded.exp * 1000).toISOString(),
-            sessionId: decoded.session_id
+            sub: claims.sub,
+            email: claims.email,
+            role: claims.role,
+            issuer: claims.iss,
+            audience: claims.aud,
+            issuedAt: claims.iat ? new Date(claims.iat * 1000).toISOString() : undefined,
+            expiresAt: claims.exp ? new Date(claims.exp * 1000).toISOString() : undefined,
+            sessionId: claims.session_id
           },
           "📋 Token payload:"
         );
       }
 
-      if (options.checkExpiry) {
+      if (options.checkExpiry && claims.exp) {
         const now = Math.floor(Date.now() / 1000);
-        const timeUntilExpiry = decoded.exp - now;
+        const timeUntilExpiry = claims.exp - now;
 
         if (timeUntilExpiry <= 0) {
           logger.warn("⚠️  Token has expired");
@@ -74,47 +88,37 @@ class TokenTester {
         }
       }
 
-      return decoded;
+      return claims;
     } catch (error) {
-      if (error instanceof jwt.TokenExpiredError) {
-        logger.error("❌ Token has expired");
-      } else if (error instanceof jwt.JsonWebTokenError) {
-        logger.error("❌ Token is invalid:", error.message);
-      } else {
-        logger.error("❌ Token verification failed:", error);
-      }
+      logger.error("❌ Token verification failed:", error);
       return null;
     }
   }
 
   /**
-   * Test if the current secret can decode the token
-   */
-  testSecret(token: string): boolean {
-    try {
-      jwt.verify(token, this.secret);
-      logger.info("✅ Secret is correct for this token");
-      return true;
-    } catch {
-      logger.error("❌ Secret is incorrect for this token");
-      return false;
-    }
-  }
-
-  /**
    * Extract token information without verification (for debugging)
+   * Decodes base64 payload without signature verification
    */
-  decodeWithoutVerification(token: string): jwt.Jwt | null {
+  decodeWithoutVerification(token: string): TokenClaims | null {
     try {
-      const decoded = jwt.decode(token, { complete: true });
+      const parts = token.split(".");
+      if (parts.length !== 3 || !parts[0] || !parts[1]) {
+        logger.error("❌ Invalid JWT format");
+        return null;
+      }
+
+      const header = JSON.parse(Buffer.from(parts[0], "base64url").toString());
+      const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString());
+
       logger.info(
         {
-          header: decoded?.header,
-          payload: decoded?.payload
+          header,
+          payload
         },
         "🔍 Token decoded without verification:"
       );
-      return decoded;
+
+      return payload;
     } catch (error) {
       logger.error("❌ Failed to decode token:", error);
       return null;
@@ -136,67 +140,22 @@ class TokenTester {
 
     return isValid;
   }
-
-  /**
-   * Generate a test token for development (requires account UUID)
-   */
-  generateTestToken(
-    accountId: string,
-    email: string,
-    options: {
-      expiresIn?: string;
-      role?: string;
-      isSuperAdmin?: boolean;
-    } = {}
-  ): string {
-    // Use SUPABASE_URL to construct the issuer, fallback to test-issuer for development
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const issuer = supabaseUrl ? `${supabaseUrl}/auth/v1` : "test-issuer";
-
-    const payload = {
-      sub: accountId,
-      email,
-      role: options.role || "authenticated",
-      iss: issuer,
-      aud: "authenticated",
-      exp: Math.floor(Date.now() / 1000) + (options.expiresIn ? parseInt(options.expiresIn) : 3600), // 1 hour default
-      iat: Math.floor(Date.now() / 1000),
-      app_metadata: {
-        provider: "email",
-        providers: ["email"]
-      },
-      user_metadata: {
-        email_verified: true
-      }
-    };
-
-    const token = jwt.sign(payload, this.secret);
-    logger.info("🔧 Generated test token for development");
-    return token;
-  }
 }
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
 
   if (args.length === 0) {
-    logger.info("JWT Token Testing Utility");
+    logger.info("JWT Token Testing Utility (using Supabase getClaims)");
     logger.info("");
     logger.info("Usage examples:");
     logger.info("  # Test token with full information");
     logger.info("  pnpm token-test --token=<jwt-token> --show-payload --check-expiry");
     logger.info("");
-    logger.info("  # Test secret compatibility");
-    logger.info("  pnpm token-test --token=<jwt-token> --test-secret");
-    logger.info("");
     logger.info("  # Decode without verification (debug)");
     logger.info("  pnpm token-test --token=<jwt-token> --decode-only");
     logger.info("");
-    logger.info("  # Generate test token");
-    logger.info("  pnpm token-test --generate --account-id=<uuid> --email=test@example.com");
-    logger.info("");
-    logger.info("  # Use different secret");
-    logger.info("  pnpm token-test --token=<jwt-token> --secret=<custom-secret>");
+    logger.info("Note: No JWT_SECRET needed - getClaims() handles verification automatically.");
     return;
   }
 
@@ -210,25 +169,9 @@ async function main(): Promise<void> {
     }, {});
 
   try {
-    const tester = new TokenTester(options.secret as string);
+    const tester = new TokenTester();
 
-    // Generate test token
-    if (options.generate) {
-      if (!options["account-id"] || !options.email) {
-        logger.error("❌ --account-id and --email are required for token generation");
-        process.exit(1);
-      }
-
-      const token = tester.generateTestToken(options["account-id"] as string, options.email as string, {
-        expiresIn: options["expires-in"] as string,
-        role: options.role as string
-      });
-
-      console.log("Generated token:", token);
-      return;
-    }
-
-    // Token is required for other operations
+    // Token is required
     if (!options.token) {
       logger.error("❌ --token is required");
       process.exit(1);
@@ -247,14 +190,8 @@ async function main(): Promise<void> {
       return;
     }
 
-    // Test secret compatibility
-    if (options["test-secret"]) {
-      tester.testSecret(token);
-      return;
-    }
-
     // Verify token with options
-    const decoded = tester.verifyToken(token, {
+    const decoded = await tester.verifyToken(token, {
       showPayload: options["show-payload"] as boolean,
       checkExpiry: options["check-expiry"] as boolean
     });

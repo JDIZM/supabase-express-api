@@ -493,12 +493,41 @@ Legacy key names (`SUPABASE_PK`, `SUPABASE_ANON_KEY`) are still supported for ba
 
 ### Token Verification
 
-This project uses `supabase.auth.getClaims()` for JWT verification:
+This project uses `supabase.auth.getClaims()` for JWT verification instead of the legacy `jwt.verify()` approach.
 
-- **With asymmetric keys**: Verifies locally using Web Crypto API (fast, no network call)
-- **With symmetric keys**: Makes network call to Auth server (slower, but safe)
+**Why getClaims()?**
 
-No `JWT_SECRET` environment variable is needed - getClaims() handles verification automatically.
+| Old Approach | New Approach |
+|--------------|--------------|
+| `jwt.verify(token, JWT_SECRET)` | `supabase.auth.getClaims(token)` |
+| Required `SUPABASE_AUTH_JWT_SECRET` env var | No secret needed |
+| Manual dependency on `jsonwebtoken` | Built into Supabase SDK |
+
+**How getClaims() works:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ getClaims(token)                                            │
+│                                                             │
+│ 1. Decode JWT header → check algorithm                      │
+│                                                             │
+│ 2. If asymmetric (RS256, new sb_publishable_* keys):        │
+│    → Fetch JWKS (public keys) from Supabase                 │
+│    → Verify signature locally with Web Crypto API           │
+│    → Fast, no network call for verification                 │
+│                                                             │
+│ 3. If symmetric (HS256, old eyJhbG... keys):                │
+│    → Falls back to getUser() server call                    │
+│    → Supabase server verifies the token                     │
+│    → Still works, just slower                               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Benefits:**
+- ✅ No `JWT_SECRET` environment variable needed
+- ✅ Works with both old and new Supabase key formats
+- ✅ Automatic local verification with asymmetric keys (faster)
+- ✅ Graceful fallback for symmetric keys
 
 ## Build with docker
 
