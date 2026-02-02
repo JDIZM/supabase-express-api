@@ -40,3 +40,30 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DEV_DATABASE_URL }}
         run: pnpm migrate
+
+  # TODO uncomment the deployment step when you have configured the secrets.
+  # deploy-dev:
+  #   needs: [test-and-build, migrate-dev]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: volta-cli/action@v4
+  #       with:
+  #         node-version: 22
+
+  #     - name: Install doctl
+  #       uses: digitalocean/action-doctl@v2
+  #       with:
+  #         token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+  #     - name: Build container image
+  #       run: docker build -t ${{ secrets.REGISTRY_NAME }}/${{secrets.IMAGE_NAME}}-dev:$(echo $GITHUB_SHA | head -c7) .
+
+  #     - name: Log in to DigitalOcean Container Registry with short-lived credentials
+  #       run: doctl registry login --expiry-seconds 1200
+
+  #     - name: tag image with latest tag
+  #       run: docker tag ${{ secrets.REGISTRY_NAME }}/${{secrets.IMAGE_NAME}}-dev:$(echo $GITHUB_SHA | head -c7) ${{ secrets.REGISTRY_NAME }}/${{secrets.IMAGE_NAME}}-dev:latest
+
+  #     - name: Push image to DigitalOcean Container Registry
+  #       run: docker push ${{ secrets.REGISTRY_NAME }}/${{secrets.IMAGE_NAME}}-dev:latest
