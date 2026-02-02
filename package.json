@@ -31,7 +31,6 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/jsonwebtoken": "^9.0.6",
     "@types/swagger-ui-express": "^4.1.8",
     "@typescript-eslint/eslint-plugin": "^8.29.0",
     "@typescript-eslint/parser": "^8.29.0",
@@ -76,7 +75,6 @@
     "express": "^4.19.2",
     "express-rate-limit": "^8.0.1",
     "helmet": "^8.0.0",
-    "jsonwebtoken": "^9.0.2",
     "pg": "^8.14.1",
     "pino": "^9.6.0",
     "pino-http": "^10.4.0",

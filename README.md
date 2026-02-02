@@ -450,6 +450,84 @@ pnpm token-test --token=<jwt-token> --decode-only
 
 Be sure to update the seeds as new migrations are added.
 
+## Security
+
+### Row Level Security (RLS)
+
+This project uses **RLS with deny-all policy** as defense-in-depth:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Data Queries: API → Drizzle ORM → PostgreSQL                │
+│               (Bypasses RLS via DATABASE_URL)               │
+├─────────────────────────────────────────────────────────────┤
+│ Auth: API uses supabase.auth.getClaims() for JWT verify     │
+│       (Works with publishable key, not affected by RLS)     │
+├─────────────────────────────────────────────────────────────┤
+│ Direct Access: Blocked by RLS (no policies = deny all)      │
+│                If publishable key leaks, queries return []  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**How it works:**
+
+- ✅ RLS enabled on all data tables with **no policies** (deny all)
+- ✅ API uses `DATABASE_URL` (Drizzle ORM) which bypasses RLS
+- ✅ Auth endpoints (`/auth/v1/*`) are not affected by RLS
+- ✅ If publishable key leaks, direct data queries return empty results
+
+### Supabase Keys
+
+| Variable | Purpose | Used By |
+|----------|---------|---------|
+| `DATABASE_URL` | Drizzle ORM data queries | API |
+| `SUPABASE_PUBLISHABLE_KEY` | Auth operations (getClaims, signIn) | API |
+| `SUPABASE_SECRET_KEY` | Admin operations (optional) | API |
+
+**Key formats (2025+):**
+
+- `sb_publishable_*` - Publishable/anon key for client operations
+- `sb_secret_*` - Secret/service role key for admin operations
+
+Legacy key names (`SUPABASE_PK`, `SUPABASE_ANON_KEY`) are still supported for backward compatibility.
+
+### Token Verification
+
+This project uses `supabase.auth.getClaims()` for JWT verification instead of the legacy `jwt.verify()` approach.
+
+**Why getClaims()?**
+
+| Old Approach | New Approach |
+|--------------|--------------|
+| `jwt.verify(token, JWT_SECRET)` | `supabase.auth.getClaims(token)` |
+| Required `SUPABASE_AUTH_JWT_SECRET` env var | No secret needed |
+| Manual dependency on `jsonwebtoken` | Built into Supabase SDK |
+
+**How getClaims() works:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ getClaims(token)                                            │
+│                                                             │
+│ 1. Decode JWT header → check algorithm                      │
+│                                                             │
+│ 2. If asymmetric (RS256, new sb_publishable_* keys):        │
+│    → Fetch JWKS (public keys) from Supabase                 │
+│    → Verify signature locally with Web Crypto API           │
+│    → Fast, no network call for verification                 │
+│                                                             │
+│ 3. If symmetric (HS256, old eyJhbG... keys):                │
+│    → Falls back to getUser() server call                    │
+│    → Supabase server verifies the token                     │
+│    → Still works, just slower                               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Benefits:**
+- ✅ No `JWT_SECRET` environment variable needed
+- ✅ Local verification with asymmetric keys (faster, no network call)
+- ✅ Uses new `SUPABASE_PUBLISHABLE_KEY` format (`sb_publishable_*`)
+
 ## Build with docker
 
 ```bash
