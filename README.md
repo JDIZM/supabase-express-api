@@ -525,9 +525,8 @@ This project uses `supabase.auth.getClaims()` for JWT verification instead of th
 
 **Benefits:**
 - ✅ No `JWT_SECRET` environment variable needed
-- ✅ Works with both old and new Supabase key formats
-- ✅ Automatic local verification with asymmetric keys (faster)
-- ✅ Graceful fallback for symmetric keys
+- ✅ Local verification with asymmetric keys (faster, no network call)
+- ✅ Uses new `SUPABASE_PUBLISHABLE_KEY` format (`sb_publishable_*`)
 
 ## Build with docker
 
