@@ -23,13 +23,18 @@ if (STAGE !== "production") {
 }
 
 /**
- * Get Supabase publishable key - supports both new (2025+) and legacy formats
+ * Get Supabase publishable key
+ * Throws if not configured - fail fast with clear error message
  */
 const getSupabasePublishableKey = (): string => {
-  if (process.env.SUPABASE_PUBLISHABLE_KEY) {
-    return process.env.SUPABASE_PUBLISHABLE_KEY;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY;
+  if (!key) {
+    throw new Error(
+      "SUPABASE_PUBLISHABLE_KEY is required. " +
+        "Get it from `supabase status` or your Supabase dashboard."
+    );
   }
-  return process.env.SUPABASE_PK || process.env.SUPABASE_ANON_KEY || "";
+  return key;
 };
 
 export const config = {
