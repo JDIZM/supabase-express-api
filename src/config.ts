@@ -30,8 +30,7 @@ const getSupabasePublishableKey = (): string => {
   const key = process.env.SUPABASE_PUBLISHABLE_KEY;
   if (!key) {
     throw new Error(
-      "SUPABASE_PUBLISHABLE_KEY is required. " +
-        "Get it from `supabase status` or your Supabase dashboard."
+      "SUPABASE_PUBLISHABLE_KEY is required. " + "Get it from `supabase status` or your Supabase dashboard."
     );
   }
   return key;
