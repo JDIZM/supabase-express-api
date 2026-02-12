@@ -8,7 +8,7 @@
   "imports": {
     "@": "./src"
   },
-  "packageManager": "pnpm@9.1.0+sha512.67f5879916a9293e5cf059c23853d571beaf4f753c707f40cb22bed5fb1578c6aad3b6c4107ccb3ba0b35be003eb621a16471ac836c87beb53f9d54bb4612724",
+  "packageManager": "pnpm@10.29.3+sha512.498e1fb4cca5aa06c1dcf2611e6fafc50972ffe7189998c409e90de74566444298ffe43e6cd2acdc775ba1aa7cc5e092a8b7054c811ba8c5770f84693d33d2dc",
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx --max-warnings 0",
     "format": "prettier -w '**/*.{js,ts,mjs,cjs,json,tsx,jsx}'",
