@@ -54,7 +54,7 @@
     "dist"
   ],
   "volta": {
-    "node": "22.16.0"
+    "node": "22.22.0"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^8.0.0",
