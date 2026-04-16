@@ -53,11 +53,10 @@ const configSchema = z.object({
 })
 
 const parseConfig = () => {
-  const port = process.env.PORT
   const rawConfig = {
     env: STAGE,
-    port,
-    appUrl: process.env.APP_URL || `http://localhost:${port || 4000}`,
+    port: process.env.PORT,
+    appUrl: process.env.APP_URL || `http://localhost:${process.env.PORT || 4000}`,
     db_host: process.env.POSTGRES_HOST,
     db_port: process.env.POSTGRES_PORT,
     db_user: process.env.POSTGRES_USER,

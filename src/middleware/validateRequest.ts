@@ -41,33 +41,41 @@ export const validateRequest = (schemas: ValidationSchemas) => {
       res.status(response.code).json(response)
     }
 
+    const sources = [
+      {
+        key: "body" as const,
+        input: () => req.body,
+        assign: (data: unknown) => {
+          req.validatedBody = data
+          req.body = data
+        },
+      },
+      {
+        key: "params" as const,
+        input: () => req.params,
+        assign: (data: unknown) => {
+          req.validatedParams = data
+        },
+      },
+      {
+        key: "query" as const,
+        input: () => req.query,
+        assign: (data: unknown) => {
+          req.validatedQuery = data
+        },
+      },
+    ]
+
     try {
-      if (schemas.body) {
-        const result = schemas.body.safeParse(req.body)
+      for (const { key, input, assign } of sources) {
+        const schema = schemas[key]
+        if (!schema) continue
+        const result = schema.safeParse(input())
         if (!result.success) {
-          logger.warn({ issues: result.error.issues, path: req.path }, "body validation failed")
-          return respond("body", result.error.issues[0])
+          logger.warn({ issues: result.error.issues, path: req.path }, `${key} validation failed`)
+          return respond(key, result.error.issues[0])
         }
-        req.validatedBody = result.data
-        req.body = result.data
-      }
-
-      if (schemas.params) {
-        const result = schemas.params.safeParse(req.params)
-        if (!result.success) {
-          logger.warn({ issues: result.error.issues, path: req.path }, "params validation failed")
-          return respond("params", result.error.issues[0])
-        }
-        req.validatedParams = result.data
-      }
-
-      if (schemas.query) {
-        const result = schemas.query.safeParse(req.query)
-        if (!result.success) {
-          logger.warn({ issues: result.error.issues, path: req.path }, "query validation failed")
-          return respond("query", result.error.issues[0])
-        }
-        req.validatedQuery = result.data
+        assign(result.data)
       }
 
       next()

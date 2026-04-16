@@ -13,7 +13,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "lint": "eslint . --max-warnings 0",
+    "lint": "eslint . --fix --max-warnings 0",
     "lint:check": "eslint . --max-warnings 0",
     "format": "prettier -w '**/*.{js,ts,mjs,cjs,json,tsx,jsx}'",
     "format:check": "prettier --check '**/*.{js,ts,mjs,cjs,json,tsx,jsx}'",
