@@ -1,5 +1,5 @@
-import { logger } from "@/helpers/index.ts";
-import { supabase } from "@/services/supabase.ts";
+import { logger } from "@/helpers/index.ts"
+import { supabase } from "@/services/supabase.ts"
 
 /**
  * Verify JWT token using Supabase getClaims()
@@ -11,26 +11,26 @@ import { supabase } from "@/services/supabase.ts";
 export const verifyToken = async (
   token: string
 ): Promise<{
-  sub: string;
+  sub: string
 } | null> => {
   try {
-    const { data, error } = await supabase.auth.getClaims(token);
+    const { data, error } = await supabase.auth.getClaims(token)
 
     if (error || !data) {
-      logger.warn({ error }, "Token verification failed via getClaims()");
-      return null;
+      logger.warn({ error }, "Token verification failed via getClaims()")
+      return null
     }
 
-    const sub = data.claims.sub as string;
+    const sub = data.claims.sub as string
 
     if (!sub) {
-      logger.warn("Token missing 'sub' claim");
-      return null;
+      logger.warn("Token missing 'sub' claim")
+      return null
     }
 
-    return { sub };
+    return { sub }
   } catch (err) {
-    logger.error({ err }, "Token validation failed");
-    return null;
+    logger.error({ err }, "Token validation failed")
+    return null
   }
-};
+}

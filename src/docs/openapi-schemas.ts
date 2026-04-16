@@ -1,5 +1,5 @@
-import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
-import { z } from "zod";
+import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi"
+import { z } from "zod"
 import {
   accountSelectSchema,
   accountInsertSchema,
@@ -9,63 +9,70 @@ import {
   profileInsertSchema,
   workspaceMembershipSelectSchema,
   workspaceMembershipInsertSchema,
-  auditLogSelectSchema
-} from "@/schema.ts";
+  auditLogSelectSchema,
+} from "@/schema.ts"
 
 // Extend Zod with OpenAPI functionality
-extendZodWithOpenApi(z);
+extendZodWithOpenApi(z)
 
 // Reuse drizzle-zod schemas as the foundation for OpenAPI schemas
 // This eliminates duplication and ensures consistency with database schema
 // We need to wrap them with z.object() to get the .openapi() method
 
-export const AccountSchema = z.object(accountSelectSchema.shape).openapi("Account");
+export const AccountSchema = z.object(accountSelectSchema.shape).openapi("Account")
 
 // Account creation (omit server-controlled fields)
 export const AccountCreateSchema = z
   .object(accountInsertSchema.shape)
   .omit({ uuid: true, createdAt: true, isSuperAdmin: true })
-  .openapi("AccountCreate");
+  .openapi("AccountCreate")
 
-export const WorkspaceSchema = z.object(workspaceSelectSchema.shape).openapi("Workspace");
+export const WorkspaceSchema = z.object(workspaceSelectSchema.shape).openapi("Workspace")
 
 export const WorkspaceCreateSchema = z
   .object(workspaceInsertSchema.shape)
   .omit({ uuid: true, createdAt: true, accountId: true })
-  .openapi("WorkspaceCreate");
+  .openapi("WorkspaceCreate")
 
-export const ProfileSchema = z.object(profileSelectSchema.shape).openapi("Profile");
+export const ProfileSchema = z.object(profileSelectSchema.shape).openapi("Profile")
 
-export const MembershipSchema = z.object(workspaceMembershipSelectSchema.shape).openapi("Membership");
+export const MembershipSchema = z
+  .object(workspaceMembershipSelectSchema.shape)
+  .openapi("Membership")
 
 // Custom schemas for API operations (not direct DB operations)
 // Use drizzle-zod as foundation but customize for API needs
 export const MemberCreateSchema = z
   .object({
     email: z.email().describe("Email of existing account to add"),
-    role: z.object(workspaceMembershipInsertSchema.shape).shape.role.describe("Role in the workspace"),
-    profileName: z.string().optional().describe("Profile name for the workspace")
+    role: z
+      .object(workspaceMembershipInsertSchema.shape)
+      .shape.role.describe("Role in the workspace"),
+    profileName: z.string().optional().describe("Profile name for the workspace"),
   })
-  .openapi("MemberCreate");
+  .openapi("MemberCreate")
 
-export const ProfileUpdateSchema = z.object(profileInsertSchema.shape).pick({ name: true }).openapi("ProfileUpdate");
+export const ProfileUpdateSchema = z
+  .object(profileInsertSchema.shape)
+  .pick({ name: true })
+  .openapi("ProfileUpdate")
 
 // Response schemas - matches actual gatewayResponse helper output
 export const SuccessResponseSchema = z
   .object({
     code: z.number().describe("HTTP status code"),
     message: z.string().describe("Success message"),
-    data: z.unknown().describe("Response data")
+    data: z.unknown().describe("Response data"),
   })
-  .openapi("SuccessResponse");
+  .openapi("SuccessResponse")
 
 export const ErrorResponseSchema = z
   .object({
     code: z.number().describe("HTTP status code"),
     message: z.string().describe("Error message"),
-    error: z.string().describe("Error details")
+    error: z.string().describe("Error details"),
   })
-  .openapi("ErrorResponse");
+  .openapi("ErrorResponse")
 
 // TODO I think we need a filter model schema... maybe align with ag-grid? or create an adapter for ag-Grid.
 export const PaginationSchema = z
@@ -73,25 +80,36 @@ export const PaginationSchema = z
     page: z.number().int().positive(),
     limit: z.number().int().positive(),
     total: z.number().int().min(0),
-    pages: z.number().int().min(0)
+    pages: z.number().int().min(0),
   })
-  .openapi("Pagination");
+  .openapi("Pagination")
 
-export const AuditLogSchema = z.object(auditLogSelectSchema.shape).openapi("AuditLog");
+export const AuditLogSchema = z.object(auditLogSelectSchema.shape).openapi("AuditLog")
 
 // Parameter schemas
 export const PaginationQuerySchema = z
   .object({
-    page: z.number().int().positive().default(1).openapi({ description: "Page number for pagination" }),
-    limit: z.number().int().min(1).max(100).default(20).openapi({ description: "Number of items per page" })
+    page: z
+      .number()
+      .int()
+      .positive()
+      .default(1)
+      .openapi({ description: "Page number for pagination" }),
+    limit: z
+      .number()
+      .int()
+      .min(1)
+      .max(100)
+      .default(20)
+      .openapi({ description: "Number of items per page" }),
   })
-  .openapi("PaginationQuery");
+  .openapi("PaginationQuery")
 
 export const UuidParamSchema = z
   .object({
-    id: z.uuid().openapi({ description: "UUID identifier" })
+    id: z.uuid().openapi({ description: "UUID identifier" }),
   })
-  .openapi("UuidParam");
+  .openapi("UuidParam")
 
 export const AuditLogStatsSchema = z
   .object({
@@ -101,190 +119,190 @@ export const AuditLogStatsSchema = z
     actionStats: z.array(
       z.object({
         action: z.string(),
-        count: z.number()
+        count: z.number(),
       })
     ),
     entityTypeStats: z.array(
       z.object({
         entityType: z.string(),
-        count: z.number()
+        count: z.number(),
       })
     ),
     topActors: z.array(
       z.object({
         actorId: z.uuid(),
         actorEmail: z.string(),
-        count: z.number()
+        count: z.number(),
       })
     ),
     dailyActivity: z.array(
       z.object({
         date: z.string(),
-        count: z.number()
+        count: z.number(),
       })
-    )
+    ),
   })
-  .openapi("AuditLogStats");
+  .openapi("AuditLogStats")
 
 // Common parameter schemas
 export const UuidParamOnlySchema = z
   .object({
-    id: z.uuid().describe("UUID identifier")
+    id: z.uuid().describe("UUID identifier"),
   })
-  .openapi("UuidParamOnly");
+  .openapi("UuidParamOnly")
 
 export const WorkspaceHeaderSchema = z
   .object({
-    "x-workspace-id": z.uuid().describe("Workspace ID for context")
+    "x-workspace-id": z.uuid().describe("Workspace ID for context"),
   })
-  .openapi("WorkspaceHeader");
+  .openapi("WorkspaceHeader")
 
 export const UuidParamsWithMemberSchema = z
   .object({
     id: z.uuid().describe("Workspace ID"),
-    memberId: z.uuid().describe("Member ID")
+    memberId: z.uuid().describe("Member ID"),
   })
-  .openapi("UuidParamsWithMember");
+  .openapi("UuidParamsWithMember")
 
 // Authentication request schemas
 export const LoginRequestSchema = z
   .object({
     email: z.email().describe("User email address"),
-    password: z.string().min(6).describe("User password")
+    password: z.string().min(6).describe("User password"),
   })
-  .openapi("LoginRequest");
+  .openapi("LoginRequest")
 
 export const SignupRequestSchema = z
   .object({
     email: z.email().describe("User email address"),
     password: z.string().min(6).describe("User password"),
     fullName: z.string().min(1).describe("User full name"),
-    phone: z.string().optional().describe("User phone number")
+    phone: z.string().optional().describe("User phone number"),
   })
-  .openapi("SignupRequest");
+  .openapi("SignupRequest")
 
 // Role update schemas
 export const MemberRoleUpdateSchema = z
   .object({
-    role: z.enum(["admin", "user"]).describe("New role for the member")
+    role: z.enum(["admin", "user"]).describe("New role for the member"),
   })
-  .openapi("MemberRoleUpdate");
+  .openapi("MemberRoleUpdate")
 
 export const AdminRoleUpdateSchema = z
   .object({
-    isSuperAdmin: z.boolean().describe("Whether the account should be a SuperAdmin")
+    isSuperAdmin: z.boolean().describe("Whether the account should be a SuperAdmin"),
   })
-  .openapi("AdminRoleUpdate");
+  .openapi("AdminRoleUpdate")
 
 export const AccountStatusUpdateSchema = z
   .object({
-    status: z.enum(["active", "inactive", "suspended"]).describe("New account status")
+    status: z.enum(["active", "inactive", "suspended"]).describe("New account status"),
   })
-  .openapi("AccountStatusUpdate");
+  .openapi("AccountStatusUpdate")
 
 // Common response data schemas
 export const MessageResponseDataSchema = z
   .object({
-    message: z.string().describe("Response message")
+    message: z.string().describe("Response message"),
   })
-  .openapi("MessageResponseData");
+  .openapi("MessageResponseData")
 
 export const AccountResponseDataSchema = z
   .object({
-    account: AccountSchema
+    account: AccountSchema,
   })
-  .openapi("AccountResponseData");
+  .openapi("AccountResponseData")
 
 export const WorkspaceResponseDataSchema = z
   .object({
-    workspace: WorkspaceSchema
+    workspace: WorkspaceSchema,
   })
-  .openapi("WorkspaceResponseData");
+  .openapi("WorkspaceResponseData")
 
 export const ProfileResponseDataSchema = z
   .object({
-    profile: ProfileSchema
+    profile: ProfileSchema,
   })
-  .openapi("ProfileResponseData");
+  .openapi("ProfileResponseData")
 
 export const MembershipResponseDataSchema = z
   .object({
-    membership: MembershipSchema
+    membership: MembershipSchema,
   })
-  .openapi("MembershipResponseData");
+  .openapi("MembershipResponseData")
 
 // Authentication response data schemas
 export const AuthTokenDataSchema = z
   .object({
     token: z.string().describe("JWT access token"),
-    account: AccountSchema
+    account: AccountSchema,
   })
-  .openapi("AuthTokenData");
+  .openapi("AuthTokenData")
 
 // Complex composite schemas
 export const WorkspaceMemberSchema = z
   .object({
     account: AccountSchema,
     profile: ProfileSchema,
-    membership: MembershipSchema
+    membership: MembershipSchema,
   })
-  .openapi("WorkspaceMember");
+  .openapi("WorkspaceMember")
 
 export const UserWorkspaceInfoSchema = z
   .object({
     workspace: WorkspaceSchema,
     profile: ProfileSchema,
-    membership: MembershipSchema
+    membership: MembershipSchema,
   })
-  .openapi("UserWorkspaceInfo");
+  .openapi("UserWorkspaceInfo")
 
 export const WorkspaceWithMembersDataSchema = z
   .object({
     workspace: WorkspaceSchema,
     members: z.array(WorkspaceMemberSchema),
-    memberCount: z.number().describe("Total number of workspace members")
+    memberCount: z.number().describe("Total number of workspace members"),
   })
-  .openapi("WorkspaceWithMembersData");
+  .openapi("WorkspaceWithMembersData")
 
 export const WorkspaceMembersDataSchema = z
   .object({
     members: z.array(WorkspaceMemberSchema),
-    memberCount: z.number().describe("Total number of workspace members")
+    memberCount: z.number().describe("Total number of workspace members"),
   })
-  .openapi("WorkspaceMembersData");
+  .openapi("WorkspaceMembersData")
 
 export const CreateWorkspaceDataSchema = z
   .object({
     workspace: WorkspaceSchema,
     profile: ProfileSchema,
-    membership: MembershipSchema
+    membership: MembershipSchema,
   })
-  .openapi("CreateWorkspaceData");
+  .openapi("CreateWorkspaceData")
 
 export const UserProfileDataSchema = z
   .object({
     account: AccountSchema,
     workspaces: z.array(UserWorkspaceInfoSchema),
-    workspaceCount: z.number().describe("Total number of user workspaces")
+    workspaceCount: z.number().describe("Total number of user workspaces"),
   })
-  .openapi("UserProfileData");
+  .openapi("UserProfileData")
 
 // Admin query filters
 export const AdminPaginationQuerySchema = z
   .object({
     page: z.number().int().positive().default(1).describe("Page number for pagination"),
-    limit: z.number().int().min(1).max(100).default(20).describe("Number of items per page")
+    limit: z.number().int().min(1).max(100).default(20).describe("Number of items per page"),
   })
-  .openapi("AdminPaginationQuery");
+  .openapi("AdminPaginationQuery")
 
 export const AdminMembershipQuerySchema = z
   .object({
     page: z.number().int().positive().default(1).describe("Page number for pagination"),
     limit: z.number().int().min(1).max(100).default(20).describe("Number of items per page"),
     workspaceId: z.uuid().optional().describe("Filter by workspace ID"),
-    accountId: z.uuid().optional().describe("Filter by account ID")
+    accountId: z.uuid().optional().describe("Filter by account ID"),
   })
-  .openapi("AdminMembershipQuery");
+  .openapi("AdminMembershipQuery")
 
 export const AuditLogQuerySchema = z
   .object({
@@ -296,56 +314,56 @@ export const AuditLogQuerySchema = z
     entityId: z.uuid().optional().describe("Filter by entity ID"),
     workspaceId: z.uuid().optional().describe("Filter by workspace ID"),
     startDate: z.string().optional().describe("Filter by start date (ISO 8601)"),
-    endDate: z.string().optional().describe("Filter by end date (ISO 8601)")
+    endDate: z.string().optional().describe("Filter by end date (ISO 8601)"),
   })
-  .openapi("AuditLogQuery");
+  .openapi("AuditLogQuery")
 
 export const AuditLogStatsQuerySchema = z
   .object({
-    days: z.number().int().min(1).max(365).default(30).describe("Number of days to analyze")
+    days: z.number().int().min(1).max(365).default(30).describe("Number of days to analyze"),
   })
-  .openapi("AuditLogStatsQuery");
+  .openapi("AuditLogStatsQuery")
 
 // Simplified reference schemas for admin endpoints
 export const SimpleAccountSchema = z
   .object({
     uuid: z.uuid(),
     email: z.email(),
-    fullName: z.string()
+    fullName: z.string(),
   })
-  .openapi("SimpleAccount");
+  .openapi("SimpleAccount")
 
 export const SimpleWorkspaceSchema = z
   .object({
     uuid: z.uuid(),
-    name: z.string()
+    name: z.string(),
   })
-  .openapi("SimpleWorkspace");
+  .openapi("SimpleWorkspace")
 
 // Standardized success response patterns
 export const AccountsWithPaginationDataSchema = z
   .object({
     accounts: z.array(AccountSchema),
-    pagination: PaginationSchema
+    pagination: PaginationSchema,
   })
-  .openapi("AccountsWithPaginationData");
+  .openapi("AccountsWithPaginationData")
 
 export const WorkspacesWithPaginationDataSchema = z
   .object({
     workspaces: z.array(
       WorkspaceSchema.extend({
-        memberCount: z.number().describe("Number of workspace members")
+        memberCount: z.number().describe("Number of workspace members"),
       })
     ),
-    pagination: PaginationSchema
+    pagination: PaginationSchema,
   })
-  .openapi("WorkspacesWithPaginationData");
+  .openapi("WorkspacesWithPaginationData")
 
 export const WorkspacesListDataSchema = z
   .object({
-    data: z.array(WorkspaceSchema)
+    data: z.array(WorkspaceSchema),
   })
-  .openapi("WorkspacesListData");
+  .openapi("WorkspacesListData")
 
 // Audit log response schemas
 export const AuditLogWithDetailsSchema = z
@@ -353,9 +371,9 @@ export const AuditLogWithDetailsSchema = z
     auditLog: AuditLogSchema,
     actor: SimpleAccountSchema.nullable(),
     target: SimpleAccountSchema.nullable(),
-    workspace: SimpleWorkspaceSchema.nullable()
+    workspace: SimpleWorkspaceSchema.nullable(),
   })
-  .openapi("AuditLogWithDetails");
+  .openapi("AuditLogWithDetails")
 
 export const AuditLogsWithPaginationDataSchema = z
   .object({
@@ -368,23 +386,23 @@ export const AuditLogsWithPaginationDataSchema = z
       entityId: z.uuid().nullable(),
       workspaceId: z.uuid().nullable(),
       startDate: z.string().nullable(),
-      endDate: z.string().nullable()
-    })
+      endDate: z.string().nullable(),
+    }),
   })
-  .openapi("AuditLogsWithPaginationData");
+  .openapi("AuditLogsWithPaginationData")
 
 // Membership response schemas
 export const MembershipWithDetailsSchema = z
   .object({
     membership: MembershipSchema,
     workspace: SimpleWorkspaceSchema,
-    account: SimpleAccountSchema
+    account: SimpleAccountSchema,
   })
-  .openapi("MembershipWithDetails");
+  .openapi("MembershipWithDetails")
 
 export const MembershipsWithPaginationDataSchema = z
   .object({
     memberships: z.array(MembershipWithDetailsSchema),
-    pagination: PaginationSchema
+    pagination: PaginationSchema,
   })
-  .openapi("MembershipsWithPaginationData");
+  .openapi("MembershipsWithPaginationData")

@@ -1,8 +1,8 @@
-import "express";
+import "express"
 
 declare module "express" {
   interface Request {
-    accountId?: string;
-    workspaceId?: string;
+    accountId?: string
+    workspaceId?: string
   }
 }

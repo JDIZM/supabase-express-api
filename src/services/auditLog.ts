@@ -1,26 +1,26 @@
-import { db } from "@/services/db/drizzle.ts";
-import { auditLogs, accounts } from "@/schema.ts";
-import { logger } from "@/helpers/index.ts";
-import { getIpFromRequest } from "@/helpers/request.ts";
-import { eq } from "drizzle-orm";
-import type { Request } from "express";
-import { type DbTransaction } from "@/types/database.ts";
+import { db } from "@/services/db/drizzle.ts"
+import { auditLogs, accounts } from "@/schema.ts"
+import { logger } from "@/helpers/index.ts"
+import { getIpFromRequest } from "@/helpers/request.ts"
+import { eq } from "drizzle-orm"
+import type { Request } from "express"
+import { type DbTransaction } from "@/types/database.ts"
 
 export interface AuditLogData {
-  action: string;
-  entityType: string;
-  entityId: string;
-  actorId: string;
-  targetId?: string;
-  details?: Record<string, unknown>;
-  workspaceId?: string;
+  action: string
+  entityType: string
+  entityId: string
+  actorId: string
+  targetId?: string
+  details?: Record<string, unknown>
+  workspaceId?: string
 }
 
 export interface AuditContext {
-  ipAddress?: string;
-  userAgent?: string;
-  actorEmail?: string;
-  targetEmail?: string;
+  ipAddress?: string
+  userAgent?: string
+  actorEmail?: string
+  targetEmail?: string
 }
 
 /**
@@ -34,33 +34,33 @@ export async function createAuditLog(
 ): Promise<void> {
   try {
     // Extract context from request if provided
-    const ipAddress = req ? getIpFromRequest(req) : context?.ipAddress;
-    const userAgent = req?.headers["user-agent"] || context?.userAgent;
+    const ipAddress = req ? getIpFromRequest(req) : context?.ipAddress
+    const userAgent = req?.headers["user-agent"] || context?.userAgent
 
     // Get actor email if not provided
-    let actorEmail = context?.actorEmail;
+    let actorEmail = context?.actorEmail
     if (!actorEmail && data.actorId) {
       const [actor] = await db
         .select({ email: accounts.email })
         .from(accounts)
         .where(eq(accounts.uuid, data.actorId))
-        .limit(1);
-      actorEmail = actor?.email;
+        .limit(1)
+      actorEmail = actor?.email
     }
 
     // Get target email if not provided
-    let targetEmail = context?.targetEmail;
+    let targetEmail = context?.targetEmail
     if (!targetEmail && data.targetId) {
       const [target] = await db
         .select({ email: accounts.email })
         .from(accounts)
         .where(eq(accounts.uuid, data.targetId))
-        .limit(1);
-      targetEmail = target?.email;
+        .limit(1)
+      targetEmail = target?.email
     }
 
     // Create audit log entry
-    const database = tx || db;
+    const database = tx || db
     await database.insert(auditLogs).values({
       action: data.action,
       entityType: data.entityType,
@@ -72,8 +72,8 @@ export async function createAuditLog(
       details: data.details,
       ipAddress,
       userAgent,
-      workspaceId: data.workspaceId
-    });
+      workspaceId: data.workspaceId,
+    })
 
     logger.info({
       msg: "Audit log created",
@@ -82,14 +82,14 @@ export async function createAuditLog(
       entityId: data.entityId,
       actorId: data.actorId,
       targetId: data.targetId,
-      workspaceId: data.workspaceId
-    });
+      workspaceId: data.workspaceId,
+    })
   } catch (error) {
     logger.error({
       msg: "Failed to create audit log",
       error,
-      data
-    });
+      data,
+    })
     // Don't throw - audit logging failure shouldn't break the main operation
   }
 }
@@ -121,8 +121,8 @@ export const AUDIT_ACTIONS = {
 
   // Admin actions
   ADMIN_ACCESS: "admin_access",
-  BULK_OPERATION: "bulk_operation"
-} as const;
+  BULK_OPERATION: "bulk_operation",
+} as const
 
 /**
  * Entity types for audit logs
@@ -132,8 +132,8 @@ export const ENTITY_TYPES = {
   WORKSPACE: "workspace",
   MEMBERSHIP: "membership",
   PROFILE: "profile",
-  AUDIT_LOG: "audit_log"
-} as const;
+  AUDIT_LOG: "audit_log",
+} as const
 
 /**
  * Convenience functions for common audit operations
@@ -157,12 +157,12 @@ export const auditHelpers = {
         entityId: targetId,
         actorId,
         targetId,
-        details: { oldStatus, newStatus }
+        details: { oldStatus, newStatus },
       },
       req,
       undefined,
       tx
-    );
+    )
   },
 
   /**
@@ -185,13 +185,13 @@ export const auditHelpers = {
         targetId,
         details: {
           oldRole: oldRole ? "SuperAdmin" : "User",
-          newRole: newRole ? "SuperAdmin" : "User"
-        }
+          newRole: newRole ? "SuperAdmin" : "User",
+        },
       },
       req,
       undefined,
       tx
-    );
+    )
   },
 
   /**
@@ -213,9 +213,9 @@ export const auditHelpers = {
         actorId,
         targetId,
         workspaceId,
-        details: { oldRole, newRole }
+        details: { oldRole, newRole },
       },
       req
-    );
-  }
-};
+    )
+  },
+}

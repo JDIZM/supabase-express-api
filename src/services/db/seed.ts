@@ -1,23 +1,23 @@
-import { seedAccounts } from "./seeds/accounts.ts";
-import { logger } from "../../helpers/index.ts";
-import { signUpWithSupabase } from "@/handlers/auth/auth.handlers.ts";
+import { seedAccounts } from "./seeds/accounts.ts"
+import { logger } from "../../helpers/index.ts"
+import { signUpWithSupabase } from "@/handlers/auth/auth.handlers.ts"
 
 async function main(): Promise<void> {
-  logger.info("Seeding accounts...");
+  logger.info("Seeding accounts...")
 
-  const args = process.argv.slice(2);
+  const args = process.argv.slice(2)
 
   const options = args
     .map((str) => str.replace(/^-+/, "").split("="))
     .reduce<{ [key: string]: string }>((acc, curr) => {
-      const [key, value] = curr;
+      const [key, value] = curr
 
-      if (!key || !value) return acc;
+      if (!key || !value) return acc
 
-      acc[key] = value;
+      acc[key] = value
 
-      return acc;
-    }, {});
+      return acc
+    }, {})
 
   // Supabase Integration Notes:
   // - For database structure testing only: Run without --supabase=true
@@ -26,20 +26,20 @@ async function main(): Promise<void> {
   //   OR manually confirm users in Supabase dashboard after seeding
   // - Local-only accounts work for API testing but cannot login through auth endpoints
   if (options?.supabase === "true") {
-    logger.info("Seeding accounts with Supabase user creation...");
-    await seedAccounts(true, signUpWithSupabase);
-    return;
+    logger.info("Seeding accounts with Supabase user creation...")
+    await seedAccounts(true, signUpWithSupabase)
+    return
   }
 
-  logger.info("Seeding accounts locally only...");
-  await seedAccounts();
+  logger.info("Seeding accounts locally only...")
+  await seedAccounts()
 }
 
 try {
-  logger.info("Seeding database...");
-  await main();
-  process.exit(0);
+  logger.info("Seeding database...")
+  await main()
+  process.exit(0)
 } catch (err) {
-  logger.error({ msg: "Error seeding database", error: err });
-  process.exit(1);
+  logger.error({ msg: "Error seeding database", error: err })
+  process.exit(1)
 }

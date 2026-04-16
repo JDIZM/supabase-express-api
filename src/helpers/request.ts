@@ -1,4 +1,4 @@
-import type { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express"
 
 /**
  * Extract IP address from request headers
@@ -6,10 +6,14 @@ import type { NextFunction, Request, Response } from "express";
  */
 export function getIpFromRequest(req: Request): string | undefined {
   const ips =
-    req.headers["cf-connecting-ip"] ?? req.headers["x-real-ip"] ?? req.headers["x-forwarded-for"] ?? req.ip ?? "";
+    req.headers["cf-connecting-ip"] ??
+    req.headers["x-real-ip"] ??
+    req.headers["x-forwarded-for"] ??
+    req.ip ??
+    ""
 
-  const result = ips instanceof Array ? ips : ips.split(",");
-  return result[0]?.trim();
+  const result = ips instanceof Array ? ips : ips.split(",")
+  return result[0]?.trim()
 }
 
 // An async handler that passes any error to the next function
@@ -17,5 +21,5 @@ export function getIpFromRequest(req: Request): string | undefined {
 export const asyncHandler =
   (fn: (req: Request, res: Response, next: NextFunction) => Promise<void>) =>
   (req: Request, res: Response, next: NextFunction): void => {
-    fn(req, res, next).catch(next);
-  };
+    fn(req, res, next).catch(next)
+  }
