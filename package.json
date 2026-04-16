@@ -1,52 +1,55 @@
 {
-  "name": "node-express-backend-component",
+  "name": "supabase-express-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "Multi-tenant Express API with Supabase auth, Drizzle ORM and audit logging",
   "main": "dist/server.mjs",
   "module": "dist/server.mjs",
   "type": "module",
   "imports": {
     "@": "./src"
   },
-  "packageManager": "pnpm@9.1.0+sha512.67f5879916a9293e5cf059c23853d571beaf4f753c707f40cb22bed5fb1578c6aad3b6c4107ccb3ba0b35be003eb621a16471ac836c87beb53f9d54bb4612724",
+  "packageManager": "pnpm@10.17.1",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "lint": "eslint . --ext .ts,.tsx --max-warnings 0",
+    "lint": "eslint . --max-warnings 0",
+    "lint:check": "eslint . --max-warnings 0",
     "format": "prettier -w '**/*.{js,ts,mjs,cjs,json,tsx,jsx}'",
     "format:check": "prettier --check '**/*.{js,ts,mjs,cjs,json,tsx,jsx}'",
     "tsc:check": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "dev": "tsx watch ./src/server.ts | pino-pretty",
     "build": "pkgroll",
     "build:tsc": "rm -rf dist && tsc -p tsconfig.json",
     "test": "vitest --run --coverage",
-    "migrate:create": "npx drizzle-kit generate",
-    "migrate": "npx drizzle-kit migrate",
-    "migrate:push": "npx drizzle-kit push",
+    "migrate:create": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate",
+    "migrate:push": "drizzle-kit push",
     "seed": "tsx ./src/services/db/seed.ts --supabase=$npm_config_supabase",
     "dev:workspace": "tsx ./scripts/dev-setup.ts --email=$npm_config_email --name=$npm_config_name",
     "dev:workspaces": "tsx ./scripts/dev-setup.ts --email=$npm_config_email",
     "token-test": "tsx ./scripts/token-test.ts",
-    "studio": "npx drizzle-kit studio"
+    "studio": "drizzle-kit studio"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
     "@types/swagger-ui-express": "^4.1.8",
-    "@typescript-eslint/eslint-plugin": "^8.29.0",
-    "@typescript-eslint/parser": "^8.29.0",
     "@vitest/coverage-v8": "^2.0.0",
     "dotenv": "^16.4.5",
     "drizzle-kit": "^0.31.0",
-    "eslint": "^8.57.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-import-resolver-node": "^0.3.9",
-    "eslint-import-resolver-typescript": "^3.6.1",
-    "eslint-plugin-import": "^2.31.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^10.0.0",
+    "globals": "^15.0.0",
     "pino-pretty": "^13.0.0",
     "pkgroll": "^2.1.1",
     "prettier": "^3.2.5",
     "tsx": "^4.19.3",
     "typescript": "^5.8.3",
+    "typescript-eslint": "^8.29.0",
     "vitest": "^2.0.0",
     "zod": "^4.0.10"
   },
@@ -79,5 +82,13 @@
     "pino": "^9.6.0",
     "pino-http": "^10.4.0",
     "swagger-ui-express": "^5.0.1"
+  },
+  "pnpm": {
+    "minimumReleaseAge": 1440,
+    "onlyBuiltDependencies": [
+      "@sentry/profiling-node",
+      "bcrypt",
+      "esbuild"
+    ]
   }
 }

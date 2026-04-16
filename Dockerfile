@@ -1,8 +1,8 @@
 FROM node:22-alpine AS base
 
-ENV PNPM_VERSION=9.1.0
+ENV PNPM_VERSION=10.17.1
 
-RUN npm install -g pnpm@$PNPM_VERSION
+RUN corepack enable && corepack prepare pnpm@$PNPM_VERSION --activate
 
 WORKDIR /app
 
