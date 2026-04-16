@@ -18,17 +18,6 @@ import "./services/sentry.ts" // Initialize Sentry if enabled.
 
 import type { Request, Response } from "express"
 
-const checkConfigIsValid = (): void => {
-  Object.values(config).forEach((value) => {
-    if (!value) {
-      logger.error({ msg: "config is invalid", config })
-      throw new Error("config is invalid")
-    }
-  })
-}
-
-checkConfigIsValid()
-
 const app = express()
 
 app.use(

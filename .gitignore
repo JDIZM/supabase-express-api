@@ -4,6 +4,7 @@ coverage
 .env
 .env.local
 .env.*.local
+.env.docker
 logs
 *.log
 .DS_Store
