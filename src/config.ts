@@ -21,16 +21,28 @@ if (STAGE !== "production") {
   dotenv.config()
 }
 
+const prodSafeString = (message: string) =>
+  STAGE === "production"
+    ? z.string().min(1, message)
+    : z.string().min(1, message).optional().default("placeholder")
+
 const configSchema = z.object({
   env: z.enum(stages),
-  port: z.coerce.number().int().positive(),
+  port: z.coerce.number().int().positive().default(4000),
   appUrl: z.string().min(1),
-  db_host: z.string().min(1),
-  db_port: z.coerce.number().int().positive(),
-  db_user: z.string().min(1),
-  db_password: z.string().min(1),
-  db_name: z.string().min(1),
-  supabaseUrl: z.string().url(),
+  db_host: z.string().min(1).default("localhost"),
+  db_port: z.coerce.number().int().positive().default(5432),
+  db_user: z.string().min(1).default("postgres"),
+  // Passwords and URLs must be supplied in production; dev/test get safe defaults.
+  db_password: prodSafeString("POSTGRES_PASSWORD is required in production"),
+  db_name: z.string().min(1).default("postgres"),
+  supabaseUrl: z
+    .string()
+    .url()
+    .refine(
+      (url) => STAGE !== "production" || !url.includes("example.supabase.co"),
+      "SUPABASE_URL must be set to a real project URL in production"
+    ),
   supabasePublishableKey: z
     .string()
     .min(
@@ -41,16 +53,16 @@ const configSchema = z.object({
 })
 
 const parseConfig = () => {
-  const port = process.env.PORT || 4000
+  const port = process.env.PORT
   const rawConfig = {
     env: STAGE,
     port,
-    appUrl: process.env.APP_URL || `http://localhost:${port}`,
-    db_host: process.env.POSTGRES_HOST || "localhost",
-    db_port: process.env.POSTGRES_PORT || 5432,
-    db_user: process.env.POSTGRES_USER || "postgres",
-    db_password: process.env.POSTGRES_PASSWORD || "postgres",
-    db_name: process.env.POSTGRES_DB || "postgres",
+    appUrl: process.env.APP_URL || `http://localhost:${port || 4000}`,
+    db_host: process.env.POSTGRES_HOST,
+    db_port: process.env.POSTGRES_PORT,
+    db_user: process.env.POSTGRES_USER,
+    db_password: process.env.POSTGRES_PASSWORD,
+    db_name: process.env.POSTGRES_DB,
     supabaseUrl: process.env.SUPABASE_URL || "https://example.supabase.co",
     supabasePublishableKey: process.env.SUPABASE_PUBLISHABLE_KEY,
     supabaseSecretKey: process.env.SUPABASE_SECRET_KEY,
@@ -59,17 +71,15 @@ const parseConfig = () => {
   const result = configSchema.safeParse(rawConfig)
 
   if (!result.success) {
-    logger.error({ issues: result.error.issues }, "Invalid configuration")
     result.error.issues.forEach((issue) => {
-      logger.error(`  - ${issue.path.join(".")}: ${issue.message}`)
+      logger.error(`config: ${issue.path.join(".") || "<root>"}: ${issue.message}`)
     })
     throw new Error("Configuration validation failed. Check environment variables.")
   }
 
+  logger.info(`running in env: ${STAGE}`)
   return result.data
 }
-
-logger.info(`running in env: ${STAGE}`)
 
 export const config = parseConfig()
 export type Config = typeof config

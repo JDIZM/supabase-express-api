@@ -41,34 +41,41 @@ export const validateRequest = (schemas: ValidationSchemas) => {
       res.status(response.code).json(response)
     }
 
-    if (schemas.body) {
-      const result = schemas.body.safeParse(req.body)
-      if (!result.success) {
-        logger.warn({ issues: result.error.issues, path: req.path }, "body validation failed")
-        return respond("body", result.error.issues[0])
+    try {
+      if (schemas.body) {
+        const result = schemas.body.safeParse(req.body)
+        if (!result.success) {
+          logger.warn({ issues: result.error.issues, path: req.path }, "body validation failed")
+          return respond("body", result.error.issues[0])
+        }
+        req.validatedBody = result.data
+        req.body = result.data
       }
-      req.validatedBody = result.data
-      req.body = result.data
-    }
 
-    if (schemas.params) {
-      const result = schemas.params.safeParse(req.params)
-      if (!result.success) {
-        logger.warn({ issues: result.error.issues, path: req.path }, "params validation failed")
-        return respond("params", result.error.issues[0])
+      if (schemas.params) {
+        const result = schemas.params.safeParse(req.params)
+        if (!result.success) {
+          logger.warn({ issues: result.error.issues, path: req.path }, "params validation failed")
+          return respond("params", result.error.issues[0])
+        }
+        req.validatedParams = result.data
       }
-      req.validatedParams = result.data
-    }
 
-    if (schemas.query) {
-      const result = schemas.query.safeParse(req.query)
-      if (!result.success) {
-        logger.warn({ issues: result.error.issues, path: req.path }, "query validation failed")
-        return respond("query", result.error.issues[0])
+      if (schemas.query) {
+        const result = schemas.query.safeParse(req.query)
+        if (!result.success) {
+          logger.warn({ issues: result.error.issues, path: req.path }, "query validation failed")
+          return respond("query", result.error.issues[0])
+        }
+        req.validatedQuery = result.data
       }
-      req.validatedQuery = result.data
-    }
 
-    next()
+      next()
+    } catch (err) {
+      logger.error({ err, path: req.path }, "Unexpected validation error")
+      const error = HttpErrors.InternalError("Request validation failed")
+      const response = apiResponse.error(error)
+      res.status(response.code).json(response)
+    }
   }
 }

@@ -1,6 +1,7 @@
 import eslint from "@eslint/js"
 import tseslint from "typescript-eslint"
 import globals from "globals"
+import eslintConfigPrettier from "eslint-config-prettier"
 
 export default tseslint.config(
   {
@@ -37,5 +38,7 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
       "@typescript-eslint/no-explicit-any": "off",
     },
-  }
+  },
+  // Must be last — disables ESLint rules that conflict with Prettier.
+  eslintConfigPrettier
 )

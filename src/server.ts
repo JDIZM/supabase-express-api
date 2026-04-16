@@ -74,7 +74,7 @@ adminRoutes(app)
 // Use the global error handler after defining routes to make sure it's called last.
 app.use(errorHandler)
 
-export const server = app.listen(Number(config.port), () => {
+export const server = app.listen(config.port, () => {
   logger.info(`[server]: Server is running on port: ${config.port}`)
 })
 
