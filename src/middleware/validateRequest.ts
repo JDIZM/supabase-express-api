@@ -1,8 +1,7 @@
 import type { Request, Response, NextFunction } from "express"
 import type { z } from "zod"
 import { HttpErrors } from "@/helpers/Http.ts"
-import { apiResponse } from "@/helpers/response.ts"
-import { logger } from "@/helpers/index.ts"
+import { logger } from "@/helpers/logger.ts"
 
 interface ValidationSchemas {
   body?: z.ZodTypeAny
@@ -25,6 +24,12 @@ declare global {
 /**
  * Middleware factory for validating Express requests with Zod schemas.
  *
+ * Parsed output is available on `req.validatedBody`, `req.validatedParams`, and
+ * `req.validatedQuery`. `req.body` and `req.params` are also overwritten with
+ * parsed data so `transform`/`coerce`/`default` results flow to handlers.
+ * `req.query` is NOT overwritten — in Express 5 it's a read-only getter, so
+ * consumers must read coerced query values from `req.validatedQuery`.
+ *
  * @example
  * const CreateUserSchema = z.object({ name: z.string(), email: z.string().email() })
  * router.post('/users', validateRequest({ body: CreateUserSchema }), (req, res) => {
@@ -32,15 +37,7 @@ declare global {
  * })
  */
 export const validateRequest = (schemas: ValidationSchemas) => {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const respond = (kind: "body" | "params" | "query", issue?: { message?: string }): void => {
-      const error = HttpErrors.BadRequest(
-        `Invalid request ${kind}: ${issue?.message || "validation failed"}`
-      )
-      const response = apiResponse.error(error)
-      res.status(response.code).json(response)
-    }
-
+  return (req: Request, _res: Response, next: NextFunction): void => {
     const sources = [
       {
         key: "body" as const,
@@ -55,6 +52,7 @@ export const validateRequest = (schemas: ValidationSchemas) => {
         input: () => req.params,
         assign: (data: unknown) => {
           req.validatedParams = data
+          req.params = data as typeof req.params
         },
       },
       {
@@ -73,17 +71,19 @@ export const validateRequest = (schemas: ValidationSchemas) => {
         const result = schema.safeParse(input())
         if (!result.success) {
           logger.warn({ issues: result.error.issues, path: req.path }, `${key} validation failed`)
-          return respond(key, result.error.issues[0])
+          const issue = result.error.issues[0]
+          return next(
+            HttpErrors.BadRequest(
+              `Invalid request ${key}: ${issue?.message || "validation failed"}`
+            )
+          )
         }
         assign(result.data)
       }
-
       next()
     } catch (err) {
       logger.error({ err, path: req.path }, "Unexpected validation error")
-      const error = HttpErrors.InternalError("Request validation failed")
-      const response = apiResponse.error(error)
-      res.status(response.code).json(response)
+      next(HttpErrors.InternalError("Request validation failed"))
     }
   }
 }

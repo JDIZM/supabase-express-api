@@ -1,6 +1,13 @@
 import dotenv from "dotenv"
 import { z } from "zod"
-import { logger } from "@/helpers/index.ts"
+import { logger } from "@/helpers/logger.ts"
+
+const SUPABASE_URL_PLACEHOLDERS = new Set([
+  "https://example.supabase.co",
+  "https://your-project.supabase.co",
+  "https://project.supabase.co",
+  "https://xxxx.supabase.co",
+])
 
 export const stages = ["development", "production", "test"] as const
 
@@ -40,8 +47,12 @@ const configSchema = z.object({
     .string()
     .url()
     .refine(
-      (url) => STAGE !== "production" || !url.includes("example.supabase.co"),
-      "SUPABASE_URL must be set to a real project URL in production"
+      (url) => STAGE !== "production" || !SUPABASE_URL_PLACEHOLDERS.has(url),
+      "SUPABASE_URL must be set to a real project URL in production (placeholder detected)"
+    )
+    .refine(
+      (url) => STAGE !== "production" || /\.supabase\.(co|in)$/.test(new URL(url).hostname),
+      "SUPABASE_URL must point to a *.supabase.co or *.supabase.in host in production"
     ),
   supabasePublishableKey: z
     .string()
@@ -52,7 +63,7 @@ const configSchema = z.object({
   supabaseSecretKey: z.string().optional(),
 })
 
-const parseConfig = () => {
+export const parseConfig = () => {
   const rawConfig = {
     env: STAGE,
     port: process.env.PORT,
