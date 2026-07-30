@@ -34,7 +34,7 @@
     "@types/swagger-ui-express": "^4.1.8",
     "@typescript-eslint/eslint-plugin": "^8.29.0",
     "@typescript-eslint/parser": "^8.29.0",
-    "@vitest/coverage-v8": "^2.0.0",
+    "@vitest/coverage-v8": "^4.0.0",
     "dotenv": "^16.4.5",
     "drizzle-kit": "^0.31.0",
     "eslint": "^8.57.0",
