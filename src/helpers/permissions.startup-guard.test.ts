@@ -1,6 +1,6 @@
-import express from 'express'
 import type { NextFunction, Request, Response } from 'express'
 import { describe, expect, it } from 'vitest'
+import { buildRouterApp } from '@/test-support/route-app.ts'
 import {
   assertAllRoutesHavePermissions,
   findRoutesMissingPermissions,
@@ -19,8 +19,9 @@ const otherMiddleware = (_req: Request, _res: Response, next: NextFunction): voi
 
 describe('assertAllRoutesHavePermissions', () => {
   it('reports a registered route missing a permissions entry, naming the (path, method) pair', () => {
-    const app = express()
-    app.get('/some/registered/route', isAuthorized, (_req, res) => res.end())
+    const app = buildRouterApp([
+      { method: 'get', path: '/some/registered/route', middleware: [isAuthorized] },
+    ])
 
     const offenders = findRoutesMissingPermissions(app, permissions)
 
@@ -28,8 +29,7 @@ describe('assertAllRoutesHavePermissions', () => {
   })
 
   it('does not report a route missing a permissions entry if it is not wired through isAuthorized', () => {
-    const app = express()
-    app.get('/health', otherMiddleware, (_req, res) => res.end())
+    const app = buildRouterApp([{ method: 'get', path: '/health', middleware: [otherMiddleware] }])
 
     const offenders = findRoutesMissingPermissions(app, permissions)
 
@@ -37,8 +37,9 @@ describe('assertAllRoutesHavePermissions', () => {
   })
 
   it('does not report a method that has a real permissions entry', () => {
-    const app = express()
-    app.get('/workspaces/:id', isAuthorized, (_req, res) => res.end())
+    const app = buildRouterApp([
+      { method: 'get', path: '/workspaces/:id', middleware: [isAuthorized] },
+    ])
 
     const offenders = findRoutesMissingPermissions(app, permissions)
 
@@ -46,11 +47,12 @@ describe('assertAllRoutesHavePermissions', () => {
   })
 
   it('reports a method missing from an otherwise-registered route', () => {
-    const app = express()
     // Simulates a route where GET/DELETE have entries but PATCH does not.
-    app.get('/workspaces/:id', isAuthorized, (_req, res) => res.end())
-    app.delete('/workspaces/:id', isAuthorized, (_req, res) => res.end())
-    app.patch('/workspaces/:id', isAuthorized, (_req, res) => res.end())
+    const app = buildRouterApp([
+      { method: 'get', path: '/workspaces/:id', middleware: [isAuthorized] },
+      { method: 'delete', path: '/workspaces/:id', middleware: [isAuthorized] },
+      { method: 'patch', path: '/workspaces/:id', middleware: [isAuthorized] },
+    ])
 
     const strippedPermissions = new Map(permissions)
     const entry = strippedPermissions.get('/workspaces/:id')
@@ -67,8 +69,9 @@ describe('assertAllRoutesHavePermissions', () => {
   })
 
   it('throws, naming the offender, when a registered route has no permissions entry', () => {
-    const app = express()
-    app.post('/__totally-unregistered', isAuthorized, (_req, res) => res.end())
+    const app = buildRouterApp([
+      { method: 'post', path: '/__totally-unregistered', middleware: [isAuthorized] },
+    ])
 
     expect(() => assertAllRoutesHavePermissions(app, permissions)).toThrow(
       /POST \/__totally-unregistered/
@@ -78,13 +81,13 @@ describe('assertAllRoutesHavePermissions', () => {
   it('does not throw for the real, fully-registered app route set', () => {
     // Sanity check: build the real routes exactly as server.ts does and confirm the guard is
     // satisfied — proves the guard isn't just permissive by construction.
-    expect(() => {
-      const app = express()
-      app.get('/workspaces/:id', isAuthorized, (_req, res) => res.end())
-      app.patch('/workspaces/:id', isAuthorized, (_req, res) => res.end())
-      app.delete('/workspaces/:id', isAuthorized, (_req, res) => res.end())
-      assertAllRoutesHavePermissions(app, permissions)
-    }).not.toThrow()
+    const app = buildRouterApp([
+      { method: 'get', path: '/workspaces/:id', middleware: [isAuthorized] },
+      { method: 'patch', path: '/workspaces/:id', middleware: [isAuthorized] },
+      { method: 'delete', path: '/workspaces/:id', middleware: [isAuthorized] },
+    ])
+
+    expect(() => assertAllRoutesHavePermissions(app, permissions)).not.toThrow()
   })
 
   it('detects the guard via its marker even when the middleware is a distinct function reference from another tagged instance (defends against cross-module-instance identity mismatches)', () => {
@@ -98,8 +101,13 @@ describe('assertAllRoutesHavePermissions', () => {
     )
     expect(distinctReferenceButSameGuard).not.toBe(isAuthorized)
 
-    const app = express()
-    app.get('/some/other/registered/route', distinctReferenceButSameGuard, (_req, res) => res.end())
+    const app = buildRouterApp([
+      {
+        method: 'get',
+        path: '/some/other/registered/route',
+        middleware: [distinctReferenceButSameGuard],
+      },
+    ])
 
     const offenders = findRoutesMissingPermissions(app, permissions)
 
@@ -112,8 +120,9 @@ describe('assertAllRoutesHavePermissions', () => {
     // with a marker, comparing `routeLayer.handle === isAuthorizedHandler` could silently fail to
     // match (eg. if the guard were imported via a different specifier), which would make this
     // route look unprotected and skip the check entirely instead of throwing.
-    const app = express()
-    app.delete('/__another-unregistered-route', isAuthorized, (_req, res) => res.end())
+    const app = buildRouterApp([
+      { method: 'delete', path: '/__another-unregistered-route', middleware: [isAuthorized] },
+    ])
 
     expect(() => assertAllRoutesHavePermissions(app, permissions)).toThrow(
       /DELETE \/__another-unregistered-route/
