@@ -6,28 +6,52 @@ import type { Config } from 'drizzle-kit'
 // has only database credentials, so importing it made `pnpm migrate` fail
 // with "Configuration validation failed" in CI — migrations are a deploy
 // step, not an app boot.
-const url = process.env.DATABASE_URL
 
-const dbCredentials = url
-  ? { url }
-  : {
-      host: process.env.POSTGRES_HOST ?? 'localhost',
-      user: process.env.POSTGRES_USER ?? 'postgres',
-      port: Number(process.env.POSTGRES_PORT ?? 5432),
-      password: process.env.POSTGRES_PASSWORD ?? 'postgres',
-      database: process.env.POSTGRES_DB ?? 'postgres',
-      ssl: process.env.NODE_ENV === 'production',
-    }
+const isProduction = process.env.NODE_ENV === 'production'
 
-if (!url && !process.env.POSTGRES_HOST) {
-  throw new Error(
-    'drizzle-kit needs DATABASE_URL, or the POSTGRES_* variables, to reach the database'
-  )
+function requireEnv(name: string): string {
+  const value = process.env[name]
+  if (!value) {
+    throw new Error(
+      `drizzle-kit needs DATABASE_URL, or all of POSTGRES_HOST/PORT/USER/PASSWORD/DB. Missing: ${name}`
+    )
+  }
+  return value
+}
+
+function port(): number {
+  const raw = process.env.POSTGRES_PORT ?? '5432'
+  const parsed = Number(raw)
+  // Number('') is 0 and Number('abc') is NaN; both would surface later as a
+  // baffling connection failure rather than a config error.
+  if (!Number.isInteger(parsed) || parsed <= 0 || parsed > 65535) {
+    throw new Error(`POSTGRES_PORT must be a port number, got "${raw}"`)
+  }
+  return parsed
+}
+
+function credentials() {
+  const url = process.env.DATABASE_URL
+  if (url) return { url }
+
+  return {
+    host: requireEnv('POSTGRES_HOST'),
+    user: requireEnv('POSTGRES_USER'),
+    port: port(),
+    // Never defaulted. A silent fallback to "postgres" would let a
+    // production migration run against whatever that happens to reach,
+    // and it contradicts src/config.ts, which requires this in production.
+    password: isProduction
+      ? requireEnv('POSTGRES_PASSWORD')
+      : (process.env.POSTGRES_PASSWORD ?? 'postgres'),
+    database: requireEnv('POSTGRES_DB'),
+    ssl: isProduction,
+  }
 }
 
 export default {
   dialect: 'postgresql',
   schema: './src/schema.ts',
   out: './drizzle',
-  dbCredentials,
+  dbCredentials: credentials(),
 } satisfies Config

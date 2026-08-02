@@ -54,5 +54,5 @@ jobs:
 
       - name: Apply migrations to a fresh database
         env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
         run: pnpm migrate
