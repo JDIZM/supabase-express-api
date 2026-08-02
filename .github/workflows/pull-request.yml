@@ -21,3 +21,38 @@ jobs:
       - run: pnpm run tsc:check
       - run: pnpm run build
       - run: pnpm run test
+
+  # NOTE: intentionally duplicated in main.yml — this copy gates the
+  # merge (which is the one that matters); that copy also covers a direct
+  # push to main. Keep them in step if either changes.
+  # Prove the migration chain applies cleanly FROM EMPTY, against a fresh
+  # throwaway Postgres. This is verification, not deployment: it catches a
+  # broken or conflicting migration before anything real is touched. It
+  # needs no secrets, so it also works on forks.
+  verify-migrations:
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: volta-cli/action@v4
+        with:
+          node-version: 22
+      - run: volta install pnpm
+      - run: pnpm install
+
+      - name: Apply migrations to a fresh database
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+        run: pnpm migrate
