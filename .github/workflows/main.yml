@@ -24,10 +24,25 @@ jobs:
       - run: pnpm run build
       - run: pnpm run test
 
-  # Run database migrations for development environment
-  migrate-dev:
+  # Prove the migration chain applies cleanly FROM EMPTY, against a fresh
+  # throwaway Postgres. This is verification, not deployment: it catches a
+  # broken or conflicting migration before anything real is touched. It
+  # needs no secrets, so it also works on forks.
+  verify-migrations:
     needs: test-and-build
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - uses: volta-cli/action@v4
@@ -36,10 +51,32 @@ jobs:
       - run: volta install pnpm
       - run: pnpm install
 
-      - name: Run database migrations
+      - name: Apply migrations to a fresh database
         env:
-          DATABASE_URL: ${{ secrets.DEV_DATABASE_URL }}
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
         run: pnpm migrate
+
+  # Applying migrations to a REAL environment on merge (the Laravel-style
+  # deploy step) lives here when there is an environment to apply them to.
+  # The previous dev job pointed at a Supabase project that has since been
+  # torn down, so it could only ever fail — and a permanently red main
+  # teaches everyone to ignore CI. Re-enable with the environment's URL in
+  # DEV_DATABASE_URL, or fold it into the release-gated deploy.
+  #
+  # migrate-dev:
+  #   needs: verify-migrations
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: volta-cli/action@v4
+  #       with:
+  #         node-version: 22
+  #     - run: volta install pnpm
+  #     - run: pnpm install
+  #     - name: Run database migrations
+  #       env:
+  #         DATABASE_URL: ${{ secrets.DEV_DATABASE_URL }}
+  #       run: pnpm migrate
 
   # TODO uncomment the deployment step when you have configured the secrets.
   # deploy-dev:
