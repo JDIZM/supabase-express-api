@@ -1,24 +1,26 @@
-import { checkMembership } from "@/handlers/memberships/memberships.methods.ts";
-import { getProfileById } from "@/handlers/profiles/profiles.methods.ts";
-import { HttpErrors, HttpStatusCode } from "@/helpers/Http.ts";
-import type { Route } from "@/helpers/index.ts";
-import { logger, permissions } from "@/helpers/index.ts";
-import { ROLES, type Method } from "@/helpers/permissions.ts";
-import { apiResponse } from "@/helpers/response.ts";
-import { accounts } from "@/schema.ts";
-import { db } from "@/services/db/drizzle.ts";
-import { eq } from "drizzle-orm";
-import type { NextFunction, Request, Response } from "express";
+import { checkMembership } from '@/handlers/memberships/memberships.methods.ts'
+import { getProfileById } from '@/handlers/profiles/profiles.methods.ts'
+import { HttpErrors, HttpStatusCode } from '@/helpers/Http.ts'
+import type { Route } from '@/helpers/index.ts'
+import { logger, permissions } from '@/helpers/index.ts'
+import { ROLES, type Method } from '@/helpers/permissions.ts'
+import { apiResponse } from '@/helpers/response.ts'
+import { accounts } from '@/schema.ts'
+import { db } from '@/services/db/drizzle.ts'
+import { eq } from 'drizzle-orm'
+import type { NextFunction, Request, Response } from 'express'
 
 const ResourceType = {
-  ACCOUNT: "account",
-  PROFILE: "profile"
-} as const;
+  ACCOUNT: 'account',
+  PROFILE: 'profile',
+} as const
 
-export function determineResourceType(route: Route): "" | (typeof ResourceType)[keyof typeof ResourceType] {
-  const keys = Object.values(ResourceType);
-  const resourceType = keys.find((key) => route.includes(key));
-  return resourceType ?? "";
+export function determineResourceType(
+  route: Route
+): '' | (typeof ResourceType)[keyof typeof ResourceType] {
+  const keys = Object.values(ResourceType)
+  const resourceType = keys.find((key) => route.includes(key))
+  return resourceType ?? ''
 }
 
 /**
@@ -27,40 +29,46 @@ export function determineResourceType(route: Route): "" | (typeof ResourceType)[
 const isOwner = async (id: string, resourceId: string, resourceType: string): Promise<boolean> => {
   switch (resourceType) {
     case ResourceType.ACCOUNT:
-      return id === resourceId;
+      return id === resourceId
     // Needs to verify the accountId associated with the profile.
     case ResourceType.PROFILE: {
-      const [profile] = await getProfileById(resourceId);
+      const [profile] = await getProfileById(resourceId)
 
       if (profile) {
-        logger.debug({ msg: "isOwner: profile", id, resourceId, accountId: profile.accountId });
+        logger.debug({ msg: 'isOwner: profile', id, resourceId, accountId: profile.accountId })
 
-        return profile.accountId === id;
+        return profile.accountId === id
       }
 
-      return false;
+      return false
     }
 
     default:
-      return false;
+      return false
   }
-};
+}
 
-export const isAuthorized = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const isAuthorized = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-    const { accountId, workspaceId } = req;
+    const { accountId, workspaceId } = req
 
-    const routeMethod = req.method as Method;
-    const routeKey = (req.baseUrl + req.route.path) as Route;
+    const routeMethod = req.method as Method
+    const routeKey = (req.baseUrl + req.route.path) as Route
 
-    logger.debug(`Authorizing for workspace id: ${workspaceId}`);
-    logger.debug(req, "isAuthorized: req");
+    logger.debug(`Authorizing for workspace id: ${workspaceId}`)
 
-    const resourcePermissions = permissions.permissions.get(routeKey);
-    const resourcePermission = resourcePermissions && resourcePermissions.permissions[routeMethod];
-    const requiresAuth = (resourcePermissions && resourcePermissions.authenticated) || false;
+    const resourcePermissions = permissions.permissions.get(routeKey)
+    const resourcePermission = resourcePermissions && resourcePermissions.permissions[routeMethod]
+    const requiresAuth = (resourcePermissions && resourcePermissions.authenticated) || false
 
-    logger.debug({ cookies: req.cookies }, "isAuthorized: cookies");
+    logger.debug(
+      { requestId: req.id, method: req.method, path: req.path, accountId, workspaceId },
+      'isAuthorized: request'
+    )
 
     logger.debug(
       {
@@ -68,87 +76,100 @@ export const isAuthorized = async (req: Request, res: Response, next: NextFuncti
         routeMethod,
         workspaceId,
         resourcePermissions,
-        resourcePermission
+        resourcePermission,
       },
-      "isAuthorized: middleware"
-    );
+      'isAuthorized: middleware'
+    )
 
     if (requiresAuth && !accountId) {
-      logger.error({ accountId, routeKey, resourcePermission, routeMethod, workspaceId }, "Unauthorized user");
+      logger.error(
+        { accountId, routeKey, resourcePermission, routeMethod, workspaceId },
+        'Unauthorized user'
+      )
 
-      res.status(401).send("Unauthorized");
-      return;
+      res.status(401).send('Unauthorized')
+      return
     }
 
     // Super admin only has access to routes that have super admin permissions enabled.
     if (resourcePermissions?.super && accountId) {
-      const [account] = await db.select().from(accounts).where(eq(accounts.uuid, accountId)).execute();
+      const [account] = await db
+        .select()
+        .from(accounts)
+        .where(eq(accounts.uuid, accountId))
+        .execute()
 
       if (!account) {
-        throw new Error("DB User not found");
+        throw new Error('DB User not found')
       }
 
-      const { isSuperAdmin } = account;
+      const { isSuperAdmin } = account
 
       if (!isSuperAdmin) {
-        logger.error({ routeKey, accountId, workspaceId }, "isAuthorized: Not a super admin");
+        logger.error({ routeKey, accountId, workspaceId }, 'isAuthorized: Not a super admin')
 
-        throw new Error(`Forbidden: account id: ${accountId} is not a super admin`);
+        throw new Error(`Forbidden: account id: ${accountId} is not a super admin`)
       }
 
-      logger.debug({ routeKey, workspaceId, isSuperAdmin }, `isAuthorized: Super admin for account id: ${accountId}`);
+      logger.debug(
+        { routeKey, workspaceId, isSuperAdmin },
+        `isAuthorized: Super admin for account id: ${accountId}`
+      )
 
-      return next();
+      return next()
     }
 
     if (!resourcePermission) {
-      logger.debug({ routeKey, workspaceId }, "isAuthorized: No permissions required");
+      logger.debug({ routeKey, workspaceId }, 'isAuthorized: No permissions required')
 
-      return next();
+      return next()
     }
 
     // An owner has access to all resources they own regardless of the workspace.
     if (resourcePermission.includes(ROLES.Owner) && accountId) {
       // Check if the user is the owner of the resource
-      const resourceId = req.params?.id || "";
-      const resourceType = determineResourceType(routeKey);
+      const resourceId = req.params?.id || ''
+      const resourceType = determineResourceType(routeKey)
 
       // Some resources require a db call to check if the user is the owner.
-      const isUserOwner = await isOwner(accountId, resourceId, resourceType);
+      const isUserOwner = await isOwner(accountId, resourceId, resourceType)
 
-      logger.debug({ routeKey, accountId, workspaceId, isUserOwner }, "isAuthorized: Owner");
+      logger.debug({ routeKey, accountId, workspaceId, isUserOwner }, 'isAuthorized: Owner')
 
       if (isUserOwner) {
-        return next();
+        return next()
       }
 
-      logger.error({ accountId, resourceId, routeKey, workspaceId }, "isAuthorized: Not the owner of the resource");
+      logger.error(
+        { accountId, resourceId, routeKey, workspaceId },
+        'isAuthorized: Not the owner of the resource'
+      )
 
-      throw new Error(`Forbidden: Not the owner of the resource with id: ${req.params?.id}`);
+      throw new Error(`Forbidden: Not the owner of the resource with id: ${req.params?.id}`)
     }
 
     // Ensure the user is a member of the workspace and has the required role by validating the x-workspace-id header.
     if (workspaceId && accountId) {
-      const [isMember, role] = await checkMembership(accountId, workspaceId);
+      const [isMember, role] = await checkMembership(accountId, workspaceId)
 
-      logger.debug({ isMember, role }, "isAuthorized: checkMembership");
+      logger.debug({ isMember, role }, 'isAuthorized: checkMembership')
 
       if (!isMember) {
-        throw new Error(`Forbidden: Not a member of the workspace with id: ${workspaceId}`);
+        throw new Error(`Forbidden: Not a member of the workspace with id: ${workspaceId}`)
       }
 
       if (isMember && (resourcePermission.includes(role) || role === ROLES.Admin)) {
-        return next();
+        return next()
       }
     }
 
-    const response = apiResponse.error(HttpErrors.Forbidden());
-    res.status(response.code).json(response);
-    return;
+    const response = apiResponse.error(HttpErrors.Forbidden())
+    res.status(response.code).json(response)
+    return
   } catch (err) {
-    const response = apiResponse.error(err as Error, HttpStatusCode.FORBIDDEN);
+    const response = apiResponse.error(err as Error, HttpStatusCode.FORBIDDEN)
 
-    res.status(response.code).json(response);
-    return;
+    res.status(response.code).json(response)
+    return
   }
-};
+}

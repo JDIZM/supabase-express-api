@@ -2,5 +2,14 @@ node_modules
 dist
 coverage
 .env
+.env.local
+.env.*.local
+.env.docker
 logs
 *.log
+.DS_Store
+.vscode/
+local/
+
+# Claude Code
+.claude/settings.local.json

@@ -1,17 +1,22 @@
-import type { Config } from "drizzle-kit";
+import type { Config } from 'drizzle-kit'
 // drizzle requires the ts extension to import config.
-import { config } from "./src/config.ts";
-import { logger } from "./src/helpers/index.ts";
+import { config } from './src/config.ts'
+import { logger } from './src/helpers/index.ts'
 
-logger.info({ msg: "config", config });
+logger.info({
+  msg: 'drizzle config loaded',
+  dialect: 'postgresql',
+  schema: './src/schema.ts',
+  env: config.env,
+})
 
 export default {
-  dialect: "postgresql",
-  schema: "./src/schema.ts",
-  out: "./drizzle",
+  dialect: 'postgresql',
+  schema: './src/schema.ts',
+  out: './drizzle',
   dbCredentials: process.env.DATABASE_URL
     ? {
-        url: process.env.DATABASE_URL
+        url: process.env.DATABASE_URL,
       }
     : {
         host: config.db_host,
@@ -19,6 +24,6 @@ export default {
         port: config.db_port,
         password: config.db_password,
         database: config.db_name,
-        ssl: config.env !== "development"
-      }
-} satisfies Config;
+        ssl: config.env !== 'development',
+      },
+} satisfies Config

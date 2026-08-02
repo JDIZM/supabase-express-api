@@ -1,11 +1,11 @@
-import { HttpErrors, HttpStatusCode } from "@/helpers/Http.ts";
-import { apiResponse } from "@/helpers/response.ts";
-import { asyncHandler } from "@/helpers/request.ts";
-import { accounts, auditLogs } from "@/schema.ts";
-import { db } from "@/services/db/drizzle.ts";
-import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
-import type { Request, Response } from "express";
-import { z } from "zod";
+import { HttpErrors, HttpStatusCode } from '@/helpers/Http.ts'
+import { apiResponse } from '@/helpers/response.ts'
+import { asyncHandler } from '@/helpers/request.ts'
+import { accounts, auditLogs } from '@/schema.ts'
+import { db } from '@/services/db/drizzle.ts'
+import { and, desc, eq, gte, lte, sql } from 'drizzle-orm'
+import type { Request, Response } from 'express'
+import { z } from 'zod'
 
 // Zod schema for audit logs query parameters
 const auditLogsQuerySchema = z.object({
@@ -17,8 +17,8 @@ const auditLogsQuerySchema = z.object({
   entityId: z.string().uuid().optional(),
   workspaceId: z.string().uuid().optional(),
   startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional()
-});
+  endDate: z.string().datetime().optional(),
+})
 
 /**
  * GET /admin/audit-logs
@@ -26,41 +26,42 @@ const auditLogsQuerySchema = z.object({
  */
 export const getAuditLogs = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   // Validate query parameters
-  const validationResult = auditLogsQuerySchema.safeParse(req.query);
+  const validationResult = auditLogsQuerySchema.safeParse(req.query)
 
   if (!validationResult.success) {
     const response = apiResponse.error(
       HttpErrors.ValidationFailed(`Invalid query parameters: ${validationResult.error.message}`)
-    );
-    res.status(response.code).send(response);
-    return;
+    )
+    res.status(response.code).send(response)
+    return
   }
 
-  const { page, limit, action, entityType, actorId, entityId, workspaceId, startDate, endDate } = validationResult.data;
-  const offset = (page - 1) * limit;
+  const { page, limit, action, entityType, actorId, entityId, workspaceId, startDate, endDate } =
+    validationResult.data
+  const offset = (page - 1) * limit
 
   // Build conditions for filtering
-  const conditions = [];
+  const conditions = []
   if (action) {
-    conditions.push(eq(auditLogs.action, action));
+    conditions.push(eq(auditLogs.action, action))
   }
   if (entityType) {
-    conditions.push(eq(auditLogs.entityType, entityType));
+    conditions.push(eq(auditLogs.entityType, entityType))
   }
   if (actorId) {
-    conditions.push(eq(auditLogs.actorId, actorId));
+    conditions.push(eq(auditLogs.actorId, actorId))
   }
   if (entityId) {
-    conditions.push(eq(auditLogs.entityId, entityId));
+    conditions.push(eq(auditLogs.entityId, entityId))
   }
   if (workspaceId) {
-    conditions.push(eq(auditLogs.workspaceId, workspaceId));
+    conditions.push(eq(auditLogs.workspaceId, workspaceId))
   }
   if (startDate) {
-    conditions.push(gte(auditLogs.createdAt, new Date(startDate)));
+    conditions.push(gte(auditLogs.createdAt, new Date(startDate)))
   }
   if (endDate) {
-    conditions.push(lte(auditLogs.createdAt, new Date(endDate)));
+    conditions.push(lte(auditLogs.createdAt, new Date(endDate)))
   }
 
   // Get total count
@@ -70,10 +71,10 @@ export const getAuditLogs = asyncHandler(async (req: Request, res: Response): Pr
           .select({ count: sql<number>`count(*)` })
           .from(auditLogs)
           .where(and(...conditions))
-      : db.select({ count: sql<number>`count(*)` }).from(auditLogs);
+      : db.select({ count: sql<number>`count(*)` }).from(auditLogs)
 
-  const [countResult] = await countQuery;
-  const count = countResult?.count || 0;
+  const [countResult] = await countQuery
+  const count = countResult?.count || 0
 
   // Build base query with joins for actor and target details
   const baseQuery = db
@@ -87,32 +88,32 @@ export const getAuditLogs = asyncHandler(async (req: Request, res: Response): Pr
         ipAddress: auditLogs.ipAddress,
         userAgent: auditLogs.userAgent,
         workspaceId: auditLogs.workspaceId,
-        createdAt: auditLogs.createdAt
+        createdAt: auditLogs.createdAt,
       },
       actor: {
         uuid: accounts.uuid,
         email: accounts.email,
-        fullName: accounts.fullName
+        fullName: accounts.fullName,
       },
       target: {
         uuid: sql<string>`target_account.uuid`,
         email: sql<string>`target_account.email`,
-        fullName: sql<string>`target_account.full_name`
+        fullName: sql<string>`target_account.full_name`,
       },
       workspace: {
         uuid: sql<string>`workspace.uuid`,
-        name: sql<string>`workspace.name`
-      }
+        name: sql<string>`workspace.name`,
+      },
     })
     .from(auditLogs)
     .leftJoin(accounts, eq(auditLogs.actorId, accounts.uuid))
     .leftJoin(sql`accounts AS target_account`, sql`${auditLogs.targetId} = target_account.uuid`)
-    .leftJoin(sql`workspaces AS workspace`, sql`${auditLogs.workspaceId} = workspace.uuid`);
+    .leftJoin(sql`workspaces AS workspace`, sql`${auditLogs.workspaceId} = workspace.uuid`)
 
   // Apply filters if any exist
-  const query = conditions.length > 0 ? baseQuery.where(and(...conditions)) : baseQuery;
+  const query = conditions.length > 0 ? baseQuery.where(and(...conditions)) : baseQuery
 
-  const auditLogsList = await query.orderBy(desc(auditLogs.createdAt)).limit(limit).offset(offset);
+  const auditLogsList = await query.orderBy(desc(auditLogs.createdAt)).limit(limit).offset(offset)
 
   const response = apiResponse.success(
     HttpStatusCode.OK,
@@ -122,7 +123,7 @@ export const getAuditLogs = asyncHandler(async (req: Request, res: Response): Pr
         page,
         limit,
         total: count,
-        pages: Math.ceil(count / limit)
+        pages: Math.ceil(count / limit),
       },
       filters: {
         action,
@@ -131,69 +132,69 @@ export const getAuditLogs = asyncHandler(async (req: Request, res: Response): Pr
         entityId,
         workspaceId,
         startDate,
-        endDate
-      }
+        endDate,
+      },
     },
-    "Audit logs retrieved successfully"
-  );
+    'Audit logs retrieved successfully'
+  )
 
-  res.status(response.code).send(response);
-});
+  res.status(response.code).send(response)
+})
 
 /**
  * GET /admin/audit-logs/stats
  * Get audit log statistics (SuperAdmin only)
  */
 export const getAuditLogStats = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const days = parseInt(req.query.days as string) || 30;
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - days);
+  const days = parseInt(req.query.days as string) || 30
+  const startDate = new Date()
+  startDate.setDate(startDate.getDate() - days)
 
   // Get action counts
   const actionStats = await db
     .select({
       action: auditLogs.action,
-      count: sql<number>`count(*)`
+      count: sql<number>`count(*)`,
     })
     .from(auditLogs)
     .where(gte(auditLogs.createdAt, startDate))
     .groupBy(auditLogs.action)
-    .orderBy(sql`count(*) DESC`);
+    .orderBy(sql`count(*) DESC`)
 
   // Get entity type counts
   const entityTypeStats = await db
     .select({
       entityType: auditLogs.entityType,
-      count: sql<number>`count(*)`
+      count: sql<number>`count(*)`,
     })
     .from(auditLogs)
     .where(gte(auditLogs.createdAt, startDate))
     .groupBy(auditLogs.entityType)
-    .orderBy(sql`count(*) DESC`);
+    .orderBy(sql`count(*) DESC`)
 
   // Get top actors
   const topActors = await db
     .select({
       actorId: auditLogs.actorId,
       actorEmail: auditLogs.actorEmail,
-      count: sql<number>`count(*)`
+      count: sql<number>`count(*)`,
     })
     .from(auditLogs)
     .where(gte(auditLogs.createdAt, startDate))
     .groupBy(auditLogs.actorId, auditLogs.actorEmail)
     .orderBy(sql`count(*) DESC`)
-    .limit(10);
+    .limit(10)
 
   // Get daily activity
   const dailyActivity = await db
     .select({
       date: sql<string>`DATE(${auditLogs.createdAt})`,
-      count: sql<number>`count(*)`
+      count: sql<number>`count(*)`,
     })
     .from(auditLogs)
     .where(gte(auditLogs.createdAt, startDate))
     .groupBy(sql`DATE(${auditLogs.createdAt})`)
-    .orderBy(sql`DATE(${auditLogs.createdAt}) DESC`);
+    .orderBy(sql`DATE(${auditLogs.createdAt}) DESC`)
 
   const response = apiResponse.success(
     HttpStatusCode.OK,
@@ -204,10 +205,10 @@ export const getAuditLogStats = asyncHandler(async (req: Request, res: Response)
       actionStats,
       entityTypeStats,
       topActors,
-      dailyActivity
+      dailyActivity,
     },
-    "Audit log statistics retrieved successfully"
-  );
+    'Audit log statistics retrieved successfully'
+  )
 
-  res.status(response.code).send(response);
-});
+  res.status(response.code).send(response)
+})

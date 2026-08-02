@@ -2,6 +2,7 @@ build
 coverage
 dist
 node_modules
-/prisma/generated/zod
-/drizzle/*
+drizzle
+supabase/migrations
 renovate.json
+pnpm-lock.yaml
