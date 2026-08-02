@@ -26,7 +26,9 @@ export const isAuthenticated = async (
   const routeMethod = req.method as Method
 
   const resourcePermissions = permissions.permissions.get(routeKey)
-  const requiresAuth = (resourcePermissions && resourcePermissions.authenticated) || false
+  // Fail closed: a route with no permissions entry must require authentication by default.
+  // Only a route explicitly registered with `authenticated: false` (eg. /, /login, /signup) skips this.
+  const requiresAuth = resourcePermissions ? resourcePermissions.authenticated : true
 
   const ips = getIpFromRequest(req)
 

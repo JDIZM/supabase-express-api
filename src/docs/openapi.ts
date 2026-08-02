@@ -334,7 +334,7 @@ registry.registerPath({
       id: z.uuid(),
     }),
     headers: z.object({
-      'x-workspace-id': z.uuid(),
+      'x-workspace-id': z.uuid().optional(),
     }),
     body: {
       content: {
@@ -372,7 +372,7 @@ registry.registerPath({
       id: z.uuid(),
     }),
     headers: z.object({
-      'x-workspace-id': z.uuid(),
+      'x-workspace-id': z.uuid().optional(),
     }),
   },
   responses: {
@@ -404,7 +404,10 @@ registry.registerPath({
       id: z.uuid().describe('Workspace ID'),
     }),
     headers: z.object({
-      'x-workspace-id': z.uuid().describe('Workspace ID for context'),
+      'x-workspace-id': z
+        .uuid()
+        .optional()
+        .describe('Workspace ID for context (optional; must match the path id if present)'),
     }),
     body: {
       content: {
@@ -634,7 +637,7 @@ registry.registerPath({
       id: z.uuid(),
     }),
     headers: z.object({
-      'x-workspace-id': z.uuid(),
+      'x-workspace-id': z.uuid().optional(),
     }),
   },
   responses: {
@@ -680,7 +683,7 @@ registry.registerPath({
       id: z.uuid(),
     }),
     headers: z.object({
-      'x-workspace-id': z.uuid(),
+      'x-workspace-id': z.uuid().optional(),
     }),
     body: {
       content: {
@@ -932,14 +935,16 @@ export function generateOpenAPIDocument(): ReturnType<OpenApiGeneratorV3['genera
       
 ## Authorization Pattern
 
-This API uses a consistent header-based authorization for workspace operations:
+This API authorizes workspace operations against the workspace id in the URL path:
 
 - **JWT Bearer Token**: Include in Authorization header for authentication
-- **x-workspace-id Header**: Required for ALL workspace-scoped endpoints, even when workspace ID is in the URL
+- **x-workspace-id Header**: Optional for workspace-scoped endpoints. The path id is
+  authoritative; if this header is present, it must match the path id exactly or the request
+  is rejected with 400. Provided for endpoints without a workspace id in the URL (eg. future
+  endpoints), and as an explicit assertion of intended workspace context.
 
 ### Why Headers?
-- Consistent authorization pattern across all endpoints
-- Supports future endpoints without workspace ID in URL  
+- Supports endpoints without workspace ID in URL
 - Explicit workspace context for security
 - Extensible for additional context headers
 

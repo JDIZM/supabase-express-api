@@ -68,7 +68,13 @@ export const createWorkspace = asyncHandler(async (req: Request, res: Response):
 })
 
 export const fetchWorkspace = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const validationResult = uuidSchema.safeParse(req.params.id)
+  // req.workspaceId is set by isAuthorized on this (workspace-scoped) route, and is guaranteed to
+  // agree with req.params.id by the time a handler runs (a disagreeing header was already
+  // rejected with 400) — read it here so the handler and the authorization check always agree on
+  // which workspace is in play.
+  const workspaceId = req.workspaceId
+
+  const validationResult = uuidSchema.safeParse(workspaceId)
   if (!validationResult.success) {
     const response = apiResponse.error(
       HttpErrors.ValidationFailed(`Invalid workspace ID: ${validationResult.error.message}`)
@@ -77,13 +83,13 @@ export const fetchWorkspace = asyncHandler(async (req: Request, res: Response): 
     return
   }
 
-  if (!req.params.id) {
+  if (!workspaceId) {
     const response = apiResponse.error(HttpErrors.MissingParameter('Workspace ID'))
     res.status(response.code).send(response)
     return
   }
 
-  const equals = eq(workspaces.uuid, req.params.id)
+  const equals = eq(workspaces.uuid, workspaceId)
 
   // Get workspace with members using efficient relational query
   const relations = await db.query.workspaces.findFirst({
@@ -200,7 +206,8 @@ export async function updateWorkspace(_req: Request, res: Response): Promise<voi
  */
 export const updateWorkspaceProfile = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
-    const workspaceId = req.params.id
+    // See fetchWorkspace above: req.workspaceId is the resolved, isAuthorized-verified id.
+    const workspaceId = req.workspaceId
     const { accountId } = req
     const { name } = req.body
 
@@ -300,7 +307,8 @@ export async function inviteMembers(_req: Request, res: Response): Promise<void>
  * Requires: Admin role in the workspace
  */
 export const deleteWorkspace = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const workspaceId = req.params.id
+  // See fetchWorkspace above: req.workspaceId is the resolved, isAuthorized-verified id.
+  const workspaceId = req.workspaceId
 
   if (!workspaceId) {
     const response = apiResponse.error(HttpErrors.MissingParameter('Workspace ID'))

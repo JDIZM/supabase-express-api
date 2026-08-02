@@ -153,7 +153,12 @@ export const UuidParamOnlySchema = z
 
 export const WorkspaceHeaderSchema = z
   .object({
-    'x-workspace-id': z.uuid().describe('Workspace ID for context'),
+    'x-workspace-id': z
+      .uuid()
+      .optional()
+      .describe(
+        'Optional workspace ID for context. The path workspace id is authoritative; if this header is present it must match the path id exactly or the request is rejected.'
+      ),
   })
   .openapi('WorkspaceHeader')
 
