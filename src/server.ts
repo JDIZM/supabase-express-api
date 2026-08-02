@@ -10,7 +10,6 @@ import { setupSwagger } from './docs/swagger.ts'
 import { logger, permissions } from './helpers/index.ts'
 import { assertAllRoutesHavePermissions } from './helpers/permissions.ts'
 import { errorHandler } from './middleware/errorHandler.ts'
-import { isAuthorized } from './middleware/isAuthorized.ts'
 import { standardRateLimit } from './middleware/rateLimiter.ts'
 import { adminRoutes } from './routes/admin.ts'
 import { routes } from './routes/index.ts'
@@ -75,7 +74,7 @@ adminRoutes(app)
 // Fail startup loudly if any registered route is wired through isAuthorized but has no matching
 // permissions entry (eg. a method missing from the map, or a route registered with a literal
 // string that drifted from API_ROUTES).
-assertAllRoutesHavePermissions(app, permissions.permissions, isAuthorized)
+assertAllRoutesHavePermissions(app, permissions.permissions)
 
 // Use the global error handler after defining routes to make sure it's called last.
 app.use(errorHandler)

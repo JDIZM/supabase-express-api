@@ -194,16 +194,41 @@ interface ExpressAppWithRouter {
 }
 
 /**
- * Find every (path, method) pair that is actually wired through `isAuthorizedHandler` — ie. a
- * real, registered business route — but has no matching permissions entry. Comparing two
+ * Global symbol (not scoped to a single module instance) used to mark the isAuthorized
+ * middleware. Using Symbol.for's global registry — rather than plain function reference equality
+ * — means detection below is correct even if isAuthorized.ts is ever resolved as more than one
+ * module instance (eg. differing import specifiers under some loaders/bundlers), which would
+ * otherwise make two function objects that are "the same" middleware compare unequal and cause
+ * this guard to silently miss protected routes — the exact failure mode it exists to catch.
+ */
+const AUTHORIZATION_GUARD_MARKER = Symbol.for('supabase-express-api:isAuthorizedMiddleware')
+
+/**
+ * Stamp a middleware function as THE authorization guard, so the startup guard below can
+ * recognize it by marker rather than by reference equality.
+ */
+export function markAsAuthorizationGuard<T extends (...args: never[]) => unknown>(fn: T): T {
+  Object.defineProperty(fn, AUTHORIZATION_GUARD_MARKER, { value: true, enumerable: false })
+  return fn
+}
+
+function isAuthorizationGuard(fn: unknown): boolean {
+  return (
+    typeof fn === 'function' &&
+    Boolean((fn as unknown as Record<symbol, unknown>)[AUTHORIZATION_GUARD_MARKER])
+  )
+}
+
+/**
+ * Find every (path, method) pair that is actually wired through the isAuthorized middleware —
+ * ie. a real, registered business route — but has no matching permissions entry. Comparing two
  * hand-maintained lists (the old approach) can't catch a route registered with a literal string,
  * a method missing an entry, or drift between the two lists; reading the real router stack
  * checks intent against reality.
  */
 export function findRoutesMissingPermissions(
   app: ExpressAppWithRouter,
-  permissionsMap: PermissionsMap,
-  isAuthorizedHandler: unknown
+  permissionsMap: PermissionsMap
 ): string[] {
   const stack = app._router?.stack ?? []
   const offenders: string[] = []
@@ -212,8 +237,8 @@ export function findRoutesMissingPermissions(
     const route = layer.route
     if (!route) continue
 
-    const isProtectedRoute = route.stack.some(
-      (routeLayer) => routeLayer.handle === isAuthorizedHandler
+    const isProtectedRoute = route.stack.some((routeLayer) =>
+      isAuthorizationGuard(routeLayer.handle)
     )
     if (!isProtectedRoute) continue
 
@@ -243,10 +268,9 @@ export function findRoutesMissingPermissions(
  */
 export function assertAllRoutesHavePermissions(
   app: ExpressAppWithRouter,
-  permissionsMap: PermissionsMap,
-  isAuthorizedHandler: unknown
+  permissionsMap: PermissionsMap
 ): void {
-  const offenders = findRoutesMissingPermissions(app, permissionsMap, isAuthorizedHandler)
+  const offenders = findRoutesMissingPermissions(app, permissionsMap)
 
   if (offenders.length > 0) {
     throw new Error(

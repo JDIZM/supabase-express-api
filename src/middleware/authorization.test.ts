@@ -181,6 +181,27 @@ describe('workspace authorization', () => {
     expect(memberships.get(otherWorkspaceId)?.size).toBe(1) // only the original admin
   })
 
+  it('rejects a request when x-workspace-id is sent as a duplicate header rather than a single value', async () => {
+    const accountId = randomUUID()
+    const workspaceId = randomUUID()
+    setMembership(workspaceId, accountId, 'admin')
+
+    // Node's HTTP parser combines two request header lines with the same name into a single
+    // comma-joined value (verified against a raw socket: sending the header twice produces
+    // exactly this string) before Express ever sees it — this is what a caller sending the
+    // header twice actually produces at runtime, for both req.headers[name] and req.get(name).
+    const duplicatedHeaderValue = `${workspaceId}, ${randomUUID()}`
+
+    const res = await request(app)
+      .get(`/workspaces/${workspaceId}`)
+      .set('Authorization', bearer(accountId))
+      .set('x-workspace-id', duplicatedHeaderValue)
+
+    // A duplicated header must not resolve to a value that matches the path id and lets the
+    // request through as if a single, agreeing header was sent — it must be rejected.
+    expect(res.status).not.toBe(200)
+  })
+
   const mismatchCases: Array<{ method: 'get' | 'post' | 'put' | 'delete'; path: string }> = [
     { method: 'get', path: '/workspaces/PATH_ID' },
     { method: 'get', path: '/workspaces/PATH_ID/members' },

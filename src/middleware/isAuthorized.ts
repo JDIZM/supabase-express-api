@@ -3,7 +3,7 @@ import { getProfileById } from '@/handlers/profiles/profiles.methods.ts'
 import { HttpErrors, HttpStatusCode } from '@/helpers/Http.ts'
 import type { Route } from '@/helpers/index.ts'
 import { logger, permissions } from '@/helpers/index.ts'
-import { ROLES, type Method } from '@/helpers/permissions.ts'
+import { markAsAuthorizationGuard, ROLES, type Method } from '@/helpers/permissions.ts'
 import { apiResponse } from '@/helpers/response.ts'
 import { accounts } from '@/schema.ts'
 import { db } from '@/services/db/drizzle.ts'
@@ -33,7 +33,11 @@ function resolveWorkspaceId(
   req: Request,
   routeKey: Route
 ): { ok: true; workspaceId: string } | { ok: false } {
-  const headerWorkspaceId = (req.headers['x-workspace-id'] as string | undefined) || ''
+  // req.get() normalises to a single string | undefined. req.headers['x-workspace-id'] is typed
+  // (and can, per the HTTP spec / Node's types, actually be) string | string[] | undefined —
+  // using the raw header risks an array silently coercing to "a,b" or similar via the `as`
+  // cast. req.get() avoids that entirely.
+  const headerWorkspaceId = req.get('x-workspace-id') || ''
   const pathWorkspaceId = WORKSPACE_SCOPED_ROUTE.test(routeKey) ? req.params?.id || '' : ''
 
   if (pathWorkspaceId && headerWorkspaceId && pathWorkspaceId !== headerWorkspaceId) {
@@ -76,174 +80,179 @@ const isOwner = async (id: string, resourceId: string, resourceType: string): Pr
   }
 }
 
-export const isAuthorized = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const { accountId } = req
+// Marked with markAsAuthorizationGuard so the startup guard (assertAllRoutesHavePermissions) can
+// identify this as THE authorization middleware via a stamped property rather than function
+// reference equality — reference equality can silently disagree if this module is ever resolved
+// as more than one instance (eg. differing import specifiers under some loaders/bundlers).
+export const isAuthorized = markAsAuthorizationGuard(
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { accountId } = req
 
-    const routeMethod = req.method as Method
-    const routeKey = (req.baseUrl + req.route.path) as Route
+      const routeMethod = req.method as Method
+      const routeKey = (req.baseUrl + req.route.path) as Route
 
-    // Resolve the single workspace id this request is authorized against. Handlers act on
-    // req.params.id; membership must be checked against that SAME id, not independently against
-    // whatever the x-workspace-id header claims. A disagreeing header is rejected outright.
-    const resolved = resolveWorkspaceId(req, routeKey)
+      // Resolve the single workspace id this request is authorized against. Handlers act on
+      // req.params.id; membership must be checked against that SAME id, not independently against
+      // whatever the x-workspace-id header claims. A disagreeing header is rejected outright.
+      const resolved = resolveWorkspaceId(req, routeKey)
 
-    if (!resolved.ok) {
-      logger.error(
-        { routeKey, routeMethod, paramId: req.params?.id, header: req.headers['x-workspace-id'] },
-        'isAuthorized: workspace id in path and x-workspace-id header disagree'
-      )
+      if (!resolved.ok) {
+        logger.error(
+          { routeKey, routeMethod, paramId: req.params?.id, header: req.get('x-workspace-id') },
+          'isAuthorized: workspace id in path and x-workspace-id header disagree'
+        )
 
-      const response = apiResponse.error(
-        HttpErrors.BadRequest('Workspace id in the path and x-workspace-id header must match')
-      )
-      res.status(response.code).json(response)
-      return
-    }
-
-    // req.workspaceId is a single resolved value from here on — handlers already read it, so
-    // this keeps them correct without needing to touch handler code.
-    req.workspaceId = resolved.workspaceId
-    const { workspaceId } = req
-
-    logger.debug(`Authorizing for workspace id: ${workspaceId}`)
-
-    const resourcePermissions = permissions.permissions.get(routeKey)
-    const resourcePermission = resourcePermissions && resourcePermissions.permissions[routeMethod]
-    // Fail closed: a route with no permissions entry defaults to requiring authentication.
-    const requiresAuth = resourcePermissions ? resourcePermissions.authenticated : true
-    // A route is genuinely public only if it has an explicit entry saying so (root, login, signup).
-    const isPublicRoute = resourcePermissions !== undefined && !requiresAuth
-
-    logger.debug(
-      { requestId: req.id, method: req.method, path: req.path, accountId, workspaceId },
-      'isAuthorized: request'
-    )
-
-    logger.debug(
-      {
-        routeKey,
-        routeMethod,
-        workspaceId,
-        resourcePermissions,
-        resourcePermission,
-      },
-      'isAuthorized: middleware'
-    )
-
-    if (requiresAuth && !accountId) {
-      logger.error(
-        { accountId, routeKey, resourcePermission, routeMethod, workspaceId },
-        'Unauthorized user'
-      )
-
-      res.status(401).send('Unauthorized')
-      return
-    }
-
-    // Super admin only has access to routes that have super admin permissions enabled.
-    if (resourcePermissions?.super && accountId) {
-      const [account] = await db
-        .select()
-        .from(accounts)
-        .where(eq(accounts.uuid, accountId))
-        .execute()
-
-      if (!account) {
-        throw new Error('DB User not found')
+        const response = apiResponse.error(
+          HttpErrors.BadRequest('Workspace id in the path and x-workspace-id header must match')
+        )
+        res.status(response.code).json(response)
+        return
       }
 
-      const { isSuperAdmin } = account
+      // req.workspaceId is a single resolved value from here on. Workspace handlers currently read
+      // req.params.id directly rather than req.workspaceId, but that's safe: resolveWorkspaceId
+      // above guarantees the two agree (a mismatch was already rejected with 400), so params.id and
+      // the resolved workspaceId are always identical by the time a handler runs. req.workspaceId
+      // is still set here for callers (eg. logging, future handlers) that do read it.
+      req.workspaceId = resolved.workspaceId
+      const { workspaceId } = req
 
-      if (!isSuperAdmin) {
-        logger.error({ routeKey, accountId, workspaceId }, 'isAuthorized: Not a super admin')
+      logger.debug(`Authorizing for workspace id: ${workspaceId}`)
 
-        throw new Error(`Forbidden: account id: ${accountId} is not a super admin`)
-      }
+      const resourcePermissions = permissions.permissions.get(routeKey)
+      const resourcePermission = resourcePermissions && resourcePermissions.permissions[routeMethod]
+      // Fail closed: a route with no permissions entry defaults to requiring authentication.
+      const requiresAuth = resourcePermissions ? resourcePermissions.authenticated : true
+      // A route is genuinely public only if it has an explicit entry saying so (root, login, signup).
+      const isPublicRoute = resourcePermissions !== undefined && !requiresAuth
 
       logger.debug(
-        { routeKey, workspaceId, isSuperAdmin },
-        `isAuthorized: Super admin for account id: ${accountId}`
+        { requestId: req.id, method: req.method, path: req.path, accountId, workspaceId },
+        'isAuthorized: request'
       )
 
-      return next()
-    }
-
-    if (isPublicRoute) {
-      logger.debug({ routeKey, workspaceId }, 'isAuthorized: Public route')
-
-      return next()
-    }
-
-    if (resourcePermission === undefined) {
-      // Registered route/method with no permissions entry — fail closed rather than allow.
-      // NB: '' is a valid, present role meaning "any authenticated user" — only an absent
-      // (undefined) entry should be denied here, not a falsy-but-present '' value.
-      logger.error(
-        { routeKey, routeMethod, workspaceId },
-        'isAuthorized: No permissions entry for this route/method — denying by default'
+      logger.debug(
+        {
+          routeKey,
+          routeMethod,
+          workspaceId,
+          resourcePermissions,
+          resourcePermission,
+        },
+        'isAuthorized: middleware'
       )
+
+      if (requiresAuth && !accountId) {
+        logger.error(
+          { accountId, routeKey, resourcePermission, routeMethod, workspaceId },
+          'Unauthorized user'
+        )
+
+        res.status(401).send('Unauthorized')
+        return
+      }
+
+      // Super admin only has access to routes that have super admin permissions enabled.
+      if (resourcePermissions?.super && accountId) {
+        const [account] = await db
+          .select()
+          .from(accounts)
+          .where(eq(accounts.uuid, accountId))
+          .execute()
+
+        if (!account) {
+          throw new Error('DB User not found')
+        }
+
+        const { isSuperAdmin } = account
+
+        if (!isSuperAdmin) {
+          logger.error({ routeKey, accountId, workspaceId }, 'isAuthorized: Not a super admin')
+
+          throw new Error(`Forbidden: account id: ${accountId} is not a super admin`)
+        }
+
+        logger.debug(
+          { routeKey, workspaceId, isSuperAdmin },
+          `isAuthorized: Super admin for account id: ${accountId}`
+        )
+
+        return next()
+      }
+
+      if (isPublicRoute) {
+        logger.debug({ routeKey, workspaceId }, 'isAuthorized: Public route')
+
+        return next()
+      }
+
+      if (resourcePermission === undefined) {
+        // Registered route/method with no permissions entry — fail closed rather than allow.
+        // NB: '' is a valid, present role meaning "any authenticated user" — only an absent
+        // (undefined) entry should be denied here, not a falsy-but-present '' value.
+        logger.error(
+          { routeKey, routeMethod, workspaceId },
+          'isAuthorized: No permissions entry for this route/method — denying by default'
+        )
+
+        const response = apiResponse.error(HttpErrors.Forbidden())
+        res.status(response.code).json(response)
+        return
+      }
+
+      // An empty-string role means "any authenticated user, no specific role/workspace membership
+      // required" (eg. POST /workspaces, GET /me) — distinct from an absent (undefined) entry.
+      if (resourcePermission === '') {
+        return next()
+      }
+
+      // An owner has access to all resources they own regardless of the workspace.
+      if (resourcePermission.includes(ROLES.Owner) && accountId) {
+        // Check if the user is the owner of the resource
+        const resourceId = req.params?.id || ''
+        const resourceType = determineResourceType(routeKey)
+
+        // Some resources require a db call to check if the user is the owner.
+        const isUserOwner = await isOwner(accountId, resourceId, resourceType)
+
+        logger.debug({ routeKey, accountId, workspaceId, isUserOwner }, 'isAuthorized: Owner')
+
+        if (isUserOwner) {
+          return next()
+        }
+
+        logger.error(
+          { accountId, resourceId, routeKey, workspaceId },
+          'isAuthorized: Not the owner of the resource'
+        )
+
+        throw new Error(`Forbidden: Not the owner of the resource with id: ${req.params?.id}`)
+      }
+
+      // Ensure the user is a member of the workspace and has the required role, using the resolved workspace id.
+      if (workspaceId && accountId) {
+        const [isMember, role] = await checkMembership(accountId, workspaceId)
+
+        logger.debug({ isMember, role }, 'isAuthorized: checkMembership')
+
+        if (!isMember) {
+          throw new Error(`Forbidden: Not a member of the workspace with id: ${workspaceId}`)
+        }
+
+        if (isMember && (resourcePermission.includes(role) || role === ROLES.Admin)) {
+          return next()
+        }
+      }
 
       const response = apiResponse.error(HttpErrors.Forbidden())
       res.status(response.code).json(response)
       return
+    } catch (err) {
+      const response = apiResponse.error(err as Error, HttpStatusCode.FORBIDDEN)
+
+      res.status(response.code).json(response)
+      return
     }
-
-    // An empty-string role means "any authenticated user, no specific role/workspace membership
-    // required" (eg. POST /workspaces, GET /me) — distinct from an absent (undefined) entry.
-    if (resourcePermission === '') {
-      return next()
-    }
-
-    // An owner has access to all resources they own regardless of the workspace.
-    if (resourcePermission.includes(ROLES.Owner) && accountId) {
-      // Check if the user is the owner of the resource
-      const resourceId = req.params?.id || ''
-      const resourceType = determineResourceType(routeKey)
-
-      // Some resources require a db call to check if the user is the owner.
-      const isUserOwner = await isOwner(accountId, resourceId, resourceType)
-
-      logger.debug({ routeKey, accountId, workspaceId, isUserOwner }, 'isAuthorized: Owner')
-
-      if (isUserOwner) {
-        return next()
-      }
-
-      logger.error(
-        { accountId, resourceId, routeKey, workspaceId },
-        'isAuthorized: Not the owner of the resource'
-      )
-
-      throw new Error(`Forbidden: Not the owner of the resource with id: ${req.params?.id}`)
-    }
-
-    // Ensure the user is a member of the workspace and has the required role, using the resolved workspace id.
-    if (workspaceId && accountId) {
-      const [isMember, role] = await checkMembership(accountId, workspaceId)
-
-      logger.debug({ isMember, role }, 'isAuthorized: checkMembership')
-
-      if (!isMember) {
-        throw new Error(`Forbidden: Not a member of the workspace with id: ${workspaceId}`)
-      }
-
-      if (isMember && (resourcePermission.includes(role) || role === ROLES.Admin)) {
-        return next()
-      }
-    }
-
-    const response = apiResponse.error(HttpErrors.Forbidden())
-    res.status(response.code).json(response)
-    return
-  } catch (err) {
-    const response = apiResponse.error(err as Error, HttpStatusCode.FORBIDDEN)
-
-    res.status(response.code).json(response)
-    return
   }
-}
+)
