@@ -25,18 +25,19 @@ export const getAccounts = asyncHandler(async (_req: Request, res: Response): Pr
 
 export const getAccount = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const accountId = getSingleParam(req.params.id)
+
+  if (!accountId) {
+    const response = apiResponse.error(HttpErrors.MissingParameter('Account ID'))
+    res.status(response.code).send(response)
+    return
+  }
+
   const validationResult = uuidSchema.safeParse({ uuid: accountId })
 
   if (!validationResult.success) {
     const response = apiResponse.error(
       HttpErrors.ValidationFailed(`Invalid account ID: ${validationResult.error.message}`)
     )
-    res.status(response.code).send(response)
-    return
-  }
-
-  if (!accountId) {
-    const response = apiResponse.error(HttpErrors.MissingParameter('Account ID'))
     res.status(response.code).send(response)
     return
   }
