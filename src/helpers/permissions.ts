@@ -93,7 +93,9 @@ permissions.set(API_ROUTES.workspaces, {
 })
 
 permissions.set(API_ROUTES.workspaceById, {
-  permissions: { GET: ROLES.User, DELETE: ROLES.Admin },
+  // PATCH mutates the workspace, so it requires Admin — consistent with DELETE and with
+  // the member-management routes below (POST/PUT/DELETE all require Admin).
+  permissions: { GET: ROLES.User, PATCH: ROLES.Admin, DELETE: ROLES.Admin },
   authenticated: true,
 })
 
@@ -169,24 +171,86 @@ permissions.set(API_ROUTES.adminAuditLogStats, {
 logger.info(permissions, 'route permissions set')
 
 /**
- * This validates that permissions are set for all routes
- * in the permissions map.
+ * Express internals we need to walk the real registered router stack. Express 4 exposes this as
+ * `app._router.stack`; each layer with a `.route` corresponds to one app.VERB(path, ...) call,
+ * and `route.stack` holds the middleware chain registered for that (path, method) pair.
  */
-export const hasRoutesWithNoPermissionsSet = (
-  routes: Routes,
-  permissions: PermissionsMap
-): boolean => {
-  const permissionRoutes = [...permissions.keys()]
-
-  const hasInvalidRoute = routes.some((route) => {
-    return !permissionRoutes.includes(route)
-  })
-
-  return hasInvalidRoute
+interface ExpressRouteLayer {
+  handle: unknown
+  method?: string
 }
 
-const hasInvalidRoute = hasRoutesWithNoPermissionsSet(Object.values(API_ROUTES), permissions)
+interface ExpressRoute {
+  path: string
+  stack: ExpressRouteLayer[]
+}
 
-if (hasInvalidRoute) {
-  throw new Error('There are routes without permissions set.')
+interface ExpressLayer {
+  route?: ExpressRoute
+}
+
+interface ExpressAppWithRouter {
+  _router?: { stack: ExpressLayer[] }
+}
+
+/**
+ * Find every (path, method) pair that is actually wired through `isAuthorizedHandler` — ie. a
+ * real, registered business route — but has no matching permissions entry. Comparing two
+ * hand-maintained lists (the old approach) can't catch a route registered with a literal string,
+ * a method missing an entry, or drift between the two lists; reading the real router stack
+ * checks intent against reality.
+ */
+export function findRoutesMissingPermissions(
+  app: ExpressAppWithRouter,
+  permissionsMap: PermissionsMap,
+  isAuthorizedHandler: unknown
+): string[] {
+  const stack = app._router?.stack ?? []
+  const offenders: string[] = []
+
+  for (const layer of stack) {
+    const route = layer.route
+    if (!route) continue
+
+    const isProtectedRoute = route.stack.some(
+      (routeLayer) => routeLayer.handle === isAuthorizedHandler
+    )
+    if (!isProtectedRoute) continue
+
+    const methods = new Set(
+      route.stack.map((routeLayer) => routeLayer.method?.toUpperCase()).filter(Boolean)
+    )
+
+    for (const method of methods) {
+      const entry = permissionsMap.get(route.path as Route)
+      const hasMethodPermission =
+        entry !== undefined &&
+        Object.prototype.hasOwnProperty.call(entry.permissions, method as string)
+
+      if (!hasMethodPermission) {
+        offenders.push(`${method} ${route.path}`)
+      }
+    }
+  }
+
+  return offenders
+}
+
+/**
+ * Fail app startup loudly, naming the specific offending (path, method) pairs, if any route
+ * wired through isAuthorized has no matching permissions entry. Call this AFTER all routes are
+ * registered (routes(app), adminRoutes(app), ...).
+ */
+export function assertAllRoutesHavePermissions(
+  app: ExpressAppWithRouter,
+  permissionsMap: PermissionsMap,
+  isAuthorizedHandler: unknown
+): void {
+  const offenders = findRoutesMissingPermissions(app, permissionsMap, isAuthorizedHandler)
+
+  if (offenders.length > 0) {
+    throw new Error(
+      `Routes registered without a matching permissions entry: ${offenders.join(', ')}`
+    )
+  }
 }

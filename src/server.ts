@@ -7,13 +7,14 @@ import { pinoHttp } from 'pino-http'
 import { config } from './config.ts'
 import { corsOptions } from './cors.ts'
 import { setupSwagger } from './docs/swagger.ts'
-import { logger } from './helpers/index.ts'
+import { logger, permissions } from './helpers/index.ts'
+import { assertAllRoutesHavePermissions } from './helpers/permissions.ts'
 import { errorHandler } from './middleware/errorHandler.ts'
+import { isAuthorized } from './middleware/isAuthorized.ts'
 import { standardRateLimit } from './middleware/rateLimiter.ts'
 import { adminRoutes } from './routes/admin.ts'
 import { routes } from './routes/index.ts'
 
-import './helpers/permissions.ts'
 import './services/sentry.ts' // Initialize Sentry if enabled.
 
 import type { Request, Response } from 'express'
@@ -70,6 +71,11 @@ setupSwagger(app)
 // Define routes
 routes(app)
 adminRoutes(app)
+
+// Fail startup loudly if any registered route is wired through isAuthorized but has no matching
+// permissions entry (eg. a method missing from the map, or a route registered with a literal
+// string that drifted from API_ROUTES).
+assertAllRoutesHavePermissions(app, permissions.permissions, isAuthorized)
 
 // Use the global error handler after defining routes to make sure it's called last.
 app.use(errorHandler)
