@@ -1,5 +1,5 @@
 import { HttpErrors, HttpStatusCode } from '@/helpers/Http.ts'
-import { asyncHandler } from '@/helpers/request.ts'
+import { asyncHandler, getSingleParam } from '@/helpers/request.ts'
 import { apiResponse } from '@/helpers/response.ts'
 import {
   accounts,
@@ -24,7 +24,8 @@ export const getAccounts = asyncHandler(async (_req: Request, res: Response): Pr
 })
 
 export const getAccount = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const validationResult = uuidSchema.safeParse({ uuid: req.params.id })
+  const accountId = getSingleParam(req.params.id)
+  const validationResult = uuidSchema.safeParse({ uuid: accountId })
 
   if (!validationResult.success) {
     const response = apiResponse.error(
@@ -34,13 +35,13 @@ export const getAccount = asyncHandler(async (req: Request, res: Response): Prom
     return
   }
 
-  if (!req.params.id) {
+  if (!accountId) {
     const response = apiResponse.error(HttpErrors.MissingParameter('Account ID'))
     res.status(response.code).send(response)
     return
   }
 
-  const result = await getAccountWithRelations(req.params.id)
+  const result = await getAccountWithRelations(accountId)
 
   if (!result) {
     const response = apiResponse.error(HttpErrors.NotFound('Account'))
@@ -51,7 +52,7 @@ export const getAccount = asyncHandler(async (req: Request, res: Response): Prom
   const response = apiResponse.success<AccountWithRelations>(
     HttpStatusCode.OK,
     result,
-    `Fetched account with UUID ${req.params.id}`
+    `Fetched account with UUID ${accountId}`
   )
   res.status(response.code).send(response)
 })

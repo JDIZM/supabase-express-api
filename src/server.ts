@@ -50,7 +50,7 @@ app.use(express.json())
 
 // Apply CORS middleware to all routes before defining them
 app.use(cors(corsOptions))
-app.options('*', cors(corsOptions)) // Pre-flight requests
+app.options(/.*/, cors(corsOptions)) // Pre-flight requests
 
 // Apply standard rate limiting to all routes
 app.use(standardRateLimit)

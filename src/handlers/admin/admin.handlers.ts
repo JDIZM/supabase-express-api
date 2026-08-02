@@ -1,6 +1,6 @@
 import { HttpErrors, HttpStatusCode } from '@/helpers/Http.ts'
 import { apiResponse } from '@/helpers/response.ts'
-import { asyncHandler } from '@/helpers/request.ts'
+import { asyncHandler, getSingleParam } from '@/helpers/request.ts'
 import { accounts, workspaceMemberships, workspaces } from '@/schema.ts'
 import { AUDIT_ACTIONS, ENTITY_TYPES, auditHelpers, createAuditLog } from '@/services/auditLog.ts'
 import { db } from '@/services/db/drizzle.ts'
@@ -146,7 +146,7 @@ export const createAccountForUser = asyncHandler(
  */
 export const updateAccountRole = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
-    const targetAccountId = req.params.id
+    const targetAccountId = getSingleParam(req.params.id)
     const { accountId } = req
 
     if (!targetAccountId) {
@@ -231,7 +231,7 @@ export const updateAccountRole = asyncHandler(
  */
 export const updateAccountStatus = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
-    const targetAccountId = req.params.id
+    const targetAccountId = getSingleParam(req.params.id)
     const { accountId } = req
 
     if (!targetAccountId) {

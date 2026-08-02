@@ -2,7 +2,7 @@ import { MemberCreateSchema, MemberRoleUpdateSchema } from '@/docs/openapi-schem
 import { createDbProfile } from '@/handlers/profiles/profiles.methods.ts'
 import { HttpErrors, HttpStatusCode } from '@/helpers/Http.ts'
 import { apiResponse } from '@/helpers/response.ts'
-import { asyncHandler } from '@/helpers/request.ts'
+import { asyncHandler, getSingleParam } from '@/helpers/request.ts'
 import { accounts, profiles, uuidSchema, workspaceMemberships } from '@/schema.ts'
 import { db } from '@/services/db/drizzle.ts'
 import { and, eq } from 'drizzle-orm'
@@ -200,7 +200,7 @@ export const addWorkspaceMember = asyncHandler(
 export const updateMemberRole = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   // See getWorkspaceMembers above: req.workspaceId is the resolved, isAuthorized-verified id.
   const workspaceId = req.workspaceId
-  const memberId = req.params.memberId
+  const memberId = getSingleParam(req.params.memberId)
 
   const validation = MemberRoleUpdateSchema.safeParse(req.body)
   if (!validation.success) {
@@ -314,7 +314,7 @@ export const updateMemberRole = asyncHandler(async (req: Request, res: Response)
 export const removeMember = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   // See getWorkspaceMembers above: req.workspaceId is the resolved, isAuthorized-verified id.
   const workspaceId = req.workspaceId
-  const memberId = req.params.memberId
+  const memberId = getSingleParam(req.params.memberId)
 
   if (!workspaceId || !memberId) {
     const response = apiResponse.error(
