@@ -36,6 +36,6 @@ export const setupSwagger = (app: Application): void => {
 
     logger.info(`Swagger UI setup complete - available at /docs (${config.env} only)`)
   } catch (error) {
-    logger.error('Failed to setup Swagger UI:', error)
+    logger.error({ err: error }, 'Failed to setup Swagger UI:')
   }
 }
