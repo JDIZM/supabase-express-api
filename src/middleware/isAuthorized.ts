@@ -3,7 +3,12 @@ import { getProfileById } from '@/handlers/profiles/profiles.methods.ts'
 import { HttpErrors, HttpStatusCode } from '@/helpers/Http.ts'
 import type { Route } from '@/helpers/index.ts'
 import { logger, permissions } from '@/helpers/index.ts'
-import { markAsAuthorizationGuard, ROLES, type Method } from '@/helpers/permissions.ts'
+import {
+  isExplicitlyPublicRoute,
+  markAsAuthorizationGuard,
+  ROLES,
+  type Method,
+} from '@/helpers/permissions.ts'
 import { apiResponse } from '@/helpers/response.ts'
 import { accounts } from '@/schema.ts'
 import { db } from '@/services/db/drizzle.ts'
@@ -123,7 +128,7 @@ export const isAuthorized = markAsAuthorizationGuard(
       // Fail closed: a route with no permissions entry defaults to requiring authentication.
       const requiresAuth = resourcePermissions ? resourcePermissions.authenticated : true
       // A route is genuinely public only if it has an explicit entry saying so (root, login, signup).
-      const isPublicRoute = resourcePermissions !== undefined && !requiresAuth
+      const isPublicRoute = isExplicitlyPublicRoute(resourcePermissions)
 
       logger.debug(
         { requestId: req.id, method: req.method, path: req.path, accountId, workspaceId },
