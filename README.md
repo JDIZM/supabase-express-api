@@ -627,10 +627,23 @@ see the [documentation for more information](https://supabase.com/docs/reference
 
 ## CI/CD Database Migrations
 
-The project includes automated database migrations that run on:
+Two different jobs, often confused:
 
-- **Development**: When merging to `main` branch
-- **Production**: When creating a GitHub release
+**Verification (active).** `verify-migrations` runs on every pull request
+and on pushes to `main`. It applies the full migration chain to a throwaway
+`postgres:17-alpine` service container — a fresh database per run, starting
+from empty. It needs no secrets, so it also runs on forks. This is what
+catches a broken or conflicting migration *before* it reaches anything real.
+
+**Deployment (currently disabled).** Applying migrations to a real
+environment on merge — the "migrate on deploy" step — is commented out in
+`.github/workflows/main.yml`. It pointed at a Supabase dev project that has
+since been torn down, so it could only fail, and a permanently red `main`
+teaches everyone to ignore CI. Re-enable it by setting `DEV_DATABASE_URL` to
+a live environment and uncommenting the `migrate-dev` job.
+
+**Production**: still runs on creating a GitHub release (`release.yml`,
+using `PROD_DATABASE_URL`).
 
 ### Setup GitHub Secrets
 
