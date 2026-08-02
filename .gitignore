@@ -13,8 +13,3 @@ local/
 
 # Claude Code
 .claude/settings.local.json
-.claude/agents/
-.claude/commands/
-.claude/helpers/
-.claude/skills/
-.claude/settings.json

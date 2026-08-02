@@ -1,10 +1,10 @@
-import type { Application } from "express"
-import { isAuthenticated } from "@/middleware/isAuthenticated.ts"
-import { isAuthorized } from "@/middleware/isAuthorized.ts"
-import { checkAccountStatus } from "@/middleware/checkAccountStatus.ts"
-import { test, permissions } from "@/helpers/index.ts"
-import { signInWithPassword, signUp } from "@/handlers/auth/auth.handlers.js"
-import { authRateLimit } from "@/middleware/rateLimiter.ts"
+import type { Application } from 'express'
+import { isAuthenticated } from '@/middleware/isAuthenticated.ts'
+import { isAuthorized } from '@/middleware/isAuthorized.ts'
+import { checkAccountStatus } from '@/middleware/checkAccountStatus.ts'
+import { test, permissions } from '@/helpers/index.ts'
+import { signInWithPassword, signUp } from '@/handlers/auth/auth.handlers.js'
+import { authRateLimit } from '@/middleware/rateLimiter.ts'
 import {
   createWorkspace,
   fetchWorkspace,
@@ -12,20 +12,20 @@ import {
   updateWorkspace,
   updateWorkspaceProfile,
   deleteWorkspace,
-} from "@/handlers/workspaces/workspaces.handlers.ts"
+} from '@/handlers/workspaces/workspaces.handlers.ts'
 import {
   getWorkspaceMembers,
   addWorkspaceMember,
   updateMemberRole,
   removeMember,
-} from "@/handlers/memberships/memberships.handlers.ts"
+} from '@/handlers/memberships/memberships.handlers.ts'
 import {
   getAccount,
   getAccounts,
   createAccount,
   updateAccount,
-} from "@/handlers/accounts/accounts.handlers.ts"
-import { getCurrentUser } from "@/handlers/me/me.handlers.ts"
+} from '@/handlers/accounts/accounts.handlers.ts'
+import { getCurrentUser } from '@/handlers/me/me.handlers.ts'
 
 const { API_ROUTES } = permissions
 

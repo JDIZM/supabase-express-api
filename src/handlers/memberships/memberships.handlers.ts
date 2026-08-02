@@ -1,13 +1,13 @@
-import { MemberCreateSchema, MemberRoleUpdateSchema } from "@/docs/openapi-schemas.ts"
-import { createDbProfile } from "@/handlers/profiles/profiles.methods.ts"
-import { HttpErrors, HttpStatusCode } from "@/helpers/Http.ts"
-import { apiResponse } from "@/helpers/response.ts"
-import { asyncHandler } from "@/helpers/request.ts"
-import { accounts, profiles, uuidSchema, workspaceMemberships } from "@/schema.ts"
-import { db } from "@/services/db/drizzle.ts"
-import { and, eq } from "drizzle-orm"
-import type { Request, Response } from "express"
-import { checkMembership, createMembership, isValidRole } from "./memberships.methods.ts"
+import { MemberCreateSchema, MemberRoleUpdateSchema } from '@/docs/openapi-schemas.ts'
+import { createDbProfile } from '@/handlers/profiles/profiles.methods.ts'
+import { HttpErrors, HttpStatusCode } from '@/helpers/Http.ts'
+import { apiResponse } from '@/helpers/response.ts'
+import { asyncHandler } from '@/helpers/request.ts'
+import { accounts, profiles, uuidSchema, workspaceMemberships } from '@/schema.ts'
+import { db } from '@/services/db/drizzle.ts'
+import { and, eq } from 'drizzle-orm'
+import type { Request, Response } from 'express'
+import { checkMembership, createMembership, isValidRole } from './memberships.methods.ts'
 
 export const createMembershipHandler = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -15,7 +15,7 @@ export const createMembershipHandler = asyncHandler(
 
     const membership = await createMembership(workspaceId, accountId, role)
 
-    const response = apiResponse.success(HttpStatusCode.OK, membership, "Membership created")
+    const response = apiResponse.success(HttpStatusCode.OK, membership, 'Membership created')
 
     res.status(response.code).send(response)
   }
@@ -31,7 +31,7 @@ export const getWorkspaceMembers = asyncHandler(
     const workspaceId = req.params.id
 
     if (!workspaceId) {
-      const response = apiResponse.error(HttpErrors.MissingParameter("Workspace ID"))
+      const response = apiResponse.error(HttpErrors.MissingParameter('Workspace ID'))
       res.status(response.code).send(response)
       return
     }
@@ -80,7 +80,7 @@ export const getWorkspaceMembers = asyncHandler(
         members,
         memberCount: members.length,
       },
-      "Workspace members retrieved successfully"
+      'Workspace members retrieved successfully'
     )
 
     res.status(response.code).send(response)
@@ -109,7 +109,7 @@ export const addWorkspaceMember = asyncHandler(
     const { email, role, profileName } = validation.data
 
     if (!workspaceId) {
-      const response = apiResponse.error(HttpErrors.MissingParameter("Workspace ID"))
+      const response = apiResponse.error(HttpErrors.MissingParameter('Workspace ID'))
       res.status(response.code).send(response)
       return
     }
@@ -124,7 +124,7 @@ export const addWorkspaceMember = asyncHandler(
     }
 
     if (!email || !role) {
-      const response = apiResponse.error(HttpErrors.ValidationFailed("Email and role are required"))
+      const response = apiResponse.error(HttpErrors.ValidationFailed('Email and role are required'))
       res.status(response.code).send(response)
       return
     }
@@ -140,7 +140,7 @@ export const addWorkspaceMember = asyncHandler(
     const [account] = await db.select().from(accounts).where(eq(accounts.email, email)).limit(1)
 
     if (!account) {
-      const response = apiResponse.error(HttpErrors.NotFound("Account"))
+      const response = apiResponse.error(HttpErrors.NotFound('Account'))
       res.status(response.code).send(response)
       return
     }
@@ -149,7 +149,7 @@ export const addWorkspaceMember = asyncHandler(
 
     if (isMember) {
       const response = apiResponse.error(
-        HttpErrors.Conflict("User is already a member of this workspace")
+        HttpErrors.Conflict('User is already a member of this workspace')
       )
       res.status(response.code).send(response)
       return
@@ -160,7 +160,7 @@ export const addWorkspaceMember = asyncHandler(
       const membership = await createMembership(workspaceId, account.uuid, role, tx)
       const profile = await createDbProfile(
         {
-          name: profileName || account.fullName || "New Member",
+          name: profileName || account.fullName || 'New Member',
           accountId: account.uuid,
           workspaceId: workspaceId,
         },
@@ -211,7 +211,7 @@ export const updateMemberRole = asyncHandler(async (req: Request, res: Response)
 
   if (!workspaceId || !memberId) {
     const response = apiResponse.error(
-      HttpErrors.ValidationFailed("Workspace ID and Member ID are required")
+      HttpErrors.ValidationFailed('Workspace ID and Member ID are required')
     )
     res.status(response.code).send(response)
     return
@@ -260,26 +260,26 @@ export const updateMemberRole = asyncHandler(async (req: Request, res: Response)
     .limit(1)
 
   if (!existingMembership) {
-    const response = apiResponse.error(HttpErrors.NotFound("Membership"))
+    const response = apiResponse.error(HttpErrors.NotFound('Membership'))
     res.status(response.code).send(response)
     return
   }
 
   // Prevent removing the last admin
-  if (existingMembership.currentRole === "admin" && role === "user") {
+  if (existingMembership.currentRole === 'admin' && role === 'user') {
     const adminCount = await db
       .select({ count: workspaceMemberships.uuid })
       .from(workspaceMemberships)
       .where(
         and(
           eq(workspaceMemberships.workspaceId, workspaceId),
-          eq(workspaceMemberships.role, "admin")
+          eq(workspaceMemberships.role, 'admin')
         )
       )
 
     if (adminCount.length <= 1) {
       const response = apiResponse.error(
-        HttpErrors.BadRequest("Cannot remove the last admin from the workspace")
+        HttpErrors.BadRequest('Cannot remove the last admin from the workspace')
       )
       res.status(response.code).send(response)
       return
@@ -313,7 +313,7 @@ export const removeMember = asyncHandler(async (req: Request, res: Response): Pr
 
   if (!workspaceId || !memberId) {
     const response = apiResponse.error(
-      HttpErrors.ValidationFailed("Workspace ID and Member ID are required")
+      HttpErrors.ValidationFailed('Workspace ID and Member ID are required')
     )
     res.status(response.code).send(response)
     return
@@ -354,26 +354,26 @@ export const removeMember = asyncHandler(async (req: Request, res: Response): Pr
     .limit(1)
 
   if (!membershipToRemove) {
-    const response = apiResponse.error(HttpErrors.NotFound("Membership"))
+    const response = apiResponse.error(HttpErrors.NotFound('Membership'))
     res.status(response.code).send(response)
     return
   }
 
   // Prevent removing the last admin
-  if (membershipToRemove.role === "admin") {
+  if (membershipToRemove.role === 'admin') {
     const adminCount = await db
       .select({ count: workspaceMemberships.uuid })
       .from(workspaceMemberships)
       .where(
         and(
           eq(workspaceMemberships.workspaceId, workspaceId),
-          eq(workspaceMemberships.role, "admin")
+          eq(workspaceMemberships.role, 'admin')
         )
       )
 
     if (adminCount.length <= 1) {
       const response = apiResponse.error(
-        HttpErrors.BadRequest("Cannot remove the last admin from the workspace")
+        HttpErrors.BadRequest('Cannot remove the last admin from the workspace')
       )
       res.status(response.code).send(response)
       return
@@ -399,7 +399,7 @@ export const removeMember = asyncHandler(async (req: Request, res: Response): Pr
   const response = apiResponse.success(
     HttpStatusCode.OK,
     { removedMemberId: memberId },
-    "Member removed from workspace"
+    'Member removed from workspace'
   )
 
   res.status(response.code).send(response)

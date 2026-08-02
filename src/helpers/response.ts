@@ -1,5 +1,5 @@
-import { type ErrorCode, HttpError, HttpStatusCode } from "./Http.ts"
-import { logger } from "./logger.ts"
+import { type ErrorCode, HttpError, HttpStatusCode } from './Http.ts'
+import { logger } from './logger.ts'
 
 interface ErrorResponse {
   code: HttpStatusCode | number
@@ -33,7 +33,7 @@ export const apiResponse = {
   error: (error: HttpError | Error, statusCode?: HttpStatusCode): ErrorResponse => {
     if (error instanceof HttpError) {
       // Use warn for 4xx, error for 5xx
-      const logLevel = error.code >= 500 ? "error" : "warn"
+      const logLevel = error.code >= 500 ? 'error' : 'warn'
       logger[logLevel]({ code: error.code, error: error.error, message: error.message })
       return error.toResponse()
     }
@@ -41,7 +41,7 @@ export const apiResponse = {
     // Fallback for generic Error
     const code = statusCode || HttpStatusCode.INTERNAL_SERVER_ERROR
     const httpError = new HttpError(code, error.message)
-    const logLevel = httpError.code >= 500 ? "error" : "warn"
+    const logLevel = httpError.code >= 500 ? 'error' : 'warn'
     logger[logLevel]({
       code: httpError.code,
       error: httpError.error,
@@ -53,7 +53,7 @@ export const apiResponse = {
   /**
    * Create success response
    */
-  success: <T>(code: HttpStatusCode | number, data: T, message = "Success"): SuccessResponse<T> => {
+  success: <T>(code: HttpStatusCode | number, data: T, message = 'Success'): SuccessResponse<T> => {
     logger.info({ code, msg: message })
     return {
       code,

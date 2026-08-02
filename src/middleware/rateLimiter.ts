@@ -1,8 +1,8 @@
-import { logger } from "@/helpers/logger.ts"
-import { apiResponse } from "@/helpers/response.ts"
-import type { RateLimitRequestHandler } from "express-rate-limit"
-import { rateLimit } from "express-rate-limit"
-import { HttpErrors } from "../helpers/Http.ts"
+import { logger } from '@/helpers/logger.ts'
+import { apiResponse } from '@/helpers/response.ts'
+import type { RateLimitRequestHandler } from 'express-rate-limit'
+import { rateLimit } from 'express-rate-limit'
+import { HttpErrors } from '../helpers/Http.ts'
 
 export const createRateLimiter = (options: {
   windowMs: number
@@ -19,14 +19,14 @@ export const createRateLimiter = (options: {
       logger.warn(
         {
           ip: req.ip,
-          userAgent: req.get("User-Agent"),
+          userAgent: req.get('User-Agent'),
           path: req.path,
           method: req.method,
         },
-        "Rate limit exceeded"
+        'Rate limit exceeded'
       )
 
-      logger.debug({ options }, "Rate limit request details")
+      logger.debug({ options }, 'Rate limit request details')
       const response = apiResponse.error(HttpErrors.TooManyRequests(options.message))
 
       res.status(response.code).json(response)
@@ -38,14 +38,14 @@ export const createRateLimiter = (options: {
 export const standardRateLimit = createRateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // 100 requests per 15 minutes
-  message: "Too many requests from this IP, please try again later.",
+  message: 'Too many requests from this IP, please try again later.',
 })
 
 // Stricter rate limit for admin operations
 export const adminRateLimit = createRateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 20, // 20 requests per 15 minutes for admin operations
-  message: "Too many admin requests from this IP, please try again later.",
+  message: 'Too many admin requests from this IP, please try again later.',
   skipSuccessfulRequests: true,
 })
 
@@ -53,5 +53,5 @@ export const adminRateLimit = createRateLimiter({
 export const authRateLimit = createRateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // 5 requests per 15 minutes for auth operations
-  message: "Too many authentication attempts, please try again later.",
+  message: 'Too many authentication attempts, please try again later.',
 })

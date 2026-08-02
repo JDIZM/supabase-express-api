@@ -1,15 +1,15 @@
-import { HttpErrors, HttpStatusCode } from "@/helpers/Http.ts"
-import { asyncHandler } from "@/helpers/request.ts"
-import { apiResponse } from "@/helpers/response.ts"
+import { HttpErrors, HttpStatusCode } from '@/helpers/Http.ts'
+import { asyncHandler } from '@/helpers/request.ts'
+import { apiResponse } from '@/helpers/response.ts'
 import {
   accounts,
   uuidSchema,
   type AccountSelectType,
   type AccountWithRelations,
-} from "@/schema.ts"
-import { db } from "@/services/db/drizzle.ts"
-import type { Request, Response } from "express"
-import { createDbAccount, getAccountWithRelations } from "./accounts.methods.ts"
+} from '@/schema.ts'
+import { db } from '@/services/db/drizzle.ts'
+import type { Request, Response } from 'express'
+import { createDbAccount, getAccountWithRelations } from './accounts.methods.ts'
 
 export const getAccounts = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
   const result = await db.select().from(accounts).execute()
@@ -35,7 +35,7 @@ export const getAccount = asyncHandler(async (req: Request, res: Response): Prom
   }
 
   if (!req.params.id) {
-    const response = apiResponse.error(HttpErrors.MissingParameter("Account ID"))
+    const response = apiResponse.error(HttpErrors.MissingParameter('Account ID'))
     res.status(response.code).send(response)
     return
   }
@@ -43,7 +43,7 @@ export const getAccount = asyncHandler(async (req: Request, res: Response): Prom
   const result = await getAccountWithRelations(req.params.id)
 
   if (!result) {
-    const response = apiResponse.error(HttpErrors.NotFound("Account"))
+    const response = apiResponse.error(HttpErrors.NotFound('Account'))
     res.status(response.code).send(response)
     return
   }
@@ -61,11 +61,11 @@ export const createAccount = asyncHandler(async (req: Request, res: Response): P
 
   const accountId = await createDbAccount({ fullName, phone, email })
 
-  const response = apiResponse.success<string>(HttpStatusCode.OK, accountId, "Account created")
+  const response = apiResponse.success<string>(HttpStatusCode.OK, accountId, 'Account created')
 
   res.status(response.code).send(response)
 })
 
 export const updateAccount = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
-  res.status(200).send("updated account")
+  res.status(200).send('updated account')
 })

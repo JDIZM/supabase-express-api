@@ -12,7 +12,7 @@
  * - Run seed first: `pnpm seed`
  * - Then add workspaces: `pnpm dev:workspace --email=alice@acmecorp.com --name="New Project"`
  */
-import { logger } from "@/helpers/index.ts"
+import { logger } from '@/helpers/index.ts'
 import {
   accounts,
   profiles,
@@ -22,15 +22,15 @@ import {
   type ProfileSelectType,
   type WorkspaceMembershipInsertType,
   type WorkspaceSelectType,
-} from "@/schema.ts"
-import { db } from "@/services/db/drizzle.ts"
-import { eq } from "drizzle-orm"
+} from '@/schema.ts'
+import { db } from '@/services/db/drizzle.ts'
+import { eq } from 'drizzle-orm'
 
 interface CreateWorkspaceOptions {
   accountEmail: string
   workspaceName: string
   profileName?: string
-  role?: "admin" | "user"
+  role?: 'admin' | 'user'
 }
 
 async function findAccountByEmail(email: string): Promise<AccountSelectType | null> {
@@ -43,7 +43,7 @@ async function createWorkspaceForAccount(options: CreateWorkspaceOptions): Promi
   profile: ProfileSelectType
   membership: WorkspaceMembershipInsertType
 }> {
-  const { accountEmail, workspaceName, profileName, role = "admin" } = options
+  const { accountEmail, workspaceName, profileName, role = 'admin' } = options
 
   logger.info(`Creating workspace "${workspaceName}" for account: ${accountEmail}`)
 
@@ -64,7 +64,7 @@ async function createWorkspaceForAccount(options: CreateWorkspaceOptions): Promi
     .returning()
 
   if (!workspace) {
-    throw new Error("Failed to create workspace")
+    throw new Error('Failed to create workspace')
   }
 
   logger.info(`✓ Created workspace: ${workspace.name} (${workspace.uuid})`)
@@ -73,14 +73,14 @@ async function createWorkspaceForAccount(options: CreateWorkspaceOptions): Promi
   const [profile] = await db
     .insert(profiles)
     .values({
-      name: profileName || account.fullName?.split(" ")[0] || "Dev User",
+      name: profileName || account.fullName?.split(' ')[0] || 'Dev User',
       workspaceId: workspace.uuid,
       accountId: account.uuid,
     })
     .returning()
 
   if (!profile) {
-    throw new Error("Failed to create profile")
+    throw new Error('Failed to create profile')
   }
 
   logger.info(`✓ Created profile: ${profile.name} (${profile.uuid})`)
@@ -96,7 +96,7 @@ async function createWorkspaceForAccount(options: CreateWorkspaceOptions): Promi
     .returning()
 
   if (!membership) {
-    throw new Error("Failed to create membership")
+    throw new Error('Failed to create membership')
   }
 
   logger.info(`✓ Created membership with role: ${membership.role}`)
@@ -106,7 +106,7 @@ async function createWorkspaceForAccount(options: CreateWorkspaceOptions): Promi
 
 async function createMultipleWorkspaces(
   accountEmail: string,
-  workspaceConfigs: Array<{ name: string; profileName?: string; role?: "admin" | "user" }>
+  workspaceConfigs: Array<{ name: string; profileName?: string; role?: 'admin' | 'user' }>
 ): Promise<void> {
   logger.info(`Creating ${workspaceConfigs.length} workspaces for ${accountEmail}`)
 
@@ -132,20 +132,20 @@ function parseArguments(args: string[]): Record<string, string> {
 
   for (const arg of args) {
     // Skip if not a flag
-    if (!arg.startsWith("--")) continue
+    if (!arg.startsWith('--')) continue
 
     // Remove leading dashes
-    const cleanArg = arg.replace(/^-+/, "")
+    const cleanArg = arg.replace(/^-+/, '')
 
     // Split by first equals sign to handle values with equals signs
-    const equalIndex = cleanArg.indexOf("=")
+    const equalIndex = cleanArg.indexOf('=')
     if (equalIndex === -1) continue
 
     const key = cleanArg.substring(0, equalIndex)
     const value = cleanArg.substring(equalIndex + 1)
 
     // Remove surrounding quotes if present
-    const trimmedValue = value.replace(/^['"]|['"]$/g, "")
+    const trimmedValue = value.replace(/^['"]|['"]$/g, '')
 
     if (key && trimmedValue) {
       options[key] = trimmedValue
@@ -159,12 +159,12 @@ async function main(): Promise<void> {
   const args = process.argv.slice(2)
 
   if (args.length === 0) {
-    logger.info("Usage examples:")
-    logger.info("  # Create single workspace")
+    logger.info('Usage examples:')
+    logger.info('  # Create single workspace')
     logger.info("  pnpm dev:workspace --email=alice@acmecorp.com --name='Test Workspace'")
-    logger.info("  # Create multiple workspaces")
-    logger.info("  pnpm dev:workspaces --email=bob@techstartup.com")
-    logger.info("  # Create workspace with specific profile name and role")
+    logger.info('  # Create multiple workspaces')
+    logger.info('  pnpm dev:workspaces --email=bob@techstartup.com')
+    logger.info('  # Create workspace with specific profile name and role')
     logger.info(
       "  pnpm dev:workspace --email=david@acmecorp.com --name='Client Project' --profile='David Chen' --role=user"
     )
@@ -176,7 +176,7 @@ async function main(): Promise<void> {
   // Validate email
   const email = options.email
   if (!email) {
-    logger.error("Email is required. Use --email=your@email.com")
+    logger.error('Email is required. Use --email=your@email.com')
     process.exit(1)
   }
 
@@ -195,7 +195,7 @@ async function main(): Promise<void> {
   }
 
   // Validate role if provided
-  if (options.role && !["admin", "user"].includes(options.role)) {
+  if (options.role && !['admin', 'user'].includes(options.role)) {
     logger.error(`Invalid role: ${options.role}. Must be 'admin' or 'user'.`)
     process.exit(1)
   }
@@ -204,12 +204,12 @@ async function main(): Promise<void> {
   if (options.name) {
     // Validate workspace name
     if (options.name.trim().length === 0) {
-      logger.error("Workspace name cannot be empty.")
+      logger.error('Workspace name cannot be empty.')
       process.exit(1)
     }
 
     if (options.name.length > 100) {
-      logger.error("Workspace name must be 100 characters or less.")
+      logger.error('Workspace name must be 100 characters or less.')
       process.exit(1)
     }
 
@@ -217,18 +217,18 @@ async function main(): Promise<void> {
       accountEmail: email,
       workspaceName: options.name.trim(),
       profileName: options.profile?.trim(),
-      role: options.role as "admin" | "user" | undefined,
+      role: options.role as 'admin' | 'user' | undefined,
     })
     return
   }
 
   // Multiple workspaces for testing (only when no --name provided)
-  logger.info("No --name provided, creating multiple test workspaces...")
+  logger.info('No --name provided, creating multiple test workspaces...')
   const testWorkspaces = [
-    { name: "Personal Projects", profileName: "James", role: "admin" as const },
-    { name: "Client Work", profileName: "James D", role: "admin" as const },
-    { name: "Team Collaboration", profileName: "JD", role: "user" as const },
-    { name: "Sandbox Testing", profileName: "Dev", role: "admin" as const },
+    { name: 'Personal Projects', profileName: 'James', role: 'admin' as const },
+    { name: 'Client Work', profileName: 'James D', role: 'admin' as const },
+    { name: 'Team Collaboration', profileName: 'JD', role: 'user' as const },
+    { name: 'Sandbox Testing', profileName: 'Dev', role: 'admin' as const },
   ]
 
   await createMultipleWorkspaces(email, testWorkspaces)
@@ -236,9 +236,9 @@ async function main(): Promise<void> {
 
 try {
   await main()
-  logger.info("✅ Development setup completed successfully")
+  logger.info('✅ Development setup completed successfully')
   process.exit(0)
 } catch (error) {
-  logger.error({ msg: "❌ Development setup failed", error })
+  logger.error({ msg: '❌ Development setup failed', error })
   process.exit(1)
 }

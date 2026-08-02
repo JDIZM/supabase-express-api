@@ -1,10 +1,10 @@
-import { logger } from "@/helpers/index.ts"
-import { AccountStatus, accounts } from "@/schema.ts"
-import { db } from "@/services/db/drizzle.ts"
-import { eq } from "drizzle-orm"
-import type { NextFunction, Request, Response } from "express"
-import { HttpErrors } from "../helpers/Http.ts"
-import { apiResponse } from "../helpers/response.ts"
+import { logger } from '@/helpers/index.ts'
+import { AccountStatus, accounts } from '@/schema.ts'
+import { db } from '@/services/db/drizzle.ts'
+import { eq } from 'drizzle-orm'
+import type { NextFunction, Request, Response } from 'express'
+import { HttpErrors } from '../helpers/Http.ts'
+import { apiResponse } from '../helpers/response.ts'
 
 /**
  * Middleware to check account status - only use on critical operations
@@ -18,7 +18,7 @@ export const checkAccountStatus = async (
   const { accountId } = req
 
   if (!accountId) {
-    const response = apiResponse.error(HttpErrors.Unauthorized("Authentication required"))
+    const response = apiResponse.error(HttpErrors.Unauthorized('Authentication required'))
     res.status(response.code).send(response)
     return
   }
@@ -33,7 +33,7 @@ export const checkAccountStatus = async (
 
     if (!account) {
       logger.error({ msg: `Account not found for accountId: ${accountId}` })
-      const response = apiResponse.error(HttpErrors.Unauthorized("Account not found"))
+      const response = apiResponse.error(HttpErrors.Unauthorized('Account not found'))
       res.status(response.code).send(response)
       return
     }
@@ -47,8 +47,8 @@ export const checkAccountStatus = async (
 
     return next()
   } catch (err) {
-    logger.error({ msg: "Error checking account status", err, accountId })
-    const response = apiResponse.error(HttpErrors.InternalError("Error checking account status"))
+    logger.error({ msg: 'Error checking account status', err, accountId })
+    const response = apiResponse.error(HttpErrors.InternalError('Error checking account status'))
     res.status(response.code).send(response)
     return
   }

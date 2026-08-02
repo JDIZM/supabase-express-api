@@ -1,12 +1,12 @@
-import { logger } from "@/helpers/index.ts"
+import { logger } from '@/helpers/index.ts'
 import {
   workspaceInsertSchema,
   workspaces,
   type WorkspaceInsertType,
   type WorkspaceSelectType,
-} from "@/schema.ts"
-import { db } from "@/services/db/drizzle.ts"
-import { type DbTransaction } from "@/types/database.ts"
+} from '@/schema.ts'
+import { db } from '@/services/db/drizzle.ts'
+import { type DbTransaction } from '@/types/database.ts'
 
 export const createDbWorkspace = async (
   workspace: WorkspaceInsertType,
@@ -26,7 +26,7 @@ export const createDbWorkspace = async (
     .returning()
 
   if (!result) {
-    throw new Error("Unable to create workspace")
+    throw new Error('Unable to create workspace')
   }
 
   logger.info({ msg: `Created workspace ${name} for ${accountId}` })

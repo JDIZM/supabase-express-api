@@ -1,7 +1,7 @@
-import * as Sentry from "@sentry/node"
-import { nodeProfilingIntegration } from "@sentry/profiling-node"
-import { config } from "@/config.ts"
-import { isSentryEnabled } from "@/features.ts"
+import * as Sentry from '@sentry/node'
+import { nodeProfilingIntegration } from '@sentry/profiling-node'
+import { config } from '@/config.ts'
+import { isSentryEnabled } from '@/features.ts'
 
 if (isSentryEnabled) {
   Sentry.init({

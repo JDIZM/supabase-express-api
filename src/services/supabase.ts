@@ -1,5 +1,5 @@
-import { config } from "../config.ts"
-import { createClient, type SupabaseClient } from "@supabase/supabase-js"
+import { config } from '../config.ts'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 /**
  * Supabase client for auth operations (getClaims, signIn, signUp)
@@ -21,7 +21,7 @@ let supabaseAdmin: SupabaseClient | null = null
 export function getSupabaseAdmin(): SupabaseClient {
   if (!supabaseAdmin) {
     if (!config.supabaseSecretKey) {
-      throw new Error("SUPABASE_SECRET_KEY is required for admin client")
+      throw new Error('SUPABASE_SECRET_KEY is required for admin client')
     }
     supabaseAdmin = createClient(config.supabaseUrl, config.supabaseSecretKey, {
       auth: {

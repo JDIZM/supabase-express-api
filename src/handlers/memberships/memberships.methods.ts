@@ -1,13 +1,13 @@
-import { logger } from "@/helpers/index.ts"
-import type { Role } from "@/helpers/permissions.ts"
-import { workspaceMemberships, type WorkspaceMembershipInsertType } from "@/schema.ts"
-import { db } from "@/services/db/drizzle.ts"
-import { type DbTransaction } from "@/types/database.ts"
-import { and, eq } from "drizzle-orm"
+import { logger } from '@/helpers/index.ts'
+import type { Role } from '@/helpers/permissions.ts'
+import { workspaceMemberships, type WorkspaceMembershipInsertType } from '@/schema.ts'
+import { db } from '@/services/db/drizzle.ts'
+import { type DbTransaction } from '@/types/database.ts'
+import { and, eq } from 'drizzle-orm'
 
 // Type guard function
-export function isValidRole(role: string): role is "admin" | "user" {
-  return ["admin", "user"].includes(role)
+export function isValidRole(role: string): role is 'admin' | 'user' {
+  return ['admin', 'user'].includes(role)
 }
 
 export async function createMembership(
@@ -18,7 +18,7 @@ export async function createMembership(
 ): Promise<WorkspaceMembershipInsertType> {
   if (!isValidRole(role)) {
     logger.warn({ msg: `Invalid role provided: ${role}` })
-    throw new Error("Invalid role")
+    throw new Error('Invalid role')
   }
 
   logger.info(
@@ -36,7 +36,7 @@ export async function createMembership(
     .returning()
 
   if (!membership) {
-    throw new Error("Unable to create membership")
+    throw new Error('Unable to create membership')
   }
 
   logger.info({
@@ -56,7 +56,7 @@ export async function checkMembership(
   logger.info(`Checking membership for account: ${accountId} in workspace: ${workspaceId}`)
 
   if (!accountId || !workspaceId) {
-    return [false, ""]
+    return [false, '']
   }
 
   const [result] = await db
@@ -73,8 +73,8 @@ export async function checkMembership(
   const isMember = (result?.accountId === accountId && result?.workspaceId === workspaceId) || false
 
   logger.info(
-    `Checked membership for ${accountId} in ${workspaceId}. User is [${isMember}, ${result?.role ?? ""}]`
+    `Checked membership for ${accountId} in ${workspaceId}. User is [${isMember}, ${result?.role ?? ''}]`
   )
 
-  return [isMember, result?.role ?? ""]
+  return [isMember, result?.role ?? '']
 }

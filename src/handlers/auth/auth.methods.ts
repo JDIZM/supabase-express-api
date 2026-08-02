@@ -1,5 +1,5 @@
-import { logger } from "@/helpers/index.ts"
-import { supabase } from "@/services/supabase.ts"
+import { logger } from '@/helpers/index.ts'
+import { supabase } from '@/services/supabase.ts'
 
 /**
  * Verify JWT token using Supabase getClaims()
@@ -17,7 +17,7 @@ export const verifyToken = async (
     const { data, error } = await supabase.auth.getClaims(token)
 
     if (error || !data) {
-      logger.warn({ error }, "Token verification failed via getClaims()")
+      logger.warn({ error }, 'Token verification failed via getClaims()')
       return null
     }
 
@@ -30,7 +30,7 @@ export const verifyToken = async (
 
     return { sub }
   } catch (err) {
-    logger.error({ err }, "Token validation failed")
+    logger.error({ err }, 'Token validation failed')
     return null
   }
 }

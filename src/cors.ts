@@ -1,4 +1,4 @@
-import { logger } from "./helpers/index.ts"
+import { logger } from './helpers/index.ts'
 
 export const whitelist: RegExp[] = [
   /^https?:\/\/localhost:3000$/, // Allow requests from the frontend app.
@@ -20,7 +20,7 @@ export const corsOptions = {
     if (isOriginAllowed) {
       callback(null, true)
     } else {
-      callback(new Error("Not allowed by CORS"))
+      callback(new Error('Not allowed by CORS'))
     }
   },
 }

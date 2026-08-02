@@ -1,4 +1,4 @@
-import { logger } from "@/helpers/index.ts"
+import { logger } from '@/helpers/index.ts'
 import {
   accountInsertSchema,
   accounts,
@@ -7,10 +7,10 @@ import {
   type AccountInsertType,
   type AccountSelectType,
   type AccountWithRelations,
-} from "@/schema.ts"
-import { db } from "@/services/db/drizzle.ts"
-import { type DbTransaction } from "@/types/database.ts"
-import { eq } from "drizzle-orm"
+} from '@/schema.ts'
+import { db } from '@/services/db/drizzle.ts'
+import { type DbTransaction } from '@/types/database.ts'
+import { eq } from 'drizzle-orm'
 
 export async function createDbAccount(
   account: AccountInsertType,
@@ -27,7 +27,7 @@ export async function createDbAccount(
   const result = response[0]
 
   if (!result) {
-    throw new Error("Unable to create account")
+    throw new Error('Unable to create account')
   }
 
   logger.info(`Created account with UUID: ${result.uuid}`)
@@ -56,11 +56,11 @@ export async function getAccountById(accountId: string): Promise<AccountSelectTy
   logger.info(`Retrieved account with UUID: ${accountId}`)
 
   if (result.length === 0) {
-    throw new Error("Account not found")
+    throw new Error('Account not found')
   }
 
   if (result.length > 1) {
-    throw new Error("Multiple accounts found")
+    throw new Error('Multiple accounts found')
   }
 
   return result

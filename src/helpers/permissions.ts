@@ -1,29 +1,29 @@
-import { logger } from "./logger.ts"
+import { logger } from './logger.ts'
 
 export const API_ROUTES = {
-  root: "/",
-  login: "/login",
-  signUp: "/signup",
-  me: "/me",
-  accounts: "/accounts",
-  accountById: "/accounts/:id",
+  root: '/',
+  login: '/login',
+  signUp: '/signup',
+  me: '/me',
+  accounts: '/accounts',
+  accountById: '/accounts/:id',
   // profiles: "/profiles", // Removed - access through workspace context
   // profileById: "/profiles/:id", // Removed - access through workspace context
-  workspaces: "/workspaces",
-  workspaceById: "/workspaces/:id",
-  workspaceProfile: "/workspaces/:id/profile",
-  workspaceMembers: "/workspaces/:id/members",
-  workspaceMemberRole: "/workspaces/:id/members/:memberId/role",
-  workspaceMemberRemove: "/workspaces/:id/members/:memberId",
+  workspaces: '/workspaces',
+  workspaceById: '/workspaces/:id',
+  workspaceProfile: '/workspaces/:id/profile',
+  workspaceMembers: '/workspaces/:id/members',
+  workspaceMemberRole: '/workspaces/:id/members/:memberId/role',
+  workspaceMemberRemove: '/workspaces/:id/members/:memberId',
   // Admin routes
-  adminAccounts: "/admin/accounts",
-  adminAccountRole: "/admin/accounts/:id/role",
-  adminAccountStatus: "/admin/accounts/:id/status",
-  adminWorkspaces: "/admin/workspaces",
-  adminWorkspaceById: "/admin/workspaces/:id",
-  adminMemberships: "/admin/memberships",
-  adminAuditLogs: "/admin/audit-logs",
-  adminAuditLogStats: "/admin/audit-logs/stats",
+  adminAccounts: '/admin/accounts',
+  adminAccountRole: '/admin/accounts/:id/role',
+  adminAccountStatus: '/admin/accounts/:id/status',
+  adminWorkspaces: '/admin/workspaces',
+  adminWorkspaceById: '/admin/workspaces/:id',
+  adminMemberships: '/admin/memberships',
+  adminAuditLogs: '/admin/audit-logs',
+  adminAuditLogStats: '/admin/audit-logs/stats',
 } as const
 
 export type RouteName = keyof typeof API_ROUTES
@@ -33,14 +33,14 @@ export type Route = (typeof API_ROUTES)[RouteName]
 export type Routes = Route[]
 
 export const ROLES = {
-  Admin: "admin",
-  User: "user",
-  Owner: "owner",
+  Admin: 'admin',
+  User: 'user',
+  Owner: 'owner',
 } as const
 
-export type Role = (typeof ROLES)[keyof typeof ROLES] | ""
+export type Role = (typeof ROLES)[keyof typeof ROLES] | ''
 
-export type Method = "GET" | "POST" | "PUT" | "DELETE" | "PATCH"
+export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 
 export type Claims = [Role, Method]
 
@@ -70,12 +70,12 @@ permissions.set(API_ROUTES.login, { permissions: {}, authenticated: false })
 permissions.set(API_ROUTES.signUp, { permissions: {}, authenticated: false })
 
 permissions.set(API_ROUTES.me, {
-  permissions: { GET: "" },
+  permissions: { GET: '' },
   authenticated: true,
 })
 
 permissions.set(API_ROUTES.accounts, {
-  permissions: { GET: "", POST: "" },
+  permissions: { GET: '', POST: '' },
   authenticated: true,
   super: true,
 })
@@ -88,7 +88,7 @@ permissions.set(API_ROUTES.accountById, {
 // Profile permissions removed - profiles accessed through workspace context
 
 permissions.set(API_ROUTES.workspaces, {
-  permissions: { GET: "", POST: "" },
+  permissions: { GET: '', POST: '' },
   authenticated: true,
 })
 
@@ -119,54 +119,54 @@ permissions.set(API_ROUTES.workspaceMemberRemove, {
 
 // Admin routes - all require SuperAdmin
 permissions.set(API_ROUTES.adminAccounts, {
-  permissions: { GET: "", POST: "" },
+  permissions: { GET: '', POST: '' },
   authenticated: true,
   super: true,
 })
 
 permissions.set(API_ROUTES.adminAccountRole, {
-  permissions: { PUT: "" },
+  permissions: { PUT: '' },
   authenticated: true,
   super: true,
 })
 
 permissions.set(API_ROUTES.adminAccountStatus, {
-  permissions: { PUT: "" },
+  permissions: { PUT: '' },
   authenticated: true,
   super: true,
 })
 
 permissions.set(API_ROUTES.adminWorkspaces, {
-  permissions: { GET: "", POST: "" },
+  permissions: { GET: '', POST: '' },
   authenticated: true,
   super: true,
 })
 
 permissions.set(API_ROUTES.adminWorkspaceById, {
-  permissions: { DELETE: "" },
+  permissions: { DELETE: '' },
   authenticated: true,
   super: true,
 })
 
 permissions.set(API_ROUTES.adminMemberships, {
-  permissions: { GET: "" },
+  permissions: { GET: '' },
   authenticated: true,
   super: true,
 })
 
 permissions.set(API_ROUTES.adminAuditLogs, {
-  permissions: { GET: "" },
+  permissions: { GET: '' },
   authenticated: true,
   super: true,
 })
 
 permissions.set(API_ROUTES.adminAuditLogStats, {
-  permissions: { GET: "" },
+  permissions: { GET: '' },
   authenticated: true,
   super: true,
 })
 
-logger.info(permissions, "route permissions set")
+logger.info(permissions, 'route permissions set')
 
 /**
  * This validates that permissions are set for all routes
@@ -188,5 +188,5 @@ export const hasRoutesWithNoPermissionsSet = (
 const hasInvalidRoute = hasRoutesWithNoPermissionsSet(Object.values(API_ROUTES), permissions)
 
 if (hasInvalidRoute) {
-  throw new Error("There are routes without permissions set.")
+  throw new Error('There are routes without permissions set.')
 }

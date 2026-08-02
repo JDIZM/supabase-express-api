@@ -1,4 +1,4 @@
-import type { db } from "@/services/db/drizzle.ts"
+import type { db } from '@/services/db/drizzle.ts'
 
 /**
  * Database transaction type for use across all database methods

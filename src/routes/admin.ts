@@ -1,8 +1,8 @@
-import type { Application } from "express"
-import { isAuthenticated } from "@/middleware/isAuthenticated.ts"
-import { isAuthorized } from "@/middleware/isAuthorized.ts"
-import { adminRateLimit } from "@/middleware/rateLimiter.ts"
-import { checkAccountStatus } from "@/middleware/checkAccountStatus.ts"
+import type { Application } from 'express'
+import { isAuthenticated } from '@/middleware/isAuthenticated.ts'
+import { isAuthorized } from '@/middleware/isAuthorized.ts'
+import { adminRateLimit } from '@/middleware/rateLimiter.ts'
+import { checkAccountStatus } from '@/middleware/checkAccountStatus.ts'
 import {
   listAllAccounts,
   createAccountForUser,
@@ -10,8 +10,8 @@ import {
   updateAccountStatus,
   listAllWorkspaces,
   listAllMemberships,
-} from "@/handlers/admin/admin.handlers.ts"
-import { getAuditLogs, getAuditLogStats } from "@/handlers/admin/auditLogs.handlers.ts"
+} from '@/handlers/admin/admin.handlers.ts'
+import { getAuditLogs, getAuditLogStats } from '@/handlers/admin/auditLogs.handlers.ts'
 
 export function adminRoutes(app: Application): void {
   // All admin routes require authentication, account status check, and SuperAdmin role
@@ -19,7 +19,7 @@ export function adminRoutes(app: Application): void {
 
   // Account management
   app.get(
-    "/admin/accounts",
+    '/admin/accounts',
     adminRateLimit,
     isAuthenticated,
     checkAccountStatus,
@@ -27,7 +27,7 @@ export function adminRoutes(app: Application): void {
     listAllAccounts
   )
   app.post(
-    "/admin/accounts",
+    '/admin/accounts',
     adminRateLimit,
     isAuthenticated,
     checkAccountStatus,
@@ -35,7 +35,7 @@ export function adminRoutes(app: Application): void {
     createAccountForUser
   )
   app.put(
-    "/admin/accounts/:id/role",
+    '/admin/accounts/:id/role',
     adminRateLimit,
     isAuthenticated,
     checkAccountStatus,
@@ -43,7 +43,7 @@ export function adminRoutes(app: Application): void {
     updateAccountRole
   )
   app.put(
-    "/admin/accounts/:id/status",
+    '/admin/accounts/:id/status',
     adminRateLimit,
     isAuthenticated,
     checkAccountStatus,
@@ -53,7 +53,7 @@ export function adminRoutes(app: Application): void {
 
   // Workspace monitoring (read-only)
   app.get(
-    "/admin/workspaces",
+    '/admin/workspaces',
     adminRateLimit,
     isAuthenticated,
     checkAccountStatus,
@@ -63,7 +63,7 @@ export function adminRoutes(app: Application): void {
 
   // Membership management
   app.get(
-    "/admin/memberships",
+    '/admin/memberships',
     adminRateLimit,
     isAuthenticated,
     checkAccountStatus,
@@ -73,7 +73,7 @@ export function adminRoutes(app: Application): void {
 
   // Audit log management
   app.get(
-    "/admin/audit-logs",
+    '/admin/audit-logs',
     adminRateLimit,
     isAuthenticated,
     checkAccountStatus,
@@ -81,7 +81,7 @@ export function adminRoutes(app: Application): void {
     getAuditLogs
   )
   app.get(
-    "/admin/audit-logs/stats",
+    '/admin/audit-logs/stats',
     adminRateLimit,
     isAuthenticated,
     checkAccountStatus,

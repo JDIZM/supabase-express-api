@@ -1,11 +1,11 @@
-import { HttpErrors, HttpStatusCode } from "@/helpers/Http.ts"
-import { apiResponse } from "@/helpers/response.ts"
-import { asyncHandler } from "@/helpers/request.ts"
-import { accounts, workspaceMemberships, workspaces } from "@/schema.ts"
-import { AUDIT_ACTIONS, ENTITY_TYPES, auditHelpers, createAuditLog } from "@/services/auditLog.ts"
-import { db } from "@/services/db/drizzle.ts"
-import { and, eq, sql } from "drizzle-orm"
-import type { Request, Response } from "express"
+import { HttpErrors, HttpStatusCode } from '@/helpers/Http.ts'
+import { apiResponse } from '@/helpers/response.ts'
+import { asyncHandler } from '@/helpers/request.ts'
+import { accounts, workspaceMemberships, workspaces } from '@/schema.ts'
+import { AUDIT_ACTIONS, ENTITY_TYPES, auditHelpers, createAuditLog } from '@/services/auditLog.ts'
+import { db } from '@/services/db/drizzle.ts'
+import { and, eq, sql } from 'drizzle-orm'
+import type { Request, Response } from 'express'
 // Removed workspace control imports - SuperAdmins monitor only
 
 /**
@@ -49,7 +49,7 @@ export const listAllAccounts = asyncHandler(async (req: Request, res: Response):
         pages: Math.ceil(count / limit),
       },
     },
-    "Accounts retrieved successfully"
+    'Accounts retrieved successfully'
   )
 
   res.status(response.code).send(response)
@@ -79,7 +79,7 @@ export const createAccountForUser = asyncHandler(
 
     if (existingAccount) {
       const response = apiResponse.error(
-        HttpErrors.BadRequest("Unable to create account with provided information")
+        HttpErrors.BadRequest('Unable to create account with provided information')
       )
       res.status(response.code).send(response)
       return
@@ -98,7 +98,7 @@ export const createAccountForUser = asyncHandler(
         .returning()
 
       if (!account) {
-        throw new Error("Failed to create account")
+        throw new Error('Failed to create account')
       }
 
       // Audit log the account creation
@@ -113,7 +113,7 @@ export const createAccountForUser = asyncHandler(
             email: account.email,
             fullName: account.fullName,
             isSuperAdmin: account.isSuperAdmin,
-            createdBy: "admin",
+            createdBy: 'admin',
           },
         },
         req,
@@ -125,7 +125,7 @@ export const createAccountForUser = asyncHandler(
     })
 
     if (!newAccount) {
-      const response = apiResponse.error(HttpErrors.DatabaseError("Failed to create account"))
+      const response = apiResponse.error(HttpErrors.DatabaseError('Failed to create account'))
       res.status(response.code).send(response)
       return
     }
@@ -133,7 +133,7 @@ export const createAccountForUser = asyncHandler(
     const response = apiResponse.success(
       HttpStatusCode.CREATED,
       { account: newAccount },
-      "Account created successfully"
+      'Account created successfully'
     )
 
     res.status(response.code).send(response)
@@ -150,7 +150,7 @@ export const updateAccountRole = asyncHandler(
     const { accountId } = req
 
     if (!targetAccountId) {
-      const response = apiResponse.error(HttpErrors.MissingParameter("Account ID"))
+      const response = apiResponse.error(HttpErrors.MissingParameter('Account ID'))
       res.status(response.code).send(response)
       return
     }
@@ -163,9 +163,9 @@ export const updateAccountRole = asyncHandler(
 
     const { isSuperAdmin } = req.body
 
-    if (typeof isSuperAdmin !== "boolean") {
+    if (typeof isSuperAdmin !== 'boolean') {
       const response = apiResponse.error(
-        HttpErrors.ValidationFailed("isSuperAdmin must be a boolean value")
+        HttpErrors.ValidationFailed('isSuperAdmin must be a boolean value')
       )
       res.status(response.code).send(response)
       return
@@ -179,7 +179,7 @@ export const updateAccountRole = asyncHandler(
       .limit(1)
 
     if (!currentAccount) {
-      const response = apiResponse.error(HttpErrors.NotFound("Account"))
+      const response = apiResponse.error(HttpErrors.NotFound('Account'))
       res.status(response.code).send(response)
       return
     }
@@ -193,7 +193,7 @@ export const updateAccountRole = asyncHandler(
         .returning()
 
       if (!account) {
-        throw new Error("Account not found")
+        throw new Error('Account not found')
       }
 
       // Audit log the role change
@@ -210,7 +210,7 @@ export const updateAccountRole = asyncHandler(
     })
 
     if (!updatedAccount) {
-      const response = apiResponse.error(HttpErrors.NotFound("Account"))
+      const response = apiResponse.error(HttpErrors.NotFound('Account'))
       res.status(response.code).send(response)
       return
     }
@@ -235,7 +235,7 @@ export const updateAccountStatus = asyncHandler(
     const { accountId } = req
 
     if (!targetAccountId) {
-      const response = apiResponse.error(HttpErrors.MissingParameter("Account ID"))
+      const response = apiResponse.error(HttpErrors.MissingParameter('Account ID'))
       res.status(response.code).send(response)
       return
     }
@@ -247,11 +247,11 @@ export const updateAccountStatus = asyncHandler(
     }
 
     const { status } = req.body
-    const validStatuses = ["active", "inactive", "suspended"]
+    const validStatuses = ['active', 'inactive', 'suspended']
 
     if (!status || !validStatuses.includes(status)) {
       const response = apiResponse.error(
-        HttpErrors.ValidationFailed(`Status must be one of: ${validStatuses.join(", ")}`)
+        HttpErrors.ValidationFailed(`Status must be one of: ${validStatuses.join(', ')}`)
       )
       res.status(response.code).send(response)
       return
@@ -265,7 +265,7 @@ export const updateAccountStatus = asyncHandler(
       .limit(1)
 
     if (!currentAccount) {
-      const response = apiResponse.error(HttpErrors.NotFound("Account"))
+      const response = apiResponse.error(HttpErrors.NotFound('Account'))
       res.status(response.code).send(response)
       return
     }
@@ -279,7 +279,7 @@ export const updateAccountStatus = asyncHandler(
         .returning()
 
       if (!account) {
-        throw new Error("Account not found")
+        throw new Error('Account not found')
       }
 
       // Audit log the status change
@@ -296,7 +296,7 @@ export const updateAccountStatus = asyncHandler(
     })
 
     if (!updatedAccount) {
-      const response = apiResponse.error(HttpErrors.NotFound("Account"))
+      const response = apiResponse.error(HttpErrors.NotFound('Account'))
       res.status(response.code).send(response)
       return
     }
@@ -364,7 +364,7 @@ export const listAllWorkspaces = asyncHandler(
           pages: Math.ceil(count / limit),
         },
       },
-      "Workspaces retrieved successfully"
+      'Workspaces retrieved successfully'
     )
 
     res.status(response.code).send(response)
@@ -448,7 +448,7 @@ export const listAllMemberships = asyncHandler(
           pages: Math.ceil(count / limit),
         },
       },
-      "Memberships retrieved successfully"
+      'Memberships retrieved successfully'
     )
 
     res.status(response.code).send(response)

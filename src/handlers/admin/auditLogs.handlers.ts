@@ -1,11 +1,11 @@
-import { HttpErrors, HttpStatusCode } from "@/helpers/Http.ts"
-import { apiResponse } from "@/helpers/response.ts"
-import { asyncHandler } from "@/helpers/request.ts"
-import { accounts, auditLogs } from "@/schema.ts"
-import { db } from "@/services/db/drizzle.ts"
-import { and, desc, eq, gte, lte, sql } from "drizzle-orm"
-import type { Request, Response } from "express"
-import { z } from "zod"
+import { HttpErrors, HttpStatusCode } from '@/helpers/Http.ts'
+import { apiResponse } from '@/helpers/response.ts'
+import { asyncHandler } from '@/helpers/request.ts'
+import { accounts, auditLogs } from '@/schema.ts'
+import { db } from '@/services/db/drizzle.ts'
+import { and, desc, eq, gte, lte, sql } from 'drizzle-orm'
+import type { Request, Response } from 'express'
+import { z } from 'zod'
 
 // Zod schema for audit logs query parameters
 const auditLogsQuerySchema = z.object({
@@ -135,7 +135,7 @@ export const getAuditLogs = asyncHandler(async (req: Request, res: Response): Pr
         endDate,
       },
     },
-    "Audit logs retrieved successfully"
+    'Audit logs retrieved successfully'
   )
 
   res.status(response.code).send(response)
@@ -207,7 +207,7 @@ export const getAuditLogStats = asyncHandler(async (req: Request, res: Response)
       topActors,
       dailyActivity,
     },
-    "Audit log statistics retrieved successfully"
+    'Audit log statistics retrieved successfully'
   )
 
   res.status(response.code).send(response)

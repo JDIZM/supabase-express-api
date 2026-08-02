@@ -1,14 +1,14 @@
-import { logger } from "@/helpers/index.ts"
+import { logger } from '@/helpers/index.ts'
 import {
   profileInsertSchema,
   profiles,
   uuidSchema,
   type ProfileInsertType,
   type ProfileSelectType,
-} from "@/schema.ts"
-import { db } from "@/services/db/drizzle.ts"
-import { type DbTransaction } from "@/types/database.ts"
-import { eq, type InferInsertModel } from "drizzle-orm"
+} from '@/schema.ts'
+import { db } from '@/services/db/drizzle.ts'
+import { type DbTransaction } from '@/types/database.ts'
+import { eq, type InferInsertModel } from 'drizzle-orm'
 
 export async function createDbProfile(
   profile: InferInsertModel<typeof profiles>,
@@ -25,7 +25,7 @@ export async function createDbProfile(
   const [result] = await database.insert(profiles).values(profile).returning()
 
   if (!result) {
-    throw new Error("Unable to create profile")
+    throw new Error('Unable to create profile')
   }
 
   logger.info({

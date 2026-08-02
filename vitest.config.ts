@@ -1,18 +1,18 @@
-import { fileURLToPath } from "node:url"
-import { configDefaults, defineConfig } from "vitest/config"
+import { fileURLToPath } from 'node:url'
+import { configDefaults, defineConfig } from 'vitest/config'
 
 export default defineConfig({
   resolve: {
     alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
   test: {
-    environment: "node",
+    environment: 'node',
     exclude: [...configDefaults.exclude],
-    root: fileURLToPath(new URL("./src", import.meta.url)),
+    root: fileURLToPath(new URL('./src', import.meta.url)),
     coverage: {
-      provider: "v8",
+      provider: 'v8',
     },
   },
 })

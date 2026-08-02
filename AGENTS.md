@@ -13,7 +13,7 @@ Zod for schema validation, Pino for structured logging. Workspace-scoped RBAC wi
 - **pnpm 10.17.1** — pinned via `packageManager`; enable with `corepack enable`
 - **Node >=22** (Volta-managed: 22.16.0)
 - **ESLint 9 flat config** at `eslint.config.js` (typescript-eslint 8)
-- **Prettier 3** at `.prettierrc.json` — no semi, double quotes, 100-col, `trailingComma: "es5"`
+- **Prettier 3** at `.prettierrc.json` — no semi, single quotes, 100-col, `trailingComma: "es5"`
 - **Vitest** for unit tests with coverage
 - **TypeScript 5.x strict** with ESM + `.ts` import extensions (`@/` → `src/`)
 - **pnpm supply-chain guardrails**: `minimumReleaseAge: 1440` blocks sub-24h releases;

@@ -1,6 +1,6 @@
-import { logger } from "@/helpers/index.ts"
-import { createClient } from "@supabase/supabase-js"
-import dotenv from "dotenv"
+import { logger } from '@/helpers/index.ts'
+import { createClient } from '@supabase/supabase-js'
+import dotenv from 'dotenv'
 
 dotenv.config()
 
@@ -36,7 +36,7 @@ class TokenTester {
 
     if (!url || !key) {
       throw new Error(
-        "SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY (or SUPABASE_ANON_KEY) are required"
+        'SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY (or SUPABASE_ANON_KEY) are required'
       )
     }
 
@@ -59,14 +59,14 @@ class TokenTester {
       const { data, error } = await this.supabase.auth.getClaims(token)
 
       if (error || !data) {
-        logger.error("❌ Token verification failed:", error?.message || "No data returned")
+        logger.error('❌ Token verification failed:', error?.message || 'No data returned')
         return null
       }
 
       const claims = data.claims as TokenClaims
 
       if (options.showPayload) {
-        logger.info("✅ Token is valid")
+        logger.info('✅ Token is valid')
         logger.info(
           {
             sub: claims.sub,
@@ -78,7 +78,7 @@ class TokenTester {
             expiresAt: claims.exp ? new Date(claims.exp * 1000).toISOString() : undefined,
             sessionId: claims.session_id,
           },
-          "📋 Token payload:"
+          '📋 Token payload:'
         )
       }
 
@@ -87,7 +87,7 @@ class TokenTester {
         const timeUntilExpiry = claims.exp - now
 
         if (timeUntilExpiry <= 0) {
-          logger.warn("⚠️  Token has expired")
+          logger.warn('⚠️  Token has expired')
         } else {
           logger.info(`⏰ Token expires in ${Math.floor(timeUntilExpiry / 60)} minutes`)
         }
@@ -95,7 +95,7 @@ class TokenTester {
 
       return claims
     } catch (error) {
-      logger.error("❌ Token verification failed:", error)
+      logger.error('❌ Token verification failed:', error)
       return null
     }
   }
@@ -106,26 +106,26 @@ class TokenTester {
    */
   decodeWithoutVerification(token: string): TokenClaims | null {
     try {
-      const parts = token.split(".")
+      const parts = token.split('.')
       if (parts.length !== 3 || !parts[0] || !parts[1]) {
-        logger.error("❌ Invalid JWT format")
+        logger.error('❌ Invalid JWT format')
         return null
       }
 
-      const header = JSON.parse(Buffer.from(parts[0], "base64url").toString())
-      const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString())
+      const header = JSON.parse(Buffer.from(parts[0], 'base64url').toString())
+      const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString())
 
       logger.info(
         {
           header,
           payload,
         },
-        "🔍 Token decoded without verification:"
+        '🔍 Token decoded without verification:'
       )
 
       return payload
     } catch (error) {
-      logger.error("❌ Failed to decode token:", error)
+      logger.error('❌ Failed to decode token:', error)
       return null
     }
   }
@@ -138,9 +138,9 @@ class TokenTester {
     const isValid = jwtRegex.test(token)
 
     if (isValid) {
-      logger.info("✅ Token format is valid JWT")
+      logger.info('✅ Token format is valid JWT')
     } else {
-      logger.error("❌ Token format is invalid")
+      logger.error('❌ Token format is invalid')
     }
 
     return isValid
@@ -151,21 +151,21 @@ async function main(): Promise<void> {
   const args = process.argv.slice(2)
 
   if (args.length === 0) {
-    logger.info("JWT Token Testing Utility (using Supabase getClaims)")
-    logger.info("")
-    logger.info("Usage examples:")
-    logger.info("  # Test token with full information")
-    logger.info("  pnpm token-test --token=<jwt-token> --show-payload --check-expiry")
-    logger.info("")
-    logger.info("  # Decode without verification (debug)")
-    logger.info("  pnpm token-test --token=<jwt-token> --decode-only")
-    logger.info("")
-    logger.info("Note: No JWT_SECRET needed - getClaims() handles verification automatically.")
+    logger.info('JWT Token Testing Utility (using Supabase getClaims)')
+    logger.info('')
+    logger.info('Usage examples:')
+    logger.info('  # Test token with full information')
+    logger.info('  pnpm token-test --token=<jwt-token> --show-payload --check-expiry')
+    logger.info('')
+    logger.info('  # Decode without verification (debug)')
+    logger.info('  pnpm token-test --token=<jwt-token> --decode-only')
+    logger.info('')
+    logger.info('Note: No JWT_SECRET needed - getClaims() handles verification automatically.')
     return
   }
 
   const options = args
-    .map((str) => str.replace(/^-+/, "").split("="))
+    .map((str) => str.replace(/^-+/, '').split('='))
     .reduce<{ [key: string]: string | boolean }>((acc, curr) => {
       const [key, value] = curr
       if (!key) return acc
@@ -178,7 +178,7 @@ async function main(): Promise<void> {
 
     // Token is required
     if (!options.token) {
-      logger.error("❌ --token is required")
+      logger.error('❌ --token is required')
       process.exit(1)
     }
 
@@ -190,25 +190,25 @@ async function main(): Promise<void> {
     }
 
     // Decode without verification
-    if (options["decode-only"]) {
+    if (options['decode-only']) {
       tester.decodeWithoutVerification(token)
       return
     }
 
     // Verify token with options
     const decoded = await tester.verifyToken(token, {
-      showPayload: options["show-payload"] as boolean,
-      checkExpiry: options["check-expiry"] as boolean,
+      showPayload: options['show-payload'] as boolean,
+      checkExpiry: options['check-expiry'] as boolean,
     })
 
     if (decoded) {
-      logger.info("🎉 Token verification completed successfully")
+      logger.info('🎉 Token verification completed successfully')
     } else {
-      logger.error("💥 Token verification failed")
+      logger.error('💥 Token verification failed')
       process.exit(1)
     }
   } catch (error) {
-    logger.error("❌ Error:", error)
+    logger.error('❌ Error:', error)
     process.exit(1)
   }
 }

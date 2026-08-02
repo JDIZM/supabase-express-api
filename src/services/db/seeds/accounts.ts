@@ -1,4 +1,4 @@
-import { db } from "@/services/db/drizzle.ts"
+import { db } from '@/services/db/drizzle.ts'
 import {
   profiles,
   workspaces,
@@ -10,10 +10,10 @@ import {
   type WorkspaceSelectType,
   type ProfileSelectType,
   type WorkspaceMembershipInsertType,
-} from "@/schema.ts"
-import type { User } from "@supabase/supabase-js"
-import { logger } from "@/helpers/index.ts"
-import type { InferInsertModel } from "drizzle-orm"
+} from '@/schema.ts'
+import type { User } from '@supabase/supabase-js'
+import { logger } from '@/helpers/index.ts'
+import type { InferInsertModel } from 'drizzle-orm'
 
 type SeedAccountType = AccountInsertType & {
   password?: string // Password is only needed for Supabase signup during seeding
@@ -39,84 +39,84 @@ type SeedAccountType = AccountInsertType & {
 const accountsArray: SeedAccountType[] = [
   // Super Admin Account
   {
-    fullName: "Super Admin",
-    phone: "+1-555-001-0001",
-    email: "admin@example.com",
+    fullName: 'Super Admin',
+    phone: '+1-555-001-0001',
+    email: 'admin@example.com',
     isSuperAdmin: true,
-    status: "active",
-    password: "password123",
+    status: 'active',
+    password: 'password123',
   },
 
   // Active Business Users
   {
-    fullName: "Alice Johnson",
-    phone: "+1-555-001-0002",
-    email: "alice@acmecorp.com",
+    fullName: 'Alice Johnson',
+    phone: '+1-555-001-0002',
+    email: 'alice@acmecorp.com',
     isSuperAdmin: false,
-    status: "active",
-    password: "password123",
+    status: 'active',
+    password: 'password123',
   },
   {
-    fullName: "Bob Wilson",
-    phone: "+1-555-001-0003",
-    email: "bob@techstartup.com",
+    fullName: 'Bob Wilson',
+    phone: '+1-555-001-0003',
+    email: 'bob@techstartup.com',
     isSuperAdmin: false,
-    status: "active",
-    password: "password123",
+    status: 'active',
+    password: 'password123',
   },
   {
-    fullName: "Carol Martinez",
-    phone: "+1-555-001-0004",
-    email: "carol@designstudio.com",
+    fullName: 'Carol Martinez',
+    phone: '+1-555-001-0004',
+    email: 'carol@designstudio.com',
     isSuperAdmin: false,
-    status: "active",
-    password: "password123",
+    status: 'active',
+    password: 'password123',
   },
 
   // Team Members (will be added to existing workspaces)
   {
-    fullName: "David Chen",
-    phone: "+1-555-001-0005",
-    email: "david@acmecorp.com",
+    fullName: 'David Chen',
+    phone: '+1-555-001-0005',
+    email: 'david@acmecorp.com',
     isSuperAdmin: false,
-    status: "active",
-    password: "password123",
+    status: 'active',
+    password: 'password123',
   },
   {
-    fullName: "Emma Thompson",
-    phone: "+1-555-001-0006",
-    email: "emma@techstartup.com",
+    fullName: 'Emma Thompson',
+    phone: '+1-555-001-0006',
+    email: 'emma@techstartup.com',
     isSuperAdmin: false,
-    status: "active",
-    password: "password123",
+    status: 'active',
+    password: 'password123',
   },
 
   // Inactive/Suspended Users (for testing account status)
   {
-    fullName: "Frank Rodriguez",
-    phone: "+1-555-001-0007",
-    email: "frank@suspended.com",
+    fullName: 'Frank Rodriguez',
+    phone: '+1-555-001-0007',
+    email: 'frank@suspended.com',
     isSuperAdmin: false,
-    status: "suspended",
-    password: "password123",
+    status: 'suspended',
+    password: 'password123',
   },
   {
-    fullName: "Grace Lee",
-    phone: "+1-555-001-0008",
-    email: "grace@inactive.com",
+    fullName: 'Grace Lee',
+    phone: '+1-555-001-0008',
+    email: 'grace@inactive.com',
     isSuperAdmin: false,
-    status: "inactive",
-    password: "password123",
+    status: 'inactive',
+    password: 'password123',
   },
 ]
 
 async function createAccount(account: AccountInsertType): Promise<AccountSelectType> {
   accountInsertSchema.parse(account)
   const [result]: AccountSelectType[] = await db.insert(accounts).values(account).returning()
-  console.log("created account: ", result)
+  console.log('created account: ', result)
 
   if (!result) {
-    throw new Error("Unable to create account")
+    throw new Error('Unable to create account')
   }
 
   return result
@@ -125,29 +125,29 @@ async function createAccount(account: AccountInsertType): Promise<AccountSelectT
 // Realistic workspace configurations for testing
 const workspaceConfigs = [
   {
-    name: "ACME Corp - Main",
+    name: 'ACME Corp - Main',
     description: "Primary workspace for ACME Corporation's project management and collaboration.",
-    ownerEmail: "alice@acmecorp.com",
+    ownerEmail: 'alice@acmecorp.com',
   },
   {
-    name: "ACME Corp - R&D",
-    description: "Research and Development workspace for experimental projects.",
-    ownerEmail: "alice@acmecorp.com",
+    name: 'ACME Corp - R&D',
+    description: 'Research and Development workspace for experimental projects.',
+    ownerEmail: 'alice@acmecorp.com',
   },
   {
-    name: "TechStartup - Development",
-    description: "Software development workspace for our SaaS platform.",
-    ownerEmail: "bob@techstartup.com",
+    name: 'TechStartup - Development',
+    description: 'Software development workspace for our SaaS platform.',
+    ownerEmail: 'bob@techstartup.com',
   },
   {
-    name: "TechStartup - Marketing",
-    description: "Marketing campaigns and customer outreach workspace.",
-    ownerEmail: "bob@techstartup.com",
+    name: 'TechStartup - Marketing',
+    description: 'Marketing campaigns and customer outreach workspace.',
+    ownerEmail: 'bob@techstartup.com',
   },
   {
-    name: "Design Studio Pro",
-    description: "Creative workspace for client projects and design collaboration.",
-    ownerEmail: "carol@designstudio.com",
+    name: 'Design Studio Pro',
+    description: 'Creative workspace for client projects and design collaboration.',
+    ownerEmail: 'carol@designstudio.com',
   },
 ]
 
@@ -155,74 +155,74 @@ const workspaceConfigs = [
 const membershipConfigs = [
   // ACME Corp - Main workspace members
   {
-    workspaceName: "ACME Corp - Main",
-    memberEmail: "alice@acmecorp.com",
-    role: "admin",
-    profileName: "Alice Johnson",
+    workspaceName: 'ACME Corp - Main',
+    memberEmail: 'alice@acmecorp.com',
+    role: 'admin',
+    profileName: 'Alice Johnson',
   },
   {
-    workspaceName: "ACME Corp - Main",
-    memberEmail: "david@acmecorp.com",
-    role: "user",
-    profileName: "David Chen",
+    workspaceName: 'ACME Corp - Main',
+    memberEmail: 'david@acmecorp.com',
+    role: 'user',
+    profileName: 'David Chen',
   },
 
   // ACME Corp - R&D workspace members
   {
-    workspaceName: "ACME Corp - R&D",
-    memberEmail: "alice@acmecorp.com",
-    role: "admin",
-    profileName: "Alice (R&D Lead)",
+    workspaceName: 'ACME Corp - R&D',
+    memberEmail: 'alice@acmecorp.com',
+    role: 'admin',
+    profileName: 'Alice (R&D Lead)',
   },
   {
-    workspaceName: "ACME Corp - R&D",
-    memberEmail: "david@acmecorp.com",
-    role: "admin",
-    profileName: "David (Senior Dev)",
+    workspaceName: 'ACME Corp - R&D',
+    memberEmail: 'david@acmecorp.com',
+    role: 'admin',
+    profileName: 'David (Senior Dev)',
   },
 
   // TechStartup - Development workspace members
   {
-    workspaceName: "TechStartup - Development",
-    memberEmail: "bob@techstartup.com",
-    role: "admin",
-    profileName: "Bob Wilson",
+    workspaceName: 'TechStartup - Development',
+    memberEmail: 'bob@techstartup.com',
+    role: 'admin',
+    profileName: 'Bob Wilson',
   },
   {
-    workspaceName: "TechStartup - Development",
-    memberEmail: "emma@techstartup.com",
-    role: "user",
-    profileName: "Emma Thompson",
+    workspaceName: 'TechStartup - Development',
+    memberEmail: 'emma@techstartup.com',
+    role: 'user',
+    profileName: 'Emma Thompson',
   },
 
   // TechStartup - Marketing workspace members
   {
-    workspaceName: "TechStartup - Marketing",
-    memberEmail: "bob@techstartup.com",
-    role: "admin",
-    profileName: "Bob (CEO)",
+    workspaceName: 'TechStartup - Marketing',
+    memberEmail: 'bob@techstartup.com',
+    role: 'admin',
+    profileName: 'Bob (CEO)',
   },
   {
-    workspaceName: "TechStartup - Marketing",
-    memberEmail: "emma@techstartup.com",
-    role: "admin",
-    profileName: "Emma (Marketing Lead)",
+    workspaceName: 'TechStartup - Marketing',
+    memberEmail: 'emma@techstartup.com',
+    role: 'admin',
+    profileName: 'Emma (Marketing Lead)',
   },
 
   // Design Studio workspace members
   {
-    workspaceName: "Design Studio Pro",
-    memberEmail: "carol@designstudio.com",
-    role: "admin",
-    profileName: "Carol Martinez",
+    workspaceName: 'Design Studio Pro',
+    memberEmail: 'carol@designstudio.com',
+    role: 'admin',
+    profileName: 'Carol Martinez',
   },
 
   // Cross-company collaboration (Emma consulting for ACME)
   {
-    workspaceName: "ACME Corp - Main",
-    memberEmail: "emma@techstartup.com",
-    role: "user",
-    profileName: "Emma (Consultant)",
+    workspaceName: 'ACME Corp - Main',
+    memberEmail: 'emma@techstartup.com',
+    role: 'user',
+    profileName: 'Emma (Consultant)',
   },
 ]
 
@@ -269,7 +269,7 @@ async function createProfile(
 async function createMembership(
   workspaceId: string,
   accountId: string,
-  role: "admin" | "user"
+  role: 'admin' | 'user'
 ): Promise<WorkspaceMembershipInsertType> {
   const [membership] = await db
     .insert(workspaceMemberships)
@@ -288,10 +288,10 @@ export async function seedAccounts(
   syncWithSupabase = false,
   signUpSupabase?: (email: string, password: string) => Promise<User | Error>
 ): Promise<void> {
-  logger.info("🌱 Starting comprehensive multi-tenant seed process...")
+  logger.info('🌱 Starting comprehensive multi-tenant seed process...')
 
   // Step 1: Create all accounts
-  logger.info("📝 Creating accounts...")
+  logger.info('📝 Creating accounts...')
   const createdAccounts = new Map<string, AccountSelectType>()
 
   for (const accountData of accountsArray) {
@@ -316,7 +316,7 @@ export async function seedAccounts(
       email: accountData.email,
       phone: accountData.phone,
       isSuperAdmin: accountData.isSuperAdmin,
-      status: accountData.status || "active",
+      status: accountData.status || 'active',
       uuid: supabaseUserId, // If supabaseUserId is undefined, Drizzle uses defaultRandom()
     }
 
@@ -325,7 +325,7 @@ export async function seedAccounts(
   }
 
   // Step 2: Create workspaces
-  logger.info("🏢 Creating workspaces...")
+  logger.info('🏢 Creating workspaces...')
   const createdWorkspaces = new Map<string, WorkspaceSelectType>()
 
   for (const workspaceConfig of workspaceConfigs) {
@@ -344,7 +344,7 @@ export async function seedAccounts(
   }
 
   // Step 3: Create memberships and profiles
-  logger.info("👥 Creating workspace memberships and profiles...")
+  logger.info('👥 Creating workspace memberships and profiles...')
 
   for (const membershipConfig of membershipConfigs) {
     const workspace = createdWorkspaces.get(membershipConfig.workspaceName)
@@ -361,7 +361,7 @@ export async function seedAccounts(
     }
 
     // Skip suspended/inactive accounts from getting workspace access
-    if (memberAccount.status !== "active") {
+    if (memberAccount.status !== 'active') {
       logger.info(`Skipping membership for ${memberAccount.status} account: ${memberAccount.email}`)
       continue
     }
@@ -369,23 +369,23 @@ export async function seedAccounts(
     await createMembership(
       workspace.uuid,
       memberAccount.uuid,
-      membershipConfig.role as "admin" | "user"
+      membershipConfig.role as 'admin' | 'user'
     )
 
     await createProfile(workspace.uuid, memberAccount.uuid, membershipConfig.profileName)
   }
 
-  logger.info("✅ Comprehensive multi-tenant seed completed!")
+  logger.info('✅ Comprehensive multi-tenant seed completed!')
   logger.info(`📊 Summary:`)
   logger.info(`   • ${createdAccounts.size} accounts created`)
   logger.info(`   • ${createdWorkspaces.size} workspaces created`)
   logger.info(`   • ${membershipConfigs.length} memberships configured`)
 
   // Log test scenarios created
-  logger.info("🧪 Test scenarios available:")
-  logger.info("   • Cross-workspace memberships (Alice, Bob, Emma with multiple workspaces)")
-  logger.info("   • Different roles (admin/user) within same organization")
-  logger.info("   • Cross-company collaboration (Emma consulting for ACME)")
-  logger.info("   • Account status variations (active/suspended/inactive)")
-  logger.info("   • Super admin capabilities")
+  logger.info('🧪 Test scenarios available:')
+  logger.info('   • Cross-workspace memberships (Alice, Bob, Emma with multiple workspaces)')
+  logger.info('   • Different roles (admin/user) within same organization')
+  logger.info('   • Cross-company collaboration (Emma consulting for ACME)')
+  logger.info('   • Account status variations (active/suspended/inactive)')
+  logger.info('   • Super admin capabilities')
 }

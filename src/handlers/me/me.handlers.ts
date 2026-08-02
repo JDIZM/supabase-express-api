@@ -1,10 +1,10 @@
-import { HttpErrors, HttpStatusCode } from "@/helpers/Http.ts"
-import { apiResponse } from "@/helpers/response.ts"
-import { asyncHandler } from "@/helpers/request.ts"
-import { accounts, profiles, workspaceMemberships, workspaces } from "@/schema.ts"
-import { db } from "@/services/db/drizzle.ts"
-import { and, eq } from "drizzle-orm"
-import type { Request, Response } from "express"
+import { HttpErrors, HttpStatusCode } from '@/helpers/Http.ts'
+import { apiResponse } from '@/helpers/response.ts'
+import { asyncHandler } from '@/helpers/request.ts'
+import { accounts, profiles, workspaceMemberships, workspaces } from '@/schema.ts'
+import { db } from '@/services/db/drizzle.ts'
+import { and, eq } from 'drizzle-orm'
+import type { Request, Response } from 'express'
 
 /**
  * GET /me - Returns everything the frontend needs after login:
@@ -19,7 +19,7 @@ export const getCurrentUser = asyncHandler(async (req: Request, res: Response): 
   const { accountId } = req
 
   if (!accountId) {
-    const response = apiResponse.error(HttpErrors.MissingParameter("Account ID"))
+    const response = apiResponse.error(HttpErrors.MissingParameter('Account ID'))
     res.status(response.code).send(response)
     return
   }
@@ -40,7 +40,7 @@ export const getCurrentUser = asyncHandler(async (req: Request, res: Response): 
     .limit(1)
 
   if (!account) {
-    const response = apiResponse.error(HttpErrors.NotFound("Account"))
+    const response = apiResponse.error(HttpErrors.NotFound('Account'))
     res.status(response.code).send(response)
     return
   }
@@ -80,7 +80,7 @@ export const getCurrentUser = asyncHandler(async (req: Request, res: Response): 
       workspaces: userWorkspaces,
       workspaceCount: userWorkspaces.length,
     },
-    "Current user profile retrieved"
+    'Current user profile retrieved'
   )
 
   res.status(response.code).send(response)

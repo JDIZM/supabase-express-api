@@ -1,10 +1,10 @@
-import { db } from "@/services/db/drizzle.ts"
-import { auditLogs, accounts } from "@/schema.ts"
-import { logger } from "@/helpers/index.ts"
-import { getIpFromRequest } from "@/helpers/request.ts"
-import { eq } from "drizzle-orm"
-import type { Request } from "express"
-import { type DbTransaction } from "@/types/database.ts"
+import { db } from '@/services/db/drizzle.ts'
+import { auditLogs, accounts } from '@/schema.ts'
+import { logger } from '@/helpers/index.ts'
+import { getIpFromRequest } from '@/helpers/request.ts'
+import { eq } from 'drizzle-orm'
+import type { Request } from 'express'
+import { type DbTransaction } from '@/types/database.ts'
 
 export interface AuditLogData {
   action: string
@@ -35,7 +35,7 @@ export async function createAuditLog(
   try {
     // Extract context from request if provided
     const ipAddress = req ? getIpFromRequest(req) : context?.ipAddress
-    const userAgent = req?.headers["user-agent"] || context?.userAgent
+    const userAgent = req?.headers['user-agent'] || context?.userAgent
 
     // Get actor email if not provided
     let actorEmail = context?.actorEmail
@@ -66,7 +66,7 @@ export async function createAuditLog(
       entityType: data.entityType,
       entityId: data.entityId,
       actorId: data.actorId,
-      actorEmail: actorEmail || "unknown",
+      actorEmail: actorEmail || 'unknown',
       targetId: data.targetId,
       targetEmail,
       details: data.details,
@@ -76,7 +76,7 @@ export async function createAuditLog(
     })
 
     logger.info({
-      msg: "Audit log created",
+      msg: 'Audit log created',
       action: data.action,
       entityType: data.entityType,
       entityId: data.entityId,
@@ -86,7 +86,7 @@ export async function createAuditLog(
     })
   } catch (error) {
     logger.error({
-      msg: "Failed to create audit log",
+      msg: 'Failed to create audit log',
       error,
       data,
     })
@@ -99,40 +99,40 @@ export async function createAuditLog(
  */
 export const AUDIT_ACTIONS = {
   // Account actions
-  ACCOUNT_CREATED: "account_created",
-  ACCOUNT_STATUS_UPDATED: "account_status_updated",
-  ACCOUNT_ROLE_UPDATED: "account_role_updated",
-  ACCOUNT_UPDATED: "account_updated",
+  ACCOUNT_CREATED: 'account_created',
+  ACCOUNT_STATUS_UPDATED: 'account_status_updated',
+  ACCOUNT_ROLE_UPDATED: 'account_role_updated',
+  ACCOUNT_UPDATED: 'account_updated',
 
   // Workspace actions
-  WORKSPACE_CREATED: "workspace_created",
-  WORKSPACE_UPDATED: "workspace_updated",
-  WORKSPACE_DELETED: "workspace_deleted",
+  WORKSPACE_CREATED: 'workspace_created',
+  WORKSPACE_UPDATED: 'workspace_updated',
+  WORKSPACE_DELETED: 'workspace_deleted',
 
   // Membership actions
-  MEMBER_ADDED: "member_added",
-  MEMBER_REMOVED: "member_removed",
-  MEMBER_ROLE_UPDATED: "member_role_updated",
+  MEMBER_ADDED: 'member_added',
+  MEMBER_REMOVED: 'member_removed',
+  MEMBER_ROLE_UPDATED: 'member_role_updated',
 
   // Authentication actions
-  LOGIN_SUCCESS: "login_success",
-  LOGIN_FAILED: "login_failed",
-  SIGNUP_SUCCESS: "signup_success",
+  LOGIN_SUCCESS: 'login_success',
+  LOGIN_FAILED: 'login_failed',
+  SIGNUP_SUCCESS: 'signup_success',
 
   // Admin actions
-  ADMIN_ACCESS: "admin_access",
-  BULK_OPERATION: "bulk_operation",
+  ADMIN_ACCESS: 'admin_access',
+  BULK_OPERATION: 'bulk_operation',
 } as const
 
 /**
  * Entity types for audit logs
  */
 export const ENTITY_TYPES = {
-  ACCOUNT: "account",
-  WORKSPACE: "workspace",
-  MEMBERSHIP: "membership",
-  PROFILE: "profile",
-  AUDIT_LOG: "audit_log",
+  ACCOUNT: 'account',
+  WORKSPACE: 'workspace',
+  MEMBERSHIP: 'membership',
+  PROFILE: 'profile',
+  AUDIT_LOG: 'audit_log',
 } as const
 
 /**
@@ -184,8 +184,8 @@ export const auditHelpers = {
         actorId,
         targetId,
         details: {
-          oldRole: oldRole ? "SuperAdmin" : "User",
-          newRole: newRole ? "SuperAdmin" : "User",
+          oldRole: oldRole ? 'SuperAdmin' : 'User',
+          newRole: newRole ? 'SuperAdmin' : 'User',
         },
       },
       req,

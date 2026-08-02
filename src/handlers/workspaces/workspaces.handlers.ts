@@ -1,6 +1,6 @@
-import { HttpErrors, HttpStatusCode } from "@/helpers/Http.ts"
-import { apiResponse } from "@/helpers/response.ts"
-import { asyncHandler } from "@/helpers/request.ts"
+import { HttpErrors, HttpStatusCode } from '@/helpers/Http.ts'
+import { apiResponse } from '@/helpers/response.ts'
+import { asyncHandler } from '@/helpers/request.ts'
 import {
   accounts,
   profileInsertSchema,
@@ -8,13 +8,13 @@ import {
   uuidSchema,
   workspaceMemberships,
   workspaces,
-} from "@/schema.ts"
-import { db } from "@/services/db/drizzle.ts"
-import { and, eq } from "drizzle-orm"
-import type { Request, Response } from "express"
-import { createMembership } from "../memberships/memberships.methods.ts"
-import { createDbProfile } from "../profiles/profiles.methods.ts"
-import { createDbWorkspace } from "./workspaces.methods.ts"
+} from '@/schema.ts'
+import { db } from '@/services/db/drizzle.ts'
+import { and, eq } from 'drizzle-orm'
+import type { Request, Response } from 'express'
+import { createMembership } from '../memberships/memberships.methods.ts'
+import { createDbProfile } from '../profiles/profiles.methods.ts'
+import { createDbWorkspace } from './workspaces.methods.ts'
 
 /**
  * Creates a new workspace for the current account and
@@ -25,7 +25,7 @@ export const createWorkspace = asyncHandler(async (req: Request, res: Response):
   const { accountId } = req
 
   if (!accountId) {
-    const response = apiResponse.error(HttpErrors.MissingParameter("Account ID"))
+    const response = apiResponse.error(HttpErrors.MissingParameter('Account ID'))
     res.status(response.code).send(response)
     return
   }
@@ -34,7 +34,7 @@ export const createWorkspace = asyncHandler(async (req: Request, res: Response):
   const [account] = await db.select().from(accounts).where(eq(accounts.uuid, accountId)).execute()
 
   if (!account) {
-    const response = apiResponse.error(HttpErrors.NotFound("Account"))
+    const response = apiResponse.error(HttpErrors.NotFound('Account'))
     res.status(response.code).send(response)
     return
   }
@@ -42,10 +42,10 @@ export const createWorkspace = asyncHandler(async (req: Request, res: Response):
   // Create workspace, membership, and profile in a transaction
   const result = await db.transaction(async (tx) => {
     const workspace = await createDbWorkspace({ name, accountId, description }, tx)
-    const membership = await createMembership(workspace.uuid, accountId, "admin", tx)
+    const membership = await createMembership(workspace.uuid, accountId, 'admin', tx)
     const profile = await createDbProfile(
       {
-        name: profileName || account.fullName || "Workspace Owner",
+        name: profileName || account.fullName || 'Workspace Owner',
         accountId,
         workspaceId: workspace.uuid,
       },
@@ -62,7 +62,7 @@ export const createWorkspace = asyncHandler(async (req: Request, res: Response):
       profile: result.profile,
       membership: result.membership,
     },
-    "Created workspace"
+    'Created workspace'
   )
   res.status(response.code).send(response)
 })
@@ -78,7 +78,7 @@ export const fetchWorkspace = asyncHandler(async (req: Request, res: Response): 
   }
 
   if (!req.params.id) {
-    const response = apiResponse.error(HttpErrors.MissingParameter("Workspace ID"))
+    const response = apiResponse.error(HttpErrors.MissingParameter('Workspace ID'))
     res.status(response.code).send(response)
     return
   }
@@ -112,7 +112,7 @@ export const fetchWorkspace = asyncHandler(async (req: Request, res: Response): 
   })
 
   if (!relations) {
-    const response = apiResponse.error(HttpErrors.NotFound("Workspace"))
+    const response = apiResponse.error(HttpErrors.NotFound('Workspace'))
     res.status(response.code).send(response)
     return
   }
@@ -146,7 +146,7 @@ export const fetchWorkspace = asyncHandler(async (req: Request, res: Response): 
     memberCount: members.length,
   }
 
-  const response = apiResponse.success(HttpStatusCode.OK, workspaceWithMembers, "Fetched workspace")
+  const response = apiResponse.success(HttpStatusCode.OK, workspaceWithMembers, 'Fetched workspace')
 
   res.status(response.code).send(response)
 })
@@ -154,7 +154,7 @@ export const fetchWorkspace = asyncHandler(async (req: Request, res: Response): 
 export const fetchWorkspaces = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
   const result = await db.select().from(workspaces).execute()
 
-  const response = apiResponse.success(HttpStatusCode.OK, result, "Fetched workspaces")
+  const response = apiResponse.success(HttpStatusCode.OK, result, 'Fetched workspaces')
 
   res.status(response.code).send(response)
 })
@@ -164,7 +164,7 @@ export const fetchWorkspacesByAccountId = asyncHandler(
     const { accountId } = req
 
     if (!accountId) {
-      const response = apiResponse.error(HttpErrors.MissingParameter("Account ID"))
+      const response = apiResponse.error(HttpErrors.MissingParameter('Account ID'))
       res.status(response.code).send(response)
       return
     }
@@ -173,7 +173,7 @@ export const fetchWorkspacesByAccountId = asyncHandler(
     const result = await db.select().from(workspaces).where(equals).execute()
 
     if (result.length === 0) {
-      const response = apiResponse.error(HttpErrors.NotFound("Workspaces"))
+      const response = apiResponse.error(HttpErrors.NotFound('Workspaces'))
       res.status(response.code).send(response)
       return
     }
@@ -189,7 +189,7 @@ export const fetchWorkspacesByAccountId = asyncHandler(
 )
 
 export async function updateWorkspace(_req: Request, res: Response): Promise<void> {
-  res.status(200).send("updateWorkspace")
+  res.status(200).send('updateWorkspace')
 }
 
 /**
@@ -205,14 +205,14 @@ export const updateWorkspaceProfile = asyncHandler(
     const { name } = req.body
 
     if (!workspaceId) {
-      const response = apiResponse.error(HttpErrors.MissingParameter("Workspace ID"))
+      const response = apiResponse.error(HttpErrors.MissingParameter('Workspace ID'))
       res.status(response.code).send(response)
       return
     }
 
     // Validate accountId exists and is a valid UUID
     if (!accountId) {
-      const response = apiResponse.error(HttpErrors.Unauthorized("Account ID is required"))
+      const response = apiResponse.error(HttpErrors.Unauthorized('Account ID is required'))
       res.status(response.code).send(response)
       return
     }
@@ -259,7 +259,7 @@ export const updateWorkspaceProfile = asyncHandler(
 
     if (!existingProfile) {
       const response = apiResponse.error(
-        HttpErrors.NotFound("Your profile was not found in this workspace")
+        HttpErrors.NotFound('Your profile was not found in this workspace')
       )
       res.status(response.code).send(response)
       return
@@ -273,7 +273,7 @@ export const updateWorkspaceProfile = asyncHandler(
       .returning()
 
     if (!updatedProfile) {
-      const response = apiResponse.error(HttpErrors.DatabaseError("Failed to update profile"))
+      const response = apiResponse.error(HttpErrors.DatabaseError('Failed to update profile'))
       res.status(response.code).send(response)
       return
     }
@@ -281,7 +281,7 @@ export const updateWorkspaceProfile = asyncHandler(
     const response = apiResponse.success(
       HttpStatusCode.OK,
       { profile: updatedProfile },
-      "Profile updated successfully"
+      'Profile updated successfully'
     )
 
     res.status(response.code).send(response)
@@ -291,7 +291,7 @@ export const updateWorkspaceProfile = asyncHandler(
 export async function inviteMembers(_req: Request, res: Response): Promise<void> {
   // TODO have to be existing users; it's just adding a user with a role.
   // TODO check the person making the request has the correct permissions to add users and set roles.
-  res.status(200).send("inviteMembers")
+  res.status(200).send('inviteMembers')
 }
 
 /**
@@ -303,7 +303,7 @@ export const deleteWorkspace = asyncHandler(async (req: Request, res: Response):
   const workspaceId = req.params.id
 
   if (!workspaceId) {
-    const response = apiResponse.error(HttpErrors.MissingParameter("Workspace ID"))
+    const response = apiResponse.error(HttpErrors.MissingParameter('Workspace ID'))
     res.status(response.code).send(response)
     return
   }
@@ -325,7 +325,7 @@ export const deleteWorkspace = asyncHandler(async (req: Request, res: Response):
     .limit(1)
 
   if (!workspace) {
-    const response = apiResponse.error(HttpErrors.NotFound("Workspace"))
+    const response = apiResponse.error(HttpErrors.NotFound('Workspace'))
     res.status(response.code).send(response)
     return
   }
