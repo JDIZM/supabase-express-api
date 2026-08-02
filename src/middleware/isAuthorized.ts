@@ -110,11 +110,9 @@ export const isAuthorized = markAsAuthorizationGuard(
         return
       }
 
-      // req.workspaceId is a single resolved value from here on. Workspace handlers currently read
-      // req.params.id directly rather than req.workspaceId, but that's safe: resolveWorkspaceId
-      // above guarantees the two agree (a mismatch was already rejected with 400), so params.id and
-      // the resolved workspaceId are always identical by the time a handler runs. req.workspaceId
-      // is still set here for callers (eg. logging, future handlers) that do read it.
+      // req.workspaceId is a single resolved value from here on. Workspace-scoped handlers read
+      // req.workspaceId (not req.params.id directly) so a handler and this authorization check can
+      // never disagree about which workspace is in play.
       req.workspaceId = resolved.workspaceId
       const { workspaceId } = req
 

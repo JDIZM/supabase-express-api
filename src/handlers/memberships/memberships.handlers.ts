@@ -28,7 +28,9 @@ export const createMembershipHandler = asyncHandler(
  */
 export const getWorkspaceMembers = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
-    const workspaceId = req.params.id
+    // req.workspaceId is set by isAuthorized on this (workspace-scoped) route, and is guaranteed
+    // to agree with req.params.id by the time a handler runs.
+    const workspaceId = req.workspaceId
 
     if (!workspaceId) {
       const response = apiResponse.error(HttpErrors.MissingParameter('Workspace ID'))
@@ -95,7 +97,8 @@ export const getWorkspaceMembers = asyncHandler(
  */
 export const addWorkspaceMember = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
-    const workspaceId = req.params.id
+    // See getWorkspaceMembers above: req.workspaceId is the resolved, isAuthorized-verified id.
+    const workspaceId = req.workspaceId
 
     const validation = MemberCreateSchema.safeParse(req.body)
     if (!validation.success) {
@@ -195,7 +198,8 @@ export const addWorkspaceMember = asyncHandler(
  * Body: { role: "admin" | "user" }
  */
 export const updateMemberRole = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const workspaceId = req.params.id
+  // See getWorkspaceMembers above: req.workspaceId is the resolved, isAuthorized-verified id.
+  const workspaceId = req.workspaceId
   const memberId = req.params.memberId
 
   const validation = MemberRoleUpdateSchema.safeParse(req.body)
@@ -308,7 +312,8 @@ export const updateMemberRole = asyncHandler(async (req: Request, res: Response)
  * Requires: Admin role in the workspace
  */
 export const removeMember = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const workspaceId = req.params.id
+  // See getWorkspaceMembers above: req.workspaceId is the resolved, isAuthorized-verified id.
+  const workspaceId = req.workspaceId
   const memberId = req.params.memberId
 
   if (!workspaceId || !memberId) {
