@@ -1,0 +1,8 @@
+packages:
+  - "."
+
+minimumReleaseAge: 1440
+onlyBuiltDependencies:
+  - "@sentry/profiling-node"
+  - bcrypt
+  - esbuild
