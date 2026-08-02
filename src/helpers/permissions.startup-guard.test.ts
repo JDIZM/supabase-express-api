@@ -136,6 +136,39 @@ describe('assertAllRoutesHavePermissions', () => {
       /DELETE \/__another-unregistered-route/
     )
   })
+
+  it('fails loud instead of silently passing when the router stack cannot be found at all', () => {
+    // Regression test for the exact failure mode a router-internals rename (eg. Express 4's
+    // `app._router.stack` becoming Express 5's `app.router.stack`) would otherwise cause: if the
+    // walk can't find the stack under either known property, treating that as "zero routes, zero
+    // offenders" would let assertAllRoutesHavePermissions pass at startup with the guard
+    // effectively disabled. It must throw instead, distinguishably from "no offenders found".
+    const appWithNoRouter = {} as Parameters<typeof findRoutesMissingPermissions>[0]
+
+    expect(() => findRoutesMissingPermissions(appWithNoRouter, permissions)).toThrow(
+      /could not find the router stack/
+    )
+    expect(() => assertAllRoutesHavePermissions(appWithNoRouter, permissions)).toThrow(
+      /could not find the router stack/
+    )
+  })
+
+  it('finds routes via app.router.stack (Express 5) as well as app._router.stack (Express 4)', () => {
+    // buildRouterApp uses the real, installed express package, so this is a sanity check that the
+    // walk reads whichever property the currently installed Express major actually exposes,
+    // rather than one hard-coded property that happened to work under Express 4.
+    const app = buildRouterApp([
+      { method: 'get', path: '/some/registered/route', middleware: [isAuthorized] },
+    ]) as unknown as { router?: unknown; _router?: unknown }
+
+    expect(app.router ?? app._router).toBeTruthy()
+
+    const offenders = findRoutesMissingPermissions(
+      app as Parameters<typeof findRoutesMissingPermissions>[0],
+      permissions
+    )
+    expect(offenders).toContain('GET /some/registered/route')
+  })
 })
 
 describe('the real application route set', () => {

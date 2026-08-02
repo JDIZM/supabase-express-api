@@ -171,9 +171,12 @@ permissions.set(API_ROUTES.adminAuditLogStats, {
 logger.info(permissions, 'route permissions set')
 
 /**
- * Express internals we need to walk the real registered router stack. Express 4 exposes this as
- * `app._router.stack`; each layer with a `.route` corresponds to one app.VERB(path, ...) call,
- * and `route.stack` holds the middleware chain registered for that (path, method) pair.
+ * Express internals we need to walk the real registered router stack. Express 4 exposed this as
+ * `app._router.stack`; Express 5 renamed the property to `app.router.stack` (the layer/route/
+ * route.stack shape itself — `.route.path`, `.route.stack[].method`, `.route.stack[].handle` —
+ * is unchanged between the two). Each layer with a `.route` corresponds to one
+ * app.VERB(path, ...) call, and `route.stack` holds the middleware chain registered for that
+ * (path, method) pair.
  */
 interface ExpressRouteLayer {
   handle: unknown
@@ -190,7 +193,36 @@ interface ExpressLayer {
 }
 
 interface ExpressAppWithRouter {
+  // Express 5
+  router?: { stack: ExpressLayer[] }
+  // Express 4 (kept so this still works against an Express-4-shaped app/test double).
   _router?: { stack: ExpressLayer[] }
+}
+
+/**
+ * Get the real router stack, whichever property this Express major version exposes it under.
+ * Throws rather than defaulting to `[]` — an app always has a router stack once at least one
+ * route is registered (assertAllRoutesHavePermissions only ever runs after routes(app) /
+ * adminRoutes(app)), so a missing stack here means the walk itself is broken — eg. a future
+ * Express version restructuring router internals again — not that there are legitimately zero
+ * routes. Silently returning `[]` in that case would find zero offenders and let startup pass
+ * with the guard effectively disabled, which is the exact failure mode this guard exists to
+ * prevent.
+ */
+function getRouterStack(app: ExpressAppWithRouter): ExpressLayer[] {
+  const stack = app.router?.stack ?? app._router?.stack
+
+  if (!stack) {
+    throw new Error(
+      'assertAllRoutesHavePermissions: could not find the router stack on the app (checked ' +
+        'app.router.stack and app._router.stack) — the route-permission startup guard cannot ' +
+        'verify anything and must not be treated as passing. This usually means the Express ' +
+        'version in use restructured router internals again; update getRouterStack in ' +
+        'src/helpers/permissions.ts to match.'
+    )
+  }
+
+  return stack
 }
 
 /**
@@ -243,7 +275,7 @@ export function findRoutesMissingPermissions(
   app: ExpressAppWithRouter,
   permissionsMap: PermissionsMap
 ): string[] {
-  const stack = app._router?.stack ?? []
+  const stack = getRouterStack(app)
   const offenders: string[] = []
 
   for (const layer of stack) {

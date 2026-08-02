@@ -59,7 +59,10 @@ class TokenTester {
       const { data, error } = await this.supabase.auth.getClaims(token)
 
       if (error || !data) {
-        logger.error('❌ Token verification failed:', error?.message || 'No data returned')
+        logger.error(
+          { reason: error?.message || 'No data returned' },
+          '❌ Token verification failed:'
+        )
         return null
       }
 
@@ -95,7 +98,7 @@ class TokenTester {
 
       return claims
     } catch (error) {
-      logger.error('❌ Token verification failed:', error)
+      logger.error({ err: error }, '❌ Token verification failed:')
       return null
     }
   }
@@ -125,7 +128,7 @@ class TokenTester {
 
       return payload
     } catch (error) {
-      logger.error('❌ Failed to decode token:', error)
+      logger.error({ err: error }, '❌ Failed to decode token:')
       return null
     }
   }
@@ -208,7 +211,7 @@ async function main(): Promise<void> {
       process.exit(1)
     }
   } catch (error) {
-    logger.error('❌ Error:', error)
+    logger.error({ err: error }, '❌ Error:')
     process.exit(1)
   }
 }

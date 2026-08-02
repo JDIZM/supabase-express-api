@@ -3,6 +3,7 @@ import { getProfileById } from '@/handlers/profiles/profiles.methods.ts'
 import { HttpErrors, HttpStatusCode } from '@/helpers/Http.ts'
 import type { Route } from '@/helpers/index.ts'
 import { logger, permissions } from '@/helpers/index.ts'
+import { getSingleParam } from '@/helpers/request.ts'
 import {
   isExplicitlyPublicRoute,
   markAsAuthorizationGuard,
@@ -43,7 +44,9 @@ function resolveWorkspaceId(
   // using the raw header risks an array silently coercing to "a,b" or similar via the `as`
   // cast. req.get() avoids that entirely.
   const headerWorkspaceId = req.get('x-workspace-id') || ''
-  const pathWorkspaceId = WORKSPACE_SCOPED_ROUTE.test(routeKey) ? req.params?.id || '' : ''
+  const pathWorkspaceId = WORKSPACE_SCOPED_ROUTE.test(routeKey)
+    ? getSingleParam(req.params?.id) || ''
+    : ''
 
   if (pathWorkspaceId && headerWorkspaceId && pathWorkspaceId !== headerWorkspaceId) {
     return { ok: false }
@@ -213,7 +216,7 @@ export const isAuthorized = markAsAuthorizationGuard(
       // An owner has access to all resources they own regardless of the workspace.
       if (resourcePermission.includes(ROLES.Owner) && accountId) {
         // Check if the user is the owner of the resource
-        const resourceId = req.params?.id || ''
+        const resourceId = getSingleParam(req.params?.id) || ''
         const resourceType = determineResourceType(routeKey)
 
         // Some resources require a db call to check if the user is the owner.
