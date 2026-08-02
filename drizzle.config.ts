@@ -9,18 +9,29 @@ import type { Config } from 'drizzle-kit'
 
 const isProduction = process.env.NODE_ENV === 'production'
 
-function requireEnv(name: string): string {
+// An empty string is treated as unset throughout: `POSTGRES_PASSWORD=""`
+// is a misconfiguration, not a real empty password, and letting it through
+// produces a confusing auth failure instead of a config error.
+function env(name: string): string | undefined {
   const value = process.env[name]
+  return value === undefined || value === '' ? undefined : value
+}
+
+function requireEnv(name: string): string {
+  const value = env(name)
   if (!value) {
+    // Names only what is genuinely required: PORT has a sensible default
+    // and PASSWORD is required in production only, so listing them here
+    // would misdirect someone who is already troubleshooting.
     throw new Error(
-      `drizzle-kit needs DATABASE_URL, or all of POSTGRES_HOST/PORT/USER/PASSWORD/DB. Missing: ${name}`
+      `drizzle-kit needs DATABASE_URL, or POSTGRES_HOST/USER/DB (plus POSTGRES_PASSWORD in production). Missing: ${name}`
     )
   }
   return value
 }
 
 function port(): number {
-  const raw = process.env.POSTGRES_PORT ?? '5432'
+  const raw = env('POSTGRES_PORT') ?? '5432'
   const parsed = Number(raw)
   // Number('') is 0 and Number('abc') is NaN; both would surface later as a
   // baffling connection failure rather than a config error.
@@ -31,7 +42,7 @@ function port(): number {
 }
 
 function credentials() {
-  const url = process.env.DATABASE_URL
+  const url = env('DATABASE_URL')
   if (url) return { url }
 
   return {
@@ -43,7 +54,7 @@ function credentials() {
     // and it contradicts src/config.ts, which requires this in production.
     password: isProduction
       ? requireEnv('POSTGRES_PASSWORD')
-      : (process.env.POSTGRES_PASSWORD ?? 'postgres'),
+      : (env('POSTGRES_PASSWORD') ?? 'postgres'),
     database: requireEnv('POSTGRES_DB'),
     ssl: isProduction,
   }
