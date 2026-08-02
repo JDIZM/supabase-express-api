@@ -220,6 +220,19 @@ function isAuthorizationGuard(fn: unknown): boolean {
 }
 
 /**
+ * A route is deliberately public when it has an entry saying so. `authenticated` is a property of
+ * the path, not of a method — isAuthenticated.ts looks the entry up by route key alone — so such an
+ * entry decides every method on that path and needs no per-method permission.
+ *
+ * Both the runtime check (isAuthorized.ts) and the startup guard below read this, so the two can't
+ * drift on what "decided" means. They already did once: the guard demanded a per-method entry, so
+ * the three public routes were reported as undeclared and startup threw.
+ */
+export function isExplicitlyPublicRoute(entry: ResourceWithMeta | undefined): boolean {
+  return entry !== undefined && !entry.authenticated
+}
+
+/**
  * Find every (path, method) pair that is actually wired through the isAuthorized middleware —
  * ie. a real, registered business route — but has no matching permissions entry. Comparing two
  * hand-maintained lists (the old approach) can't catch a route registered with a literal string,
@@ -248,6 +261,8 @@ export function findRoutesMissingPermissions(
 
     for (const method of methods) {
       const entry = permissionsMap.get(route.path as Route)
+      if (isExplicitlyPublicRoute(entry)) continue
+
       const hasMethodPermission =
         entry !== undefined &&
         Object.prototype.hasOwnProperty.call(entry.permissions, method as string)
