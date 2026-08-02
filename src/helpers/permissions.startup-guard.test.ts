@@ -1,6 +1,6 @@
 import express from 'express'
 import type { NextFunction, Request, Response } from 'express'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { buildRouterApp } from '@/test-support/route-app.ts'
 import {
   assertAllRoutesHavePermissions,
@@ -139,6 +139,10 @@ describe('assertAllRoutesHavePermissions', () => {
 })
 
 describe('the real application route set', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
   // Every test above builds a synthetic app, so all of them passed while the actual app could not
   // start: the guard demanded a per-method permission, but `/`, `/login` and `/signup` are declared
   // public at the path level (`{ permissions: {}, authenticated: false }`), so it named all three as
@@ -147,11 +151,10 @@ describe('the real application route set', () => {
   it('starts up clean, so a route or permission change cannot break boot without failing here first', async () => {
     // The route modules pull in config.ts, which validates the whole runtime env at module load.
     // These values are never used — nothing here opens a connection — they just let the import
-    // succeed so the real route table can be registered.
-    Object.assign(process.env, {
-      SUPABASE_URL: 'https://startup-guard-test.supabase.co',
-      SUPABASE_PUBLISHABLE_KEY: 'not-used',
-    })
+    // succeed so the real route table can be registered. Stubbed rather than assigned so they are
+    // undone afterwards and no later test inherits them.
+    vi.stubEnv('SUPABASE_URL', 'https://startup-guard-test.supabase.co')
+    vi.stubEnv('SUPABASE_PUBLISHABLE_KEY', 'not-used')
 
     const { routes } = await import('@/routes/index.ts')
     const { adminRoutes } = await import('@/routes/admin.ts')
