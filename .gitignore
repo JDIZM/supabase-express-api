@@ -11,5 +11,8 @@ logs
 .vscode/
 local/
 
-# Claude Code
-.claude/settings.local.json
+# Claude Code — the whole directory. Only worth committing when it holds
+# SHARED scaffolding (settings.json, agents/, commands/, skills/); this repo
+# has none, and the docs that used to live in .claude/docs/ are now in docs/
+# where anyone browsing the repo will actually find them.
+.claude/

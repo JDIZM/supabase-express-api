@@ -1,10 +1,29 @@
 # GitHub Actions Database Migrations Guide
 
-This document provides a comprehensive guide for implementing automated database migrations via GitHub Actions for the Supabase Express API project.
+> **Status (2026-08-03): partly implemented.** This began as a proposal and
+> parts of it have since shipped, so read it as design notes plus a
+> backlog, not as a description of the pipeline.
+>
+> **What exists today:** a `verify-migrations` job in both `main.yml` and
+> `pull-request.yml`. It spins up a throwaway `postgres:17-alpine` service
+> container and applies every migration to it. That is *verification* — it
+> catches a broken or conflicting migration before anything real is touched
+> — and it needs no secrets, so it works on forks too.
+>
+> **What does NOT exist:** any job that applies migrations to a real
+> database. The `migrate-dev` job described below is present in `main.yml`
+> but **commented out**, along with the conditions for re-enabling it. No
+> deployment step runs migrations against dev, staging or production; that
+> is still manual.
+>
+> The section below described the repo before any of this landed; it is
+> kept for the reasoning, with the stale facts corrected inline.
 
 ## Overview
 
-Currently, database migrations are run manually using `pnpm migrate` during development and deployment. This guide outlines how to automate this process using GitHub Actions to ensure database schema changes are applied consistently across dev/staging/production environments.
+Database migrations against real environments are still run manually with
+`pnpm migrate`. This guide outlines how that could be automated so schema
+changes are applied consistently across dev/staging/production.
 
 ## Current State Analysis
 
@@ -12,9 +31,9 @@ Currently, database migrations are run manually using `pnpm migrate` during deve
 
 The project has three workflows configured:
 
-1. **`pull-request.yml`** - Runs tests on PRs (Node 18, 20, 22 matrix)
-2. **`main.yml`** - Runs tests on main branch pushes + commented deployment to dev
-3. **`release.yml`** - Runs tests on releases + commented deployment to prod
+1. **`pull-request.yml`** - tests on PRs (Node 22, 24 matrix) + `verify-migrations`
+2. **`main.yml`** - tests on main pushes + `verify-migrations`, plus a commented-out `migrate-dev`
+3. **`release.yml`** - tests on releases + commented deployment to prod
 
 ### Current Database Setup
 
