@@ -65,7 +65,7 @@
     "node": "22.23.2"
   },
   "dependencies": {
-    "@asteasolutions/zod-to-openapi": "^8.0.0",
+    "@asteasolutions/zod-to-openapi": "^9.0.0",
     "@sentry/node": "^9.11.0",
     "@sentry/profiling-node": "^9.11.0",
     "@supabase/supabase-js": "^2.43.4",
