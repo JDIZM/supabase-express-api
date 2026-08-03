@@ -1,5 +1,12 @@
 # API Enhancement Implementation Guide
 
+> **Status: proposal, not a description of the API.** This is a design
+> document written up-front; large parts of it were never built, and the
+> wording throughout is "recommended"/"should be" rather than "does".
+> Treat it as a backlog and a record of the reasoning. For what the API
+> actually exposes, see [FEATURES.md](FEATURES.md) and the generated
+> OpenAPI document at `/api-docs`.
+
 ## Executive Summary
 
 This document provides a comprehensive implementation guide for enhancing the Supabase Express API with complete endpoint coverage, Swagger documentation, and proper security middleware. The current API has basic functionality but lacks admin-level operations, proper documentation, and enhanced security measures.
