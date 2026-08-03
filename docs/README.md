@@ -1,8 +1,13 @@
 # Docs
 
-**Check the status line on each one.** Some describe what the API does;
-others are design proposals written up-front and only partly built. Mixing
-the two without saying which is which is how documentation starts lying.
+Some of these describe what the API does; others are design proposals
+written up-front and only partly built. **The table says which is which** —
+and the two that are not straight descriptions repeat it in a status block
+at the top of the file, because that is where someone arriving from a
+search result will be.
+
+Mixing the two without saying which is which is how documentation starts
+lying.
 
 | Document | What it is |
 | --- | --- |
