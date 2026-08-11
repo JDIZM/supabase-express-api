@@ -11,7 +11,7 @@ jobs:
         node-version: [22, 24]
     steps:
       - uses: actions/checkout@v7
-      - uses: volta-cli/action@v4
+      - uses: volta-cli/action@v5
         with:
           node-version: ${{ matrix.node-version }}
       - run: volta install pnpm
@@ -46,7 +46,7 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v7
-      - uses: volta-cli/action@v4
+      - uses: volta-cli/action@v5
         with:
           node-version: 22
       - run: volta install pnpm
