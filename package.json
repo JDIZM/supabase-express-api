@@ -84,7 +84,7 @@
     "express-rate-limit": "^8.0.2",
     "helmet": "^8.0.0",
     "pg": "^8.14.1",
-    "pino": "^9.14.0",
+    "pino": "^10.0.0",
     "pino-http": "^10.4.0",
     "swagger-ui-express": "^5.0.1"
   }
