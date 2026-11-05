@@ -46,7 +46,7 @@
     "eslint-config-prettier": "^10.0.0",
     "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-import": "^2.32.0",
-    "globals": "^15.0.0",
+    "globals": "^17.0.0",
     "pino-pretty": "^13.0.0",
     "pkgroll": "^2.1.1",
     "prettier": "^3.2.5",
