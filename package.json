@@ -85,7 +85,7 @@
     "helmet": "^8.0.0",
     "pg": "^8.14.1",
     "pino": "^9.14.0",
-    "pino-http": "^10.4.0",
+    "pino-http": "^11.0.0",
     "swagger-ui-express": "^5.0.1"
   }
 }
